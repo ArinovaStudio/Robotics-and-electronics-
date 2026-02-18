@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { compare } from "bcryptjs";
 import prisma from "@/app/lib/db";
-import { signIn } from "next-auth/react";
+import { generateToken } from "@/app/lib/jwt";
 import {
   successResponse,
   errorResponse,
@@ -61,14 +61,20 @@ export async function POST(request: NextRequest) {
       return errorResponse("Invalid email or password", 401);
     }
 
-    // Return user data (password excluded)
+    // Generate JWT token
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    // Return user data with token (password excluded)
     const { password: _, ...userWithoutPassword } = user;
 
     return successResponse(
       {
+        token,
         user: userWithoutPassword,
-        message:
-          "Login successful. Use NextAuth signIn for session-based auth.",
       },
       "Login successful",
       200,

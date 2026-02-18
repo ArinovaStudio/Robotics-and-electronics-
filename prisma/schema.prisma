@@ -169,16 +169,13 @@ model Product {
   price                  Json // { value: number, currency: string }
   salePrice              Json? // { value: number, currency: string }
   salePriceEffectiveDate Json? // { startDate: DateTime, endDate: DateTime }
-  costOfGoodsSold        Json? // { value: number, currency: string }
 
   // Availability & Stock
-  availability     ProductAvailability @default(IN_STOCK)
-  availabilityDate DateTime?
-  stockQuantity    Int                 @default(0)
+  availability  ProductAvailability @default(IN_STOCK)
+  stockQuantity Int                 @default(0)
 
   // Identification
-  sku   String   @unique
-  gtin  String[] // Barcodes
+  sku   String  @unique
   mpn   String? // Manufacturer Part Number
   brand String?
 
@@ -186,55 +183,23 @@ model Product {
   condition ProductCondition @default(NEW)
 
   // Category
-  categoryId            String
-  productTypes          String[] // Additional categorization
-  googleProductCategory String? // Google category taxonomy
+  categoryId String
 
-  // Physical Attributes
-  productHeight Json? // { value: number, unit: string }
-  productLength Json? // { value: number, unit: string }
-  productWidth  Json? // { value: number, unit: string }
-  productWeight Json? // { value: number, unit: string }
-
-  // Shipping Dimensions
-  shippingWeight Json? // { value: number, unit: string }
-  shippingHeight Json? // { value: number, unit: string }
-  shippingLength Json? // { value: number, unit: string }
-  shippingWidth  Json? // { value: number, unit: string }
-
-  // Shipping Settings
-  shipping              Json[] // Array of shipping rules
-  freeShippingThreshold Json[] // Free shipping conditions
-
-  // Additional Details
+  // Product Information
   productDetails    Json[] // [{ sectionName, attributeName, attributeValue }]
   productHighlights String[] // Key features
 
   // Custom Labels (for filtering/organization)
   customLabel0 String?
   customLabel1 String?
-  customLabel2 String?
-  customLabel3 String?
-  customLabel4 String?
-
-  // Tax
-  taxes       Json[] // Tax rules
-  taxCategory String?
 
   // Status
-  isActive         Boolean @default(true)
-  isBundle         Boolean @default(false)
-  identifierExists Boolean @default(true)
-  adult            Boolean @default(false)
-
-  // Handling Time
-  maxHandlingTime Int? // In days
-  minHandlingTime Int? // In days
+  isActive Boolean @default(true)
+  isBundle Boolean @default(false)
 
   // Timestamps
-  expirationDate DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   category   Category    @relation(fields: [categoryId], references: [id])
