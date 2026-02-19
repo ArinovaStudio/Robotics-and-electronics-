@@ -9,10 +9,10 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const queryValidation = listCategoriesQuerySchema.safeParse({
-      includeProducts: searchParams.get("includeProducts"),
-      includeChildren: searchParams.get("includeChildren"),
-      parentId: searchParams.get("parentId"),
-      isActive: searchParams.get("isActive"),
+      includeProducts: searchParams.get("includeProducts") ?? undefined,
+      includeChildren: searchParams.get("includeChildren") ?? undefined,
+      parentId: searchParams.get("parentId") ?? undefined,
+      isActive: searchParams.get("isActive") ?? undefined,
     });
 
     if (!queryValidation.success) {
