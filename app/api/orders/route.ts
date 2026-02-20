@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       return errorResponse("Address does not belong to you", 403);
     }
 
-    // Validate all products are available and in stock
+    // Basic product validation (active status check only)
     for (const item of cart.items) {
       const product = item.product;
 
@@ -204,12 +204,7 @@ export async function POST(request: NextRequest) {
         return errorResponse(`Product "${product.title}" is out of stock`, 400);
       }
 
-      if (item.quantity > product.stockQuantity) {
-        return errorResponse(
-          `Insufficient stock for "${product.title}". Only ${product.stockQuantity} available`,
-          400,
-        );
-      }
+      // Stock validation will happen inside transaction to prevent race conditions
     }
 
     // Calculate order totals
@@ -250,6 +245,20 @@ export async function POST(request: NextRequest) {
 
     // Begin transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Re-validate stock inside transaction to prevent race conditions
+      for (const item of cart.items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { stockQuantity: true, title: true },
+        });
+
+        if (!product || item.quantity > product.stockQuantity) {
+          throw new Error(
+            `Insufficient stock for "${product?.title || "product"}". Only ${product?.stockQuantity || 0} available`,
+          );
+        }
+      }
+
       // Create order
       const order = await tx.order.create({
         data: {
@@ -357,8 +366,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Create order error:", error);
 
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return errorResponse("Unauthorized", 401);
+    if (error instanceof Error) {
+      if (error.message === "Unauthorized") {
+        return errorResponse("Unauthorized", 401);
+      }
+      if (error.message.includes("Insufficient stock")) {
+        return errorResponse(error.message, 400);
+      }
     }
 
     return errorResponse("Internal server error", 500);
