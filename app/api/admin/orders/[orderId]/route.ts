@@ -5,14 +5,11 @@ import { successResponse, errorResponse } from "@/app/lib/api-response";
 import { updateOrderStatusSchema } from "@/app/lib/validations/admin-order";
 
 // GET /api/admin/orders/[orderId] - Get order details
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { orderId: string } },
-) {
+export async function GET( request: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   try {
     await requireAdmin();
 
-    const { orderId } = params;
+    const { orderId } = await params;
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -73,14 +70,11 @@ export async function GET(
 }
 
 // PATCH /api/admin/orders/[orderId] - Update order status
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { orderId: string } },
-) {
+export async function PATCH( request: NextRequest, { params }: { params: Promise<{ orderId: string }> } ) {
   try {
     await requireAdmin();
 
-    const { orderId } = params;
+    const { orderId } = await params;
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
