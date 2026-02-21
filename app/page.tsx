@@ -1,9 +1,16 @@
 import Image from "next/image";
+import Navbar from "./components/Navbar";
+import HomePoster from "./components/HomePoster";
+import HomeCategories from "./components/HomeCategories";
+import RoboticsPartsSection from "./components/RoboticsPartsSection";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200">Welcome to Electronics Store</h1>
-    </div>
+    <main className=" bg-[#FFFFFF] min-h-screen">
+      <Navbar />
+      <HomePoster />
+      <HomeCategories />
+      <RoboticsPartsSection />
+    </main>
   );
 }
