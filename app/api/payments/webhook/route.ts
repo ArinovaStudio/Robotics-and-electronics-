@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import prisma from "@/app/lib/db";
 import { successResponse, errorResponse } from "@/app/lib/api-response";
 import crypto from "crypto";
+import { sendOrderConfirmationEmail } from "@/app/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,8 +31,6 @@ export async function POST(request: NextRequest) {
     const event = JSON.parse(body);
     const eventType = event.event;
     const payload = event.payload;
-
-    console.log(`Webhook received: ${eventType}`);
 
     // Handle different event types
     switch (eventType) {
@@ -88,16 +87,27 @@ export async function POST(request: NextRequest) {
 
         // Update order status to CONFIRMED if not already
         if (payment.order.status === "PENDING") {
-          await prisma.order.update({
+          const updatedOrder = await prisma.order.update({
             where: { id: payment.orderId },
             data: {
               status: "CONFIRMED",
               confirmedAt: new Date(),
             },
+            include: {
+               user: true,
+               items: true
+            }
           });
+
+          sendOrderConfirmationEmail(
+             updatedOrder.user.email,
+             updatedOrder.user.name,
+             updatedOrder.orderNumber,
+             updatedOrder.totalAmount.toString(),
+             updatedOrder.items
+          );
         }
 
-        console.log(`Payment captured for order: ${payment.order.orderNumber}`);
         break;
       }
 
@@ -171,19 +181,12 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        console.log(
-          `Refund created for order: ${payment.order.orderNumber}, Amount: ${refundAmount}`,
-        );
         break;
       }
-
-      default:
-        console.log(`Unhandled webhook event: ${eventType}`);
     }
 
     return successResponse(null, "Webhook processed");
-  } catch (error) {
-    console.error("Webhook processing error:", error);
+  } catch {
     return errorResponse("Webhook processing failed", 500);
   }
 }

@@ -9,6 +9,7 @@ import {
 import { verifyPaymentSchema } from "@/app/lib/validations/payment";
 import razorpay from "@/app/lib/razorpay";
 import crypto from "crypto";
+import { sendOrderConfirmationEmail } from "@/app/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(
         validation.error.issues[0]?.message || "Invalid request data",
         400,
-      );
+      ); 
     }
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
@@ -117,7 +118,19 @@ export async function POST(request: NextRequest) {
         status: "CONFIRMED",
         confirmedAt: new Date(),
       },
+      include: {
+        user: true,
+        items: true
+      }
     });
+
+    sendOrderConfirmationEmail(
+        updatedOrder.user.email,
+        updatedOrder.user.name,
+        updatedOrder.orderNumber,
+        updatedOrder.totalAmount.toString(),
+        updatedOrder.items
+    );
 
     return successResponse(
       {

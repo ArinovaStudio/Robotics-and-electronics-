@@ -150,3 +150,77 @@ export async function sendPasswordChangedEmail(
     text,
   });
 }
+
+
+export async function sendOrderConfirmationEmail(
+  email: string,
+  name: string,
+  orderNumber: string,
+  totalAmount: number | string,
+  items: any[] 
+): Promise<void> {
+  const subject = `Order Confirmed! #${orderNumber} - Electronics Store`;
+
+  const itemsHtml = items.map((item) => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <strong>${item.productSnapshot?.title || 'Product'}</strong><br/>
+        <span style="color: #666; font-size: 12px;">Qty: ${item.quantity}</span>
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${Number(item.priceAtPurchase) * item.quantity}
+      </td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          .total-row { font-size: 18px; font-weight: bold; color: #4F46E5; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Payment Successful!</h1>
+          </div>
+          <div class="content">
+            <h2>Thank you for your order, ${name}!</h2>
+            <p>We've received your payment and your order is now confirmed. We are getting it ready for shipment.</p>
+            <p><strong>Order Number:</strong> ${orderNumber}</p>
+            
+            <table>
+              <tbody>
+                ${itemsHtml}
+                <tr>
+                  <td style="padding: 15px 10px; text-align: right;"><strong>Total Paid:</strong></td>
+                  <td class="total-row" style="padding: 15px 10px; text-align: right;">₹${totalAmount}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Electronics Store. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `Hi ${name}, your order #${orderNumber} for ₹${totalAmount} is confirmed!`;
+
+  await sendEmail({
+    to: email,
+    subject,
+    html,
+    text,
+  });
+}
