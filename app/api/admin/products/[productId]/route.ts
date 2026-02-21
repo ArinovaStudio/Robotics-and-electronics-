@@ -2,184 +2,143 @@ import { NextRequest } from "next/server";
 import prisma from "@/app/lib/db";
 import { requireAdmin } from "@/app/lib/auth";
 import { successResponse, errorResponse } from "@/app/lib/api-response";
+import { uploadFile, uploadMultipleFiles, deleteFile } from "@/app/lib/upload";
 import { updateProductSchema } from "@/app/lib/validations/admin-product";
 
-// PATCH /api/admin/products/[productId] - Update product
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { productId: string } },
-) {
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     await requireAdmin();
+    const { productId } = await params;
 
-    const { productId } = params;
+    const existingProduct = await prisma.product.findUnique({ where: { id: productId } });
+    if (!existingProduct) return errorResponse("Product not found", 404);
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-    if (!product) {
-      return errorResponse("Product not found", 404);
+    const formData = await request.formData();
+
+    const link = formData.get("link") as string;
+    const sku = formData.get("sku") as string;
+
+    if (link || sku) {
+        const check = await prisma.product.findFirst({
+            where: {
+                OR: [ ...(link ? [{ link }] : []), ...(sku ? [{ sku }] : []) ],
+                NOT: { id: productId }
+            }
+        });
+        if (check?.link === link) return errorResponse("Product with this link already exists", 400);
+        if (check?.sku === sku) return errorResponse("Product with this SKU already exists", 400);
     }
 
-    const body = await request.json();
+    const parseJson = (key: string, fallback: any) => {
+      const val = formData.get(key);
+      if (!val) return fallback;
+      try { return JSON.parse(val as string); } catch { return fallback; }
+    };
+    const imagesToDelete = parseJson("imagesToDelete", []) as string[];
 
-    const validation = updateProductSchema.safeParse(body);
-    if (!validation.success) {
-      return errorResponse(validation.error.issues[0].message, 400);
-    }
+    let imageLink = existingProduct.imageLink;
+    let additionalImageLinks = [...existingProduct.additionalImageLinks];
 
-    const data = validation.data;
-
-    // Build validation queries array
-    const validationPromises: Promise<any>[] = [];
-    let checkCategory = false;
-    let checkUniqueness = false;
-    const uniquenessConditions: any[] = [];
-
-    if (data.categoryId) {
-      checkCategory = true;
-      validationPromises.push(
-        prisma.category.findUnique({
-          where: { id: data.categoryId },
-          select: { id: true },
-        }),
-      );
-    }
-
-    if (data.link && data.link !== product.link) {
-      checkUniqueness = true;
-      uniquenessConditions.push({ link: data.link });
-    }
-
-    if (data.sku && data.sku !== product.sku) {
-      checkUniqueness = true;
-      uniquenessConditions.push({ sku: data.sku });
-    }
-
-    if (checkUniqueness) {
-      validationPromises.push(
-        prisma.product.findFirst({
-          where: {
-            OR: uniquenessConditions,
-            NOT: { id: productId },
-          },
-          select: { link: true, sku: true },
-        }),
-      );
-    }
-
-    // Execute all validation queries in parallel
-    if (validationPromises.length > 0) {
-      const results = await Promise.all(validationPromises);
-      let resultIndex = 0;
-
-      if (checkCategory) {
-        const category = results[resultIndex++];
-        if (!category) {
-          return errorResponse("Category not found", 404);
-        }
+    if (imagesToDelete.length > 0) {
+      for (const img of imagesToDelete) {
+        await deleteFile(img).catch(() => {}); 
       }
-
-      if (checkUniqueness) {
-        const existingProduct = results[resultIndex];
-        if (existingProduct) {
-          if (data.link && existingProduct.link === data.link) {
-            return errorResponse(
-              "Product with this link/slug already exists",
-              400,
-            );
-          }
-          if (data.sku && existingProduct.sku === data.sku) {
-            return errorResponse("Product with this SKU already exists", 400);
-          }
-        }
-      }
+      additionalImageLinks = additionalImageLinks.filter(img => !imagesToDelete.includes(img));
     }
 
-    // Build update data object (only include provided fields)
-    const updateData: any = Object.fromEntries(
-      Object.entries(data).filter(([_, value]) => value !== undefined),
-    );
+    const imageFile = formData.get("image") as File | null;
+    if (imageFile && imageFile.size > 0) {
+      imageLink = await uploadFile(imageFile, "products");
+      if (existingProduct.imageLink) await deleteFile(existingProduct.imageLink).catch(() => {});
+    }
 
-    const updatedProduct = await prisma.product.update({
-      where: { id: productId },
-      data: updateData,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
-    });
+    const additionalFiles = formData.getAll("additionalImages") as File[];
+    const validAdditionalFiles = additionalFiles.filter(f => f.size > 0);
+    if (validAdditionalFiles.length > 0) {
+      const newLinks = (await uploadMultipleFiles(validAdditionalFiles, "products")).map(f => f.path);
+      additionalImageLinks = [...additionalImageLinks, ...newLinks];
+    }
 
+    const payload: any = { imageLink, additionalImageLinks };
+    if (formData.has("title")) payload.title = formData.get("title");
+    if (formData.has("description")) payload.description = formData.get("description");
+    if (formData.has("link")) payload.link = link;
+    if (formData.has("price")) payload.price = parseJson("price", undefined);
+    if (formData.has("salePrice")) payload.salePrice = parseJson("salePrice", null);
+    if (formData.has("salePriceEffectiveDate")) payload.salePriceEffectiveDate = parseJson("salePriceEffectiveDate", null);
+    if (formData.has("availability")) payload.availability = formData.get("availability");
+    if (formData.has("stockQuantity")) payload.stockQuantity = parseInt(formData.get("stockQuantity") as string);
+    if (formData.has("sku")) payload.sku = sku;
+    if (formData.has("mpn")) payload.mpn = formData.get("mpn");
+    if (formData.has("brand")) payload.brand = formData.get("brand");
+    if (formData.has("condition")) payload.condition = formData.get("condition");
+    if (formData.has("categoryId")) payload.categoryId = formData.get("categoryId");
+    if (formData.has("productDetails")) payload.productDetails = parseJson("productDetails", undefined);
+    if (formData.has("productHighlights")) payload.productHighlights = parseJson("productHighlights", undefined);
+    if (formData.has("customLabel0")) payload.customLabel0 = formData.get("customLabel0");
+    if (formData.has("customLabel1")) payload.customLabel1 = formData.get("customLabel1");
+    if (formData.has("isActive")) payload.isActive = formData.get("isActive") === "true";
+    if (formData.has("isBundle")) payload.isBundle = formData.get("isBundle") === "true";
+
+    const validation = updateProductSchema.safeParse(payload);
+    if (!validation.success) return errorResponse(validation.error.issues[0].message, 400);
+
+    const updatedProduct = await prisma.product.update({ where: { id: productId }, data: validation.data });
     return successResponse(updatedProduct, "Product updated successfully.");
   } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+    return errorResponse(error.message || "Internal server error", 500);
   }
 }
 
-// DELETE /api/admin/products/[productId] - Delete product
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { productId: string } },
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     await requireAdmin();
+    const { productId } = await params;
 
-    const { productId } = params;
-
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
+    const product = await prisma.product.findUnique({ 
+      where: { id: productId } 
     });
+    
     if (!product) {
       return errorResponse("Product not found", 404);
     }
 
-    // Check if product has pending/processing orders
-    const pendingOrders = await prisma.orderItem.findFirst({
-      where: {
-        productId,
-        order: {
-          status: {
-            in: ["PENDING", "CONFIRMED", "PROCESSING"],
-          },
-        },
-      },
+    const linkedOrders = await prisma.orderItem.findFirst({
+      where: { productId },
     });
 
-    if (pendingOrders) {
+    if (linkedOrders) {
       return errorResponse(
-        "Cannot delete product with pending orders. Please mark as inactive instead.",
-        400,
+        "Cannot hard-delete this product because it is linked to customer orders. Please edit the product and uncheck 'Active' to hide it instead.", 
+        400
       );
     }
 
-    // Soft delete - just mark as inactive
-    await prisma.product.update({
-      where: { id: productId },
-      data: { isActive: false },
+    await prisma.product.delete({ 
+      where: { id: productId } 
     });
 
-    // Note: Not deleting images from filesystem in this implementation
-    // In production, you would want to handle image cleanup here
+    const deletePromises: Promise<boolean>[] = [];
 
-    return successResponse(null, "Product deleted successfully.");
+    if (product.imageLink) {
+      deletePromises.push(deleteFile(product.imageLink));
+    }
+
+    if (product.additionalImageLinks && product.additionalImageLinks.length > 0) {
+      product.additionalImageLinks.forEach((imgUrl) => {
+        deletePromises.push(deleteFile(imgUrl));
+      });
+    }
+
+    await Promise.allSettled(deletePromises);
+
+    return successResponse(null, "Product and its images deleted successfully.");
   } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+    if (error.code === 'P2003') {
+       return errorResponse("Cannot delete product because it is referenced elsewhere in the database.", 400);
+    }
+
+    return errorResponse(error.message || "Internal server error", 500);
   }
 }

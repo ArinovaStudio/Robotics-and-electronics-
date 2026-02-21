@@ -8,40 +8,83 @@ import {
   unauthorizedResponse,
 } from "@/app/lib/api-response";
 import { createCategorySchema } from "@/app/lib/validations/admin-category";
+import z from "zod";
 
-// GET /api/admin/categories - List all categories
+export const adminListCategoriesQuerySchema = z.object({
+  page: z.string().optional().default("1").transform((val) => parseInt(val)).pipe(z.number().int().min(1)),
+  limit: z.string().optional().default("10").transform((val) => parseInt(val)).pipe(z.number().int().min(1).max(100)),
+  search: z.string().optional(),
+  status: z.enum(["all", "active", "hidden"]).optional().default("all"),
+});
+
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
+    if (!user) return unauthorizedResponse("Admin access required");
 
-    const categories = await prisma.category.findMany({
-      include: {
-        parent: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
+    const { searchParams } = new URL(request.url);
+    const queryObject = Object.fromEntries(searchParams.entries());
+
+    const validation = adminListCategoriesQuerySchema.safeParse(queryObject);
+    if (!validation.success) return errorResponse(validation.error.issues[0].message, 400);
+
+    const { page, limit, search, status } = validation.data;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { slug: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    
+    if (status === "active") where.isActive = true;
+    else if (status === "hidden") where.isActive = false;
+
+    const [categories, totalFiltered, allCategoriesForMetrics] = await Promise.all([
+      prisma.category.findMany({
+        where,
+        include: {
+          parent: { select: { id: true, name: true, slug: true } },
+          _count: { select: { products: true, children: true } },
         },
-        _count: {
-          select: {
-            products: true,
-            children: true,
-          },
-        },
-      },
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        skip,
+        take: limit,
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      }),
+      prisma.category.count({ where }),
+      prisma.category.findMany({
+        select: { isActive: true, _count: { select: { products: true } } }
+      })
+    ]);
+
+    const totalCategories = allCategoriesForMetrics.length;
+    let activeCategories = 0;
+    let emptyCategories = 0;
+
+    allCategoriesForMetrics.forEach(cat => {
+      if (cat.isActive) activeCategories++;
+      if (cat._count.products === 0) emptyCategories++;
     });
 
-    return successResponse({ categories });
-  } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+    return successResponse({
+      categories,
+      metrics: {
+        totalCategories,
+        activeCategories,
+        emptyCategories
+      },
+      pagination: {
+        page,
+        limit,
+        total: totalFiltered,
+        totalPages: Math.ceil(totalFiltered / limit) || 1,
+      }
+    });
+
+  } catch {
+    return errorResponse("Internal server error", 500);
   }
 }
 

@@ -7,7 +7,11 @@ import { adminListUsersQuerySchema } from "@/app/lib/validations/admin-user";
 // GET /api/admin/users - List all users with filters
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
+
+    if (!user) {
+      return errorResponse("Unauthorized", 401);
+    }
 
     const { searchParams } = new URL(request.url);
     const queryObject = Object.fromEntries(searchParams.entries());
@@ -21,7 +25,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: any = { id: { not: user.id }, role: { not: "ADMIN" } };
 
     // Search in name and email
     if (search) {
@@ -61,7 +65,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch users and total count
-    const [users, total] = await Promise.all([
+    const [users, totalFiltered, totalCustomers, verifiedCustomers] = await Promise.all([
       prisma.user.findMany({
         where,
         select: {
@@ -72,17 +76,15 @@ export async function GET(request: NextRequest) {
           emailVerified: true,
           phone: true,
           createdAt: true,
-          _count: {
-            select: {
-              orders: true,
-            },
-          },
+          _count: { select: { orders: true } },
         },
         skip,
         take: limit,
-        orderBy,
+        orderBy: sort === "orders" ? undefined : orderBy, // Handled post-fetch if "orders"
       }),
       prisma.user.count({ where }),
+      prisma.user.count({ where: { role: { not: "ADMIN" } } }), // Global Total
+      prisma.user.count({ where: { role: { not: "ADMIN" }, emailVerified: { not: null } } }) // Global Verified
     ]);
 
     // Calculate totalSpent for each user in parallel
@@ -112,14 +114,19 @@ export async function GET(request: NextRequest) {
       usersWithSpent.sort((a, b) => b._count.orders - a._count.orders);
     }
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
 
     return successResponse({
       users: usersWithSpent,
+      metrics: {
+        totalCustomers,
+        verifiedCustomers,
+        unverifiedCustomers: totalCustomers - verifiedCustomers
+      },
       pagination: {
         page,
         limit,
-        total,
+        total: totalFiltered,
         totalPages,
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,
