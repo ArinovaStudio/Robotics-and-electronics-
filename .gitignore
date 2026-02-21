@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+postman_collection_updated.json
+postman_collection.json
+
 # next.js
 /.next/
 /out/
