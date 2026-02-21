@@ -1,17 +1,24 @@
-
 "use client";
 import React, { useState } from "react";
-import { ArrowRight, SlidersHorizontal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import FilterSidebar from "./FilterSidebar";
+import ProductGrid from "./ProductGrid";
 
-const brands = ["FANUC", "ABB", "KUKA", "Denso Corporation", "Arduino"];
-const types = [
+const brands: string[] = [
+  "FANUC",
+  "ABB",
+  "KUKA",
+  "Denso Corporation",
+  "Arduino",
+];
+const types: string[] = [
   "Electric Motor",
   "Semi-Conductors",
   "Ultra Sonic Sensors",
   "Sensors",
   "Wires",
 ];
-const discounts = [
+const discounts: string[] = [
   "10% OFF",
   "20% OFF",
   "30% OFF",
@@ -21,7 +28,14 @@ const discounts = [
   "70% OFF",
 ];
 
-const products = Array(6).fill({
+type Product = {
+  name: string;
+  desc: string;
+  price: number;
+  oldPrice: number;
+  discount: string;
+};
+const products: Product[] = Array(6).fill({
   name: "Aurdino uno 3.4",
   desc: "Lorem ipsum dolor sit amet consectetur. Augue ut nec mauris mauris cras gravida suspendisse.",
   price: 400,
@@ -29,14 +43,14 @@ const products = Array(6).fill({
   discount: "20% OFF",
 });
 
-function PriceRangeSlider() {
-  const [minVal, setMinVal] = useState(100);
-  const [maxVal, setMaxVal] = useState(1000);
-  const MIN = 100;
-  const MAX = 1000;
+function PriceRangeSlider(): JSX.Element {
+  const [minVal, setMinVal] = useState<number>(100);
+  const [maxVal, setMaxVal] = useState<number>(1000);
+  const MIN: number = 100;
+  const MAX: number = 1000;
 
-  const minPercent = ((minVal - MIN) / (MAX - MIN)) * 100;
-  const maxPercent = ((maxVal - MIN) / (MAX - MIN)) * 100;
+  const minPercent: number = ((minVal - MIN) / (MAX - MIN)) * 100;
+  const maxPercent: number = ((maxVal - MIN) / (MAX - MIN)) * 100;
 
   return (
     <div className="mb-2">
@@ -128,11 +142,13 @@ function PriceRangeSlider() {
   );
 }
 
-export default function RoboticsPartsSection() {
-  const [checkedDiscounts, setCheckedDiscounts] = useState(["20% OFF"]);
+export default function RoboticsPartsSection(): JSX.Element {
+  const [checkedDiscounts, setCheckedDiscounts] = useState<string[]>([
+    "20% OFF",
+  ]);
 
-  const toggleDiscount = (d) => {
-    setCheckedDiscounts((prev) =>
+  const toggleDiscount = (d: string): void => {
+    setCheckedDiscounts((prev: string[]) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
     );
   };
@@ -140,21 +156,16 @@ export default function RoboticsPartsSection() {
   return (
     <section className="w-full max-w-[1200px] mx-auto mt-12">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 px-2">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-[#050a30] tracking-wide">
-          TOP SELLING
-          <span className="relative align-middle mx-2">
+      <div className="flex items-center justify-between mb-12  px-2">
+        <h2 className="text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
+          TOP SELLING{" "}
+          <span className="relative inline-block">
             <span
-              className="absolute left-0 top-0 w-full h-full bg-[#f0b31e] z-0"
-              style={{ height: "1.2em" }}
+              className="absolute bottom-0 left-0 w-full bg-[#f0b31e]"
+              style={{ height: "55%" }}
             />
-            <span
-              className="font-extrabold text-[#050a30] relative z-10 px-1"
-              style={{ position: "relative" }}
-            >
-              ROBOTICS
-            </span>
-          </span>
+            <span className="relative z-10">ROBOTICS</span>
+          </span>{" "}
           PARTS
         </h2>
         <a
@@ -166,129 +177,15 @@ export default function RoboticsPartsSection() {
         </a>
       </div>
 
-      {/* Main grid */}
       <div className="flex gap-8">
-        {/* Filters */}
-        <aside className="w-[260px] bg-[#f8f8f8] rounded p-4 shadow-sm flex flex-col gap-0">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-lg font-bold text-[#050a30]">FILTERS</span>
-            <SlidersHorizontal size={20} className="text-[#434343]" />
-          </div>
-          <hr className="border-t border-[#e0e0e0] mb-3" />
-
-          {/* BY BRANDS */}
-          <div className="mb-3">
-            <span className="text-base font-bold text-[#f0b31e] mb-2 block">
-              BY BRANDS
-            </span>
-            <div className="flex flex-col gap-[10px]">
-              {brands.map((b) => (
-                <label
-                  key={b}
-                  className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    className="w-[17px] h-[17px] border border-[#bdbdbd] accent-[#f0b31e] rounded-none"
-                    style={{ borderRadius: 0 }}
-                  />
-                  {b}
-                </label>
-              ))}
-            </div>
-            <span className="mt-2 block text-sm font-semibold text-[#bdbdbd]">
-              +10 MORE
-            </span>
-          </div>
-          <hr className="border-t border-[#e0e0e0] mb-3" />
-
-          {/* BY TYPES */}
-          <div className="mb-3">
-            <span className="text-base font-bold text-[#f0b31e] mb-2 block">
-              BY TYPES
-            </span>
-            <div className="flex flex-col gap-[10px]">
-              {types.map((t) => (
-                <label
-                  key={t}
-                  className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    className="w-[17px] h-[17px] border border-[#bdbdbd] accent-[#f0b31e]"
-                    style={{ borderRadius: 0 }}
-                  />
-                  {t}
-                </label>
-              ))}
-            </div>
-            <span className="mt-2 block text-sm font-semibold text-[#bdbdbd]">
-              +10 MORE
-            </span>
-          </div>
-          <hr className="border-t border-[#e0e0e0] mb-3" />
-
-          {/* PRICE */}
-          <PriceRangeSlider />
-          <hr className="border-t border-[#e0e0e0] mb-3 mt-1" />
-
-          {/* DISCOUNT RANGE */}
-          <div>
-            <span className="text-base font-bold text-[#f0b31e] mb-2 block">
-              DISCOUNT RANGE
-            </span>
-            <div className="flex flex-col gap-[10px]">
-              {discounts.map((d) => (
-                <label
-                  key={d}
-                  className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    className="w-[17px] h-[17px] border border-[#bdbdbd] accent-[#f0b31e]"
-                    style={{ borderRadius: 0 }}
-                    checked={checkedDiscounts.includes(d)}
-                    onChange={() => toggleDiscount(d)}
-                  />
-                  {d}
-                </label>
-              ))}
-            </div>
-            <span className="mt-2 block text-sm font-semibold text-[#bdbdbd]">
-              +3 MORE
-            </span>
-          </div>
-        </aside>
-
-        {/* Products grid */}
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {products.map((p, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center"
-            >
-              <div className="w-[180px] h-[120px] bg-[#eaf4ff] rounded-xl mb-4 flex items-center justify-center" />
-              <span className="text-xs font-bold text-[#34d399] bg-[#eafaf1] px-3 py-1 rounded-full mb-2">
-                {p.discount}
-              </span>
-              <h3 className="text-lg font-bold text-[#050a30] mb-1">
-                {p.name}
-              </h3>
-              <p className="text-xs text-[#434343] mb-2 text-center">
-                {p.desc}
-              </p>
-              <div className="flex items-end gap-2">
-                <span className="text-2xl font-bold text-[#f0b31e]">
-                  ₹ {p.price}
-                </span>
-                <span className="text-base font-semibold text-[#434343] line-through">
-                  ₹{p.oldPrice}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <FilterSidebar
+          brands={brands}
+          types={types}
+          discounts={discounts}
+          checkedDiscounts={checkedDiscounts}
+          toggleDiscount={toggleDiscount}
+        />
+        <ProductGrid products={products} />
       </div>
     </section>
   );

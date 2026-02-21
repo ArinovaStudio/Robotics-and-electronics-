@@ -3,7 +3,7 @@ import { Search, ShoppingCart, User } from "lucide-react";
 
 export default function Navbar() {
   return (
-    <nav className="w-full border-b  bg-white flex items-center h-[64px] px-8">
+    <nav className="w-full   bg-white flex items-center h-[64px] px-8">
       {/* Logo */}
       <div className="font-bold text-2xl text-[#050a30] tracking-wide">
         LOGO

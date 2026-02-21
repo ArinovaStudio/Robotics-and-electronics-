@@ -15,7 +15,7 @@ const categories = [
 
 export default function HomeCategories() {
   return (
-    <section className="w-full max-w-[1200px] mx-auto mt-8">
+    <section className="w-full max-w-[1200px] mx-auto mt-8 mb-16">
       <div className="flex items-center justify-between mb-2 px-2">
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[#050a30] mb-5 tracking-wide">
           SHOP BY CATEOGRIES

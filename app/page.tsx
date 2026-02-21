@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import HomePoster from "../components/HomePoster";
 import HomeCategories from "../components/HomeCategories";
 import RoboticsPartsSection from "../components/RoboticsPartsSection";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
       <HomePoster />
       <HomeCategories />
       <RoboticsPartsSection />
+      <Footer />
     </main>
   );
 }
