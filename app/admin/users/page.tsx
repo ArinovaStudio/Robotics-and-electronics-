@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductMetricCard } from "@/components/admin/ProductMetricCard";
 import { authFetcher } from "@/store/adminStore";
+import { ExportModal } from "@/components/admin/ExportModal";
 
 export default function CustomersPage() {
     // State
@@ -18,6 +19,8 @@ export default function CustomersPage() {
     const [limit, setLimit] = useState(10);
     const [verifiedFilter, setVerifiedFilter] = useState("all");
     const [sortFilter, setSortFilter] = useState("newest");
+
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     // Reset pagination when filters change
     useEffect(() => { setPage(1); }, [search, verifiedFilter, sortFilter, limit]);
@@ -72,7 +75,7 @@ export default function CustomersPage() {
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
-                        <button className="bg-[#ebe9f1] text-[#5c4da5] px-5 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e2dcf0] transition-colors font-medium flex-1 md:flex-none shadow-sm">
+                        <button onClick={() => setIsExportModalOpen(true)} className="bg-[#ebe9f1] text-[#5c4da5] px-5 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e2dcf0] transition-colors font-medium flex-1 md:flex-none shadow-sm">
                             <Download size={20} /> 
                             <span className="hidden sm:inline">Export</span>
                         </button>
@@ -238,6 +241,12 @@ export default function CustomersPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <ExportModal 
+                isOpen={isExportModalOpen} 
+                onClose={() => setIsExportModalOpen(false)} 
+                type="customers"
+            />
         </div>
     );
 }

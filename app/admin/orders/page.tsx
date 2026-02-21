@@ -13,6 +13,7 @@ import { SimpleMetricCard } from "@/components/admin/SimpleMetricCard";
 import { authFetcher } from "@/store/adminStore";
 import { useRouter } from "next/navigation";
 import { OrderStatusModal } from "@/components/admin/OrderStatusModal";
+import { ExportModal } from "@/components/admin/ExportModal";
 
 export default function OrdersPage() {
     const router = useRouter();
@@ -27,6 +28,7 @@ export default function OrdersPage() {
 
     // Modal State
     const [updatingOrder, setUpdatingOrder] = useState<any>(null);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, sortFilter, limit]);
 
@@ -92,7 +94,7 @@ export default function OrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
-                        <button className="bg-[#ebe9f1] text-[#5c4da5] px-5 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e2dcf0] transition-colors font-medium flex-1 md:flex-none shadow-sm">
+                        <button onClick={() => setIsExportModalOpen(true)} className="bg-[#ebe9f1] text-[#5c4da5] px-5 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e2dcf0] transition-colors font-medium flex-1 md:flex-none shadow-sm">
                             <Download size={20} /> 
                             <span className="hidden sm:inline">Export</span>
                         </button>
@@ -235,6 +237,12 @@ export default function OrdersPage() {
                 onClose={() => setUpdatingOrder(null)}
                 order={updatingOrder}
                 onSuccess={() => mutate()}
+            />
+
+            <ExportModal 
+                isOpen={isExportModalOpen} 
+                onClose={() => setIsExportModalOpen(false)} 
+                type="orders"
             />
         </div>
     );

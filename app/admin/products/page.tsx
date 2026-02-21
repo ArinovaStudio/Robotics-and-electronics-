@@ -14,6 +14,7 @@ import { ProductModal } from "@/components/admin/ProductModal";
 import { authFetcher } from "@/store/adminStore";
 import api from "@/app/lib/axios";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
+import { ExportModal } from "@/components/admin/ExportModal";
 
 export default function ProductPage() {
     // State
@@ -28,6 +29,7 @@ export default function ProductPage() {
     const [editingProduct, setEditingProduct] = useState<any>(null);
     const [deletingProduct, setDeletingProduct] = useState<any>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     useEffect(() => {
         setPage(1);
@@ -107,7 +109,7 @@ export default function ProductPage() {
                             <Plus size={20} />
                             <span className="font-medium">Add Product</span>
                         </button>
-                        <button className="bg-[#ebe9f1] text-[#5c4da5] px-5 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e2dcf0] transition-colors font-medium flex-1 md:flex-none shadow-sm">
+                        <button onClick={() => setIsExportModalOpen(true)} className="bg-[#ebe9f1] text-[#5c4da5] px-5 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#e2dcf0] transition-colors font-medium flex-1 md:flex-none shadow-sm">
                             <Download size={20} /> 
                             <span className="hidden sm:inline">Export</span>
                         </button>
@@ -277,6 +279,12 @@ export default function ProductPage() {
                 onClose={() => { setIsAddModalOpen(false); setEditingProduct(null); }}
                 product={editingProduct}
                 onSuccess={() => mutate()}
+            />
+
+            <ExportModal 
+                isOpen={isExportModalOpen} 
+                onClose={() => setIsExportModalOpen(false)} 
+                type="products"
             />
         </div>
     );
