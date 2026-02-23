@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { JSX, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import FilterSidebar from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
@@ -163,7 +163,7 @@ export default function RoboticsPartsSection(): JSX.Element {
             <span
               className="absolute bottom-0 left-0 w-full bg-[#f0b31e]"
               style={{ height: "55%" }}
-            />
+            ></span>
             <span className="relative z-10">ROBOTICS</span>
           </span>{" "}
           PARTS
@@ -185,7 +185,40 @@ export default function RoboticsPartsSection(): JSX.Element {
           checkedDiscounts={checkedDiscounts}
           toggleDiscount={toggleDiscount}
         />
-        <ProductGrid products={products} />
+        {products.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center min-h-[420px]">
+            <h2 className="text-3xl font-black text-[#050a30] mb-2 flex items-center gap-2">
+              OOPS! <span>😥</span>
+            </h2>
+            <p className="text-[#bdbdbd] text-lg mb-6">
+              No product found, please try to clear filters
+            </p>
+            <button
+              className="bg-[#0a0f3c] text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#050a30] transition-all"
+              onClick={() => {
+                setCheckedDiscounts([]);
+                // Add any other filter reset logic here
+              }}
+            >
+              Clear Filters
+              <svg
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                viewBox="0 0 24 24"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <ProductGrid products={products} />
+        )}
       </div>
     </section>
   );

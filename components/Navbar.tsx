@@ -1,17 +1,20 @@
 import React from "react";
 import { Search, ShoppingCart, User } from "lucide-react";
+import Link from "next/link";
 
 export default function Navbar() {
   return (
     <nav className="w-full   bg-white flex items-center h-[64px] px-8">
       {/* Logo */}
-      <div className="font-bold text-2xl text-[#050a30] tracking-wide">
-        LOGO
-      </div>
+      <Link href="/" aria-label="Home">
+        <div className="font-bold text-2xl text-[#050a30] tracking-wide cursor-pointer">
+          LOGO
+        </div>
+      </Link>
 
       {/* Search Bar */}
       <div className="flex-1 flex justify-center">
-        <div className="relative w-[45%] max-w-[600px]">
+        <div className="relative w-[55%] max-w-[600px]">
           <input
             type="text"
             placeholder="Search for products"
@@ -28,7 +31,13 @@ export default function Navbar() {
 
       {/* Icons */}
       <div className="flex items-center gap-6 ml-6">
-        <ShoppingCart size={24} strokeWidth={2} className="text-[#434343]" />
+        <Link href="/cart" aria-label="Cart">
+          <ShoppingCart
+            size={24}
+            strokeWidth={2}
+            className="text-[#434343] cursor-pointer"
+          />
+        </Link>
         <User size={24} strokeWidth={2} className="text-[#434343]" />
       </div>
     </nav>

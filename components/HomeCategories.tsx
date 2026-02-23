@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+import { Space_Grotesk } from "next/font/google";
+
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["700"] });
 import { ArrowRight } from "lucide-react";
 
 const categories = [
@@ -40,7 +43,7 @@ export default function HomeCategories() {
               {/* Image placeholder */}
             </div>
             <span
-              className={`mt-2 text-xs md:text-sm font-bold text-center whitespace-pre-line flex items-center justify-center w-full ${cat.selected ? "text-[#f0b31e]" : "text-[#050a30]"}`}
+              className={`mt-2 text-xs md:text-sm font-bold text-center whitespace-pre-line flex items-center justify-center w-full ${cat.selected ? "text-[#f0b31e]" : "text-[#050a30]"} ${spaceGrotesk.className}`}
               style={{ minHeight: "2.5em", lineHeight: "1.2" }}
             >
               {cat.name}
