@@ -56,15 +56,15 @@ export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed left-0 top-0 z-40 h-screen w-72 border-r bg-white shadow-sm transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+            <aside className={`fixed max-md:z-200 left-0 top-0 z-40 h-screen w-72 border-r bg-white shadow-sm transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <div className="flex h-full flex-col">
                     {/* Logo Section */}
                     <div className="flex items-center justify-between px-4 py-6 border-b border-slate-50 md:border-none">
                         <div className="flex items-center gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 shadow-lg shadow-orange-200">
-                                <LayoutGrid className="h-7 w-7 text-white" />
+                                <LayoutGrid className="h-7 w-15 text-white" />
                             </div>
-                            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Robotics and Electronics</h1>
+                            <h1 className="text-lg font-bold text-slate-800 tracking-tight">Robotics and Electronics</h1>
                         </div>
                         {/* Mobile Close Button */}
                         <button 

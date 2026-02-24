@@ -86,7 +86,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
                     </DialogTitle>
                 </DialogHeader>
                 
-                <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="flex-1 max-h-[300px] md:max-h-[500px] overflow-y-auto px-6 py-6">
                     <form id="categoryForm" onSubmit={handleSubmit} className="space-y-6">
                         {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-100 font-medium">{error}</div>}
 
@@ -124,7 +124,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
                                         <img src={imageFile ? URL.createObjectURL(imageFile) : existingImage!} className="w-full h-full object-cover" alt="Category" />
                                     </div>
                                 ) : (
-                                    <div className="w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center"><ImageIcon className="text-slate-400"/></div>
+                                    <div className="w-20 h-20 rounded-xl md:bg-slate-100 md:border border-slate-200 flex items-center justify-center"><ImageIcon className="text-slate-400"/></div>
                                 )}
                                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ebe9f1] file:text-[#5c4da5]" />
                             </div>

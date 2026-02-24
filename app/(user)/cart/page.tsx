@@ -86,20 +86,21 @@ export default function CartPage() {
         <span className="text-[#050a30] font-semibold">Cart</span>
       </div>
       <h1 className="text-4xl font-black text-[#050a30] mb-8">YOUR CART</h1>
-      <div className="flex gap-8 items-start">
+      <div className="flex md:flex-row flex-col gap-8 items-start">
         {/* Cart List */}
-        <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-[#ececec]">
+        <div className="flex-1 w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ececec]">
           {cart.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-6 py-4 border-b border-[#f3f3f3] last:border-b-0"
+              className="flex md:flex-row w-full justify-between flex-col items-center gap-6 py-4 border-b border-[#f3f3f3] last:border-b-0"
             >
+              <div className="flex flex-row justify-between gap-6 w-full">
               <div className="w-[100px] h-[100px] rounded bg-[#f5f5f5] flex items-center justify-center overflow-hidden">
                 {/* Replace with <img src={item.image} className="w-full h-full object-contain" /> */}
                 <div className="w-full h-full bg-[#e0e0e0]" />
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-bold text-[#050a30] mb-1">
+                <h2 className="text-md md:text-lg font-bold text-[#050a30] mb-1">
                   {item.name}
                 </h2>
                 <div className="text-xs text-[#9ca3af] mb-1">
@@ -110,6 +111,8 @@ export default function CartPage() {
                   ₹{item.price}
                 </div>
               </div>
+              </div>
+              <div className="flex max-md:w-full justify-start">
               <div className="flex items-center gap-2 bg-[#f5f5f5] rounded-full px-4 py-2">
                 <button
                   onClick={() => updateQty(idx, -1)}
@@ -133,11 +136,12 @@ export default function CartPage() {
               >
                 <Trash2 size={22} />
               </button>
+              </div>
             </div>
           ))}
         </div>
         {/* Order Summary */}
-        <div className="w-[350px] bg-white rounded-2xl p-7 shadow-sm border border-[#ececec]">
+        <div className="w-full md:max-w-[350px] bg-white rounded-2xl p-7 shadow-sm border border-[#ececec]">
           <h2 className="text-xl font-bold text-[#050a30] mb-6">
             Order Summary
           </h2>

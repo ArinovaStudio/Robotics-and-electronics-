@@ -1,5 +1,6 @@
+"use client";
 import React from "react";
-import SingleProductPage from "../../../components/SingleProductPage";
+import SingleProductPage from "@/components/SingleProductPage";
 
 // Dummy product data for demonstration
 const dummyProduct = {

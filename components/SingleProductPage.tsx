@@ -82,6 +82,7 @@ const reviews = [
 ];
 
 type Product = {
+  id: string;
   name: string;
   desc: string;
   price: number;
@@ -176,7 +177,7 @@ export default function SingleProductPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">(
-    "reviews",
+    "reviews"
   );
   const router = useRouter();
 
@@ -203,28 +204,39 @@ export default function SingleProductPage() {
         </div>
 
         {/* ── PRODUCT LAYOUT ── */}
-        <div className="flex gap-6 items-start">
-          {/* Thumbnails */}
-          <div className="flex flex-col gap-3">
-            {product.images.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedImage(idx)}
-                className={`w-[120px] h-[110px] rounded-xl border-2 overflow-hidden bg-white transition-all
-                  ${selectedImage === idx ? "border-[#f0b31e]" : "border-[#e8e8e8] hover:border-[#f0b31e]/50"}`}
-              >
-                {/* Replace with <img src={product.images[idx]} className="w-full h-full object-contain p-2" /> */}
-                <div className="w-full h-full bg-[#f5f5f5]" />
-              </button>
-            ))}
-          </div>
+        <div className="flex lg:flex-row flex-col gap-6 items-start">
+          <div className="flex lg:flex-row flex-col gap-6 items-start w-full">
+            {/* Thumbnails + Main */}
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full">
+              {/* Thumbnails */}
+              <div className="flex sm:flex-col flex-row gap-3 sm:gap-3 overflow-x-auto sm:overflow-visible">
+                {product.images.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[95px] lg:w-[120px] lg:h-[110px] 
+          rounded-xl border-2 overflow-hidden bg-white transition-all
+          ${
+            selectedImage === idx
+              ? "border-[#f0b31e]"
+              : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
+          }`}
+                  >
+                    {/* Replace with img */}
+                    <div className="w-full h-full bg-[#f5f5f5]" />
+                  </button>
+                ))}
+              </div>
 
-          {/* Main image */}
-          <div className="w-[390px] h-[430px] rounded-2xl bg-[#f0f0f0] overflow-hidden shrink-0">
-            {/* Replace with <img src={product.images[selectedImage]} className="w-full h-full object-contain p-8" /> */}
-            <div className="w-full h-full bg-[#ececec]" />
+              {/* Main image */}
+              <div className="flex-1 flex justify-center sm:justify-start">
+                <div className="w-full! md:w-[400px] h-[350px] md:h-[430px] rounded-2xl bg-[#f0f0f0] overflow-hidden shrink-0">
+                  {/* Replace with img */}
+                  <div className="w-full h-full bg-[#ececec]" />
+                </div>
+              </div>
+            </div>
           </div>
-
           {/* Details */}
           <div className="flex-1 pl-2">
             <h1 className="text-[#050a30] text-[30px] font-extrabold leading-tight mb-3">
@@ -250,17 +262,16 @@ export default function SingleProductPage() {
               </span>
             </div>
 
-            <p className="text-[#555] text-[14px] leading-relaxed max-w-[400px] mb-5">
+            <p className="text-[#555] text-xs break-words md:text-[14px] leading-relaxed md:max-w-[400px] mb-5">
               {product.description}
             </p>
             <hr className="border-[#e8e8e8] mb-5" />
-
             {/* Variants */}
             <div className="mb-6">
               <p className="text-[#9ca3af] text-xs font-bold tracking-widest mb-3 uppercase">
                 Other Variants
               </p>
-              <div className="flex gap-3">
+              <div className="flex overflow-x-auto max-md:max-w-[250px] gap-3">
                 {product.variants.map((v, idx) => (
                   <button
                     key={idx}
@@ -277,28 +288,57 @@ export default function SingleProductPage() {
             </div>
 
             {/* Quantity + Actions */}
-            <div className="flex items-center gap-3 mt-6">
-              <div className="flex items-center bg-[#f5f5f5] rounded-full px-5 py-[10px] gap-4 border border-[#e8e8e8]">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mt-6 w-full">
+              {/* Quantity Selector */}
+              <div className="flex items-center justify-center md:justify-start bg-[#f5f5f5] rounded-full px-5 py-[10px] gap-4 border border-[#e8e8e8] w-full md:w-auto">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-4 text-center leading-none"
+                  className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-6 text-center leading-none"
                 >
                   −
                 </button>
-                <span className="text-[#050a30] text-sm font-bold w-4 text-center">
+
+                <span className="text-[#050a30] text-sm font-bold w-6 text-center">
                   {quantity}
                 </span>
+
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-4 text-center leading-none"
+                  className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-6 text-center leading-none"
                 >
                   +
                 </button>
               </div>
-              <button className="flex-1 bg-white text-[#f0b31e] font-bold text-sm px-6 py-[10px] rounded-full border-2 border-[#f0b31e] hover:bg-[#fffbe6] transition-all">
+
+              {/* Add to Cart */}
+              <button
+                className="
+    w-full md:flex-1
+    bg-white text-[#f0b31e]
+    font-bold text-sm
+    px-6 py-[12px]
+    rounded-full
+    border-2 border-[#f0b31e]
+    hover:bg-[#fffbe6]
+    transition-all
+  "
+              >
                 Add to Cart
               </button>
-              <button className="flex-1 bg-[#f0b31e] text-white font-bold text-sm px-6 py-[10px] rounded-full border-2 border-[#f0b31e] hover:bg-[#e0a800] transition-all">
+
+              {/* Buy Now */}
+              <button
+                className="
+    w-full md:flex-1
+    bg-[#f0b31e] text-white
+    font-bold text-sm
+    px-6 py-[12px]
+    rounded-full
+    border-2 border-[#f0b31e]
+    hover:bg-[#e0a800]
+    transition-all
+  "
+              >
                 BUY NOW
               </button>
             </div>
@@ -334,7 +374,7 @@ export default function SingleProductPage() {
           {activeTab === "reviews" && (
             <div className="mt-8">
               {/* Header row */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex max-md:flex-col items-center max-md:items-start gap-5 md:justify-between mb-6">
                 <h2 className="text-[#050a30] text-xl font-extrabold">
                   All Reviews
                   <span className="text-[#9ca3af] text-base font-semibold ml-1">
@@ -360,7 +400,7 @@ export default function SingleProductPage() {
               </div>
 
               {/* 2-column grid */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 {reviews.map((review, i) => (
                   <ReviewCard key={i} review={review} />
                 ))}
@@ -400,15 +440,15 @@ export default function SingleProductPage() {
           </h2>
 
           {/* 4-column product grid */}
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
             {suggestedProducts.map((p, i) => (
               <div
                 key={i}
-                className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full max-w-[340px] min-h-[420px] cursor-pointer"
+                className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full md:max-w-[340px] min-h-[420px] cursor-pointer"
                 onClick={() => router.push(`/products/${p.id ?? i}`)}
               >
                 <div className="w-full flex justify-center">
-                  <div className="w-[220px] h-[180px] bg-[#f8fafd] rounded-[18px] flex items-center justify-center">
+                  <div className="md:w-[220px] w-full h-[180px] bg-[#f8fafd] rounded-[18px] flex items-center justify-center">
                     {/* Image placeholder */}
                   </div>
                 </div>

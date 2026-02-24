@@ -1,8 +1,9 @@
 "use client";
 import { JSX, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Filter } from "lucide-react";
 import FilterSidebar from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
+import { Button } from "./ui/button";
 
 const brands: string[] = [
   "FANUC",
@@ -147,6 +148,8 @@ export default function RoboticsPartsSection(): JSX.Element {
     "20% OFF",
   ]);
 
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+
   const toggleDiscount = (d: string): void => {
     setCheckedDiscounts((prev: string[]) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
@@ -154,10 +157,10 @@ export default function RoboticsPartsSection(): JSX.Element {
   };
 
   return (
-    <section className="w-full max-w-[1200px] mx-auto mt-12">
+    <section className="w-full max-w-[1200px] mx-auto mt-12 relative">
       {/* Header */}
-      <div className="flex items-center justify-between mb-12  px-2">
-        <h2 className="text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
+      <div className="flex items-center justify-between mb-12 px-2">
+        <h2 className="text-3xl md:text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
           TOP SELLING{" "}
           <span className="relative inline-block">
             <span
@@ -177,14 +180,44 @@ export default function RoboticsPartsSection(): JSX.Element {
         </a>
       </div>
 
-      <div className="flex gap-8">
-        <FilterSidebar
-          brands={brands}
-          types={types}
-          discounts={discounts}
-          checkedDiscounts={checkedDiscounts}
-          toggleDiscount={toggleDiscount}
+      {/* Mobile Filter Button */}
+      <div className="md:hidden mb-6 px-2">
+        <Button
+        size={"icon"}
+          onClick={() => setIsFilterOpen(true)}
+          className="bg-[#f0b31e] text-white font-semibold px-5 py-2 rounded-full shadow flex items-center gap-2"
+        >
+          <Filter/>
+        </Button>
+      </div>
+
+      {/* Overlay (Mobile Only) */}
+      {isFilterOpen && (
+        <div
+          onClick={() => setIsFilterOpen(false)}
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
         />
+      )}
+
+      <div className="flex gap-8 relative">
+        {/* Responsive Sidebar Wrapper */}
+        <div
+          className={`
+            fixed md:static top-0 left-0 h-full md:h-auto
+            z-50 md:z-auto
+            transform overflow-y-auto transition-transform duration-300
+            ${isFilterOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          `}
+        >
+          <FilterSidebar
+            brands={brands}
+            types={types}
+            discounts={discounts}
+            checkedDiscounts={checkedDiscounts}
+            toggleDiscount={toggleDiscount}
+          />
+        </div>
+
         {products.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center min-h-[420px]">
             <h2 className="text-3xl font-black text-[#050a30] mb-2 flex items-center gap-2">
@@ -197,7 +230,6 @@ export default function RoboticsPartsSection(): JSX.Element {
               className="bg-[#0a0f3c] text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#050a30] transition-all"
               onClick={() => {
                 setCheckedDiscounts([]);
-                // Add any other filter reset logic here
               }}
             >
               Clear Filters

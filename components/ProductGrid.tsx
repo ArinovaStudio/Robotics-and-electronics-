@@ -19,15 +19,15 @@ type ProductGridProps = {
 const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const router = useRouter();
   return (
-    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+    <div className="flex-1 grid grid-cols-1 place-items-center sm:grid-cols-2 md:grid-cols-3 gap-8">
       {products.map((p, i) => (
         <div
           key={i}
-          className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full max-w-[340px] min-h-[420px] cursor-pointer"
+          className="bg-white rounded-[16px] p-4 flex flex-col items-start max-w-[340px] min-h-[420px] cursor-pointer"
           onClick={() => router.push(`/products/${p.id ?? i}`)}
         >
           <div className="w-full flex justify-center">
-            <div className="w-[220px] h-[180px] bg-[#f8fafd] rounded-[18px] flex items-center justify-center">
+            <div className="md:w-[220px] w-full h-[180px] bg-[#f8fafd] rounded-[18px] flex items-center justify-center">
               {/* Image placeholder */}
             </div>
           </div>
