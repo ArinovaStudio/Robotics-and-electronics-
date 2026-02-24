@@ -4,12 +4,14 @@ import prisma from "@/app/lib/db";
 import { resetPasswordSchema } from "@/app/lib/validations/auth";
 import { isOTPExpired } from "@/app/lib/utils/otp";
 import { sendPasswordChangedEmail } from "@/app/lib/email";
+import { sanitizeEmail } from "@/app/lib/sanitization";
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
   notFoundResponse,
 } from "@/app/lib/api-response";
+import { handleApiError } from "@/app/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,10 +29,13 @@ export async function POST(request: NextRequest) {
 
     const { email, otp, newPassword } = validation.data;
 
+    // Sanitize email
+    const sanitizedEmail = sanitizeEmail(email);
+
     // Find OTP token
     const otpToken = await prisma.otpToken.findFirst({
       where: {
-        email,
+        email: sanitizedEmail,
         token: otp,
         type: "PASSWORD_RESET",
       },
@@ -40,35 +45,46 @@ export async function POST(request: NextRequest) {
     });
 
     if (!otpToken) {
-      return notFoundResponse("Invalid OTP");
+      return notFoundResponse(
+        "Invalid OTP code. Please check the code and try again.",
+      );
     }
 
     // Check if OTP is already used
     if (otpToken.used) {
-      return errorResponse("OTP has already been used");
+      return errorResponse(
+        "This OTP has already been used. Please request a new one.",
+        400,
+      );
     }
 
     // Check if OTP is expired
     if (isOTPExpired(otpToken.expiresAt)) {
-      return errorResponse("OTP has expired");
+      return errorResponse(
+        "This OTP has expired. Please request a new one.",
+        400,
+      );
     }
 
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: sanitizedEmail },
     });
 
     if (!user) {
-      return notFoundResponse("User not found");
+      return notFoundResponse("User account not found.");
     }
 
-    // Hash new password
-    const hashedPassword = await hash(newPassword, 10);
+    // Hash new password with stronger rounds
+    const hashedPassword = await hash(newPassword, 12);
 
-    // Update user password
+    // Update user password and ensure email is verified
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        emailVerified: user.emailVerified || new Date(),
+      },
     });
 
     // Mark OTP as used
@@ -80,26 +96,26 @@ export async function POST(request: NextRequest) {
     // Delete all PASSWORD_RESET tokens for this email
     await prisma.otpToken.deleteMany({
       where: {
-        email,
+        email: sanitizedEmail,
         type: "PASSWORD_RESET",
       },
     });
 
     // Send password changed confirmation email
     try {
-      await sendPasswordChangedEmail(email, user.name);
+      await sendPasswordChangedEmail(sanitizedEmail, user.name);
     } catch (emailError) {
       console.error("Failed to send password changed email:", emailError);
       // Don't fail the request if email sending fails
     }
 
     return successResponse(
-      null,
-      "Password reset successfully. Please login with your new password.",
+      { email: sanitizedEmail },
+      "Password reset successfully! You can now login with your new password.",
       200,
     );
   } catch (error) {
     console.error("Reset password error:", error);
-    return errorResponse("Internal server error", 500);
+    return handleApiError(error, "Reset Password");
   }
 }

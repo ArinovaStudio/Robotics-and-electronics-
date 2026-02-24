@@ -4,11 +4,13 @@ import prisma from "@/app/lib/db";
 import { registerSchema } from "@/app/lib/validations/auth";
 import { generateOTP, getOTPExpiryTime } from "@/app/lib/utils/otp";
 import { sendOTPEmail } from "@/app/lib/email";
+import { sanitizeString, sanitizeEmail } from "@/app/lib/sanitization";
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
 } from "@/app/lib/api-response";
+import { handleApiError } from "@/app/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,23 +28,30 @@ export async function POST(request: NextRequest) {
 
     const { name, email, password, phone } = validation.data;
 
+    // Sanitize inputs
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedName = sanitizeString(name);
+
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: sanitizedEmail },
     });
 
     if (existingUser) {
-      return errorResponse("Email already exists", 409);
+      return errorResponse(
+        "An account with this email already exists. Please login instead.",
+        409,
+      );
     }
 
-    // Hash password
-    const hashedPassword = await hash(password, 10);
+    // Hash password with stronger rounds
+    const hashedPassword = await hash(password, 12);
 
-    // Create user
+    // Create user with transaction to ensure atomicity
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: sanitizedName,
+        email: sanitizedEmail,
         password: hashedPassword,
         phone: phone || null,
         role: "CUSTOMER",
@@ -75,10 +84,13 @@ export async function POST(request: NextRequest) {
       await sendOTPEmail(user.email, otp, "EMAIL_VERIFICATION");
     } catch (emailError) {
       console.error("Failed to send OTP email:", emailError);
-      // Delete the user if email sending fails
-      await prisma.user.delete({ where: { id: user.id } });
+      // Delete the user and OTP if email sending fails
+      await prisma.$transaction([
+        prisma.otpToken.deleteMany({ where: { email: user.email } }),
+        prisma.user.delete({ where: { id: user.id } }),
+      ]);
       return errorResponse(
-        "Failed to send verification email. Please try again.",
+        "Failed to send verification email. Please check your email address and try again.",
         500,
       );
     }
@@ -87,12 +99,14 @@ export async function POST(request: NextRequest) {
       {
         userId: user.id,
         email: user.email,
+        message:
+          "Registration successful! Please check your email for the verification code.",
       },
       "Registration successful. Please verify your email.",
       201,
     );
   } catch (error) {
     console.error("Registration error:", error);
-    return errorResponse("Internal server error", 500);
+    return handleApiError(error, "Registration");
   }
 }

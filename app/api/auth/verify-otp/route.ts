@@ -2,12 +2,14 @@ import { NextRequest } from "next/server";
 import prisma from "@/app/lib/db";
 import { verifyOtpSchema } from "@/app/lib/validations/auth";
 import { isOTPExpired } from "@/app/lib/utils/otp";
+import { sanitizeEmail } from "@/app/lib/sanitization";
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
   notFoundResponse,
 } from "@/app/lib/api-response";
+import { handleApiError } from "@/app/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,10 +27,22 @@ export async function POST(request: NextRequest) {
 
     const { email, otp, type } = validation.data;
 
+    // Sanitize email
+    const sanitizedEmail = sanitizeEmail(email);
+
+    // Verify user exists
+    const user = await prisma.user.findUnique({
+      where: { email: sanitizedEmail },
+    });
+
+    if (!user) {
+      return notFoundResponse("User not found. Please register first.");
+    }
+
     // Find OTP token
     const otpToken = await prisma.otpToken.findFirst({
       where: {
-        email,
+        email: sanitizedEmail,
         token: otp,
         type,
       },
@@ -38,17 +52,25 @@ export async function POST(request: NextRequest) {
     });
 
     if (!otpToken) {
-      return notFoundResponse("Invalid OTP");
+      return notFoundResponse(
+        "Invalid OTP code. Please check the code and try again.",
+      );
     }
 
     // Check if OTP is already used
     if (otpToken.used) {
-      return errorResponse("OTP has already been used");
+      return errorResponse(
+        "This OTP has already been used. Please request a new one.",
+        400,
+      );
     }
 
     // Check if OTP is expired
     if (isOTPExpired(otpToken.expiresAt)) {
-      return errorResponse("OTP has expired");
+      return errorResponse(
+        "This OTP has expired. Please request a new one.",
+        400,
+      );
     }
 
     // Mark OTP as used
@@ -60,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Update user emailVerified if it's email verification
     if (type === "EMAIL_VERIFICATION") {
       await prisma.user.update({
-        where: { email },
+        where: { email: sanitizedEmail },
         data: { emailVerified: new Date() },
       });
     }
@@ -68,20 +90,20 @@ export async function POST(request: NextRequest) {
     // Delete all OTP tokens for this email and type
     await prisma.otpToken.deleteMany({
       where: {
-        email,
+        email: sanitizedEmail,
         type,
       },
     });
 
     return successResponse(
-      null,
+      { email: sanitizedEmail },
       type === "EMAIL_VERIFICATION"
-        ? "Email verified successfully"
-        : "OTP verified successfully",
+        ? "Email verified successfully! You can now login."
+        : "OTP verified successfully. Please set your new password.",
       200,
     );
   } catch (error) {
     console.error("Verify OTP error:", error);
-    return errorResponse("Internal server error", 500);
+    return handleApiError(error, "Verify OTP");
   }
 }

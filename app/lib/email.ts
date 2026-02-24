@@ -1,14 +1,31 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+// Validate email configuration on startup
+const validateEmailConfig = () => {
+  const requiredVars = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"];
+  const missing = requiredVars.filter((varName) => !process.env[varName]);
+
+  if (missing.length > 0) {
+    console.warn(`⚠️  Missing email configuration: ${missing.join(", ")}`);
+    console.warn("⚠️  Email functionality will be disabled.");
+    return false;
+  }
+  return true;
+};
+
+const isEmailConfigured = validateEmailConfig();
+
+const transporter = isEmailConfigured
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    })
+  : null;
 
 interface SendEmailOptions {
   to: string;
@@ -18,17 +35,26 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<void> {
+  if (!isEmailConfigured || !transporter) {
+    throw new Error(
+      "Email service is not configured. Please check your .env file.",
+    );
+  }
+
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || "noreply@elecstore.com",
       to: options.to,
       subject: options.subject,
       html: options.html,
       text: options.text,
     });
+    console.log(
+      `✓ Email sent successfully to ${options.to}: ${info.messageId}`,
+    );
   } catch (error) {
-    console.error("Email sending failed:", error);
-    throw new Error("Failed to send email");
+    console.error("✗ Email sending failed:", error);
+    throw new Error("Failed to send email. Please try again later.");
   }
 }
 
@@ -151,27 +177,30 @@ export async function sendPasswordChangedEmail(
   });
 }
 
-
 export async function sendOrderConfirmationEmail(
   email: string,
   name: string,
   orderNumber: string,
   totalAmount: number | string,
-  items: any[] 
+  items: any[],
 ): Promise<void> {
   const subject = `Order Confirmed! #${orderNumber} - Electronics Store`;
 
-  const itemsHtml = items.map((item) => `
+  const itemsHtml = items
+    .map(
+      (item) => `
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #eee;">
-        <strong>${item.productSnapshot?.title || 'Product'}</strong><br/>
+        <strong>${item.productSnapshot?.title || "Product"}</strong><br/>
         <span style="color: #666; font-size: 12px;">Qty: ${item.quantity}</span>
       </td>
       <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
         ₹${Number(item.priceAtPurchase) * item.quantity}
       </td>
     </tr>
-  `).join('');
+  `,
+    )
+    .join("");
 
   const html = `
     <!DOCTYPE html>

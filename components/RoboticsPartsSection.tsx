@@ -183,11 +183,11 @@ export default function RoboticsPartsSection(): JSX.Element {
       {/* Mobile Filter Button */}
       <div className="md:hidden mb-6 px-2">
         <Button
-        size={"icon"}
+          size={"icon"}
           onClick={() => setIsFilterOpen(true)}
           className="bg-[#f0b31e] text-white font-semibold px-5 py-2 rounded-full shadow flex items-center gap-2"
         >
-          <Filter/>
+          <Filter />
         </Button>
       </div>
 

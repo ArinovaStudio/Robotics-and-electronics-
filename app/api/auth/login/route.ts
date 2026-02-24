@@ -2,11 +2,13 @@ import { NextRequest } from "next/server";
 import { compare } from "bcryptjs";
 import prisma from "@/app/lib/db";
 import { generateToken } from "@/app/lib/jwt";
+import { sanitizeEmail } from "@/app/lib/sanitization";
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
 } from "@/app/lib/api-response";
+import { handleApiError } from "@/app/lib/error-handler";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -30,9 +32,12 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validation.data;
 
+    // Sanitize email
+    const sanitizedEmail = sanitizeEmail(email);
+
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: sanitizedEmail },
       select: {
         id: true,
         email: true,
@@ -46,19 +51,28 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user || !user.password) {
-      return errorResponse("Invalid email or password", 401);
+      return errorResponse(
+        "Invalid email or password. Please check your credentials and try again.",
+        401,
+      );
     }
 
     // Check if email is verified
     if (!user.emailVerified) {
-      return errorResponse("Please verify your email before logging in", 403);
+      return errorResponse(
+        "Please verify your email before logging in. Check your inbox for the verification code.",
+        403,
+      );
     }
 
     // Verify password
     const isPasswordValid = await compare(password, user.password);
 
     if (!isPasswordValid) {
-      return errorResponse("Invalid email or password", 401);
+      return errorResponse(
+        "Invalid email or password. Please check your credentials and try again.",
+        401,
+      );
     }
 
     // Generate JWT token
@@ -75,12 +89,13 @@ export async function POST(request: NextRequest) {
       {
         token,
         user: userWithoutPassword,
+        expiresIn: "7d",
       },
-      "Login successful",
+      "Login successful! Welcome back.",
       200,
     );
   } catch (error) {
     console.error("Login error:", error);
-    return errorResponse("Internal server error", 500);
+    return handleApiError(error, "Login");
   }
 }

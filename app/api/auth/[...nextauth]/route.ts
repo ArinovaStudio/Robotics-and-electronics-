@@ -1,19 +1,17 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import prisma from "@/app/lib/db";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
+    signIn: "/login",
+    error: "/login",
   },
   providers: [
     GoogleProvider({
@@ -77,7 +75,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.userId = user.id;
         token.email = user.email;
-        token.role = user.role;
+        token.role = user.role || "CUSTOMER";
       }
 
       // Handle session update
@@ -97,22 +95,39 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async signIn({ user, account, profile }) {
-      // For OAuth providers
+      // For OAuth providers (Google)
       if (account?.provider === "google") {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email as string },
-        });
-
-        if (!existingUser) {
-          await prisma.user.create({
-            data: {
-              email: user.email as string,
-              name: user.name as string,
-              image: user.image,
-              emailVerified: new Date(),
-              role: "CUSTOMER",
-            },
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email as string },
           });
+
+          // If user doesn't exist, create with proper defaults
+          if (!existingUser) {
+            await prisma.user.create({
+              data: {
+                email: user.email as string,
+                name: user.name as string,
+                image: user.image,
+                emailVerified: new Date(),
+                role: "CUSTOMER",
+              },
+            });
+          } else {
+            // Update existing user's emailVerified if not set
+            if (!existingUser.emailVerified) {
+              await prisma.user.update({
+                where: { email: user.email as string },
+                data: {
+                  emailVerified: new Date(),
+                  image: user.image,
+                },
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error in Google signIn callback:", error);
+          return false;
         }
       }
       return true;

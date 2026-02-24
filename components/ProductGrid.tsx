@@ -15,7 +15,6 @@ type ProductGridProps = {
   products: Product[];
 };
 
-
 const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const router = useRouter();
   return (

@@ -14,16 +14,32 @@ export async function getCurrentUser() {
   return session?.user;
 }
 
-// Check for JWT token in Authorization header (for API testing)
+// Check for JWT token in Authorization header or cookies
 async function getUserFromToken() {
   const headersList = await headers();
   const authorization = headersList.get("authorization");
+  const cookieHeader = headersList.get("cookie") || "";
 
-  if (!authorization?.startsWith("Bearer ")) {
+  let token: string | null = null;
+
+  // First, try Authorization header (Bearer token)
+  if (authorization?.startsWith("Bearer ")) {
+    token = authorization.substring(7);
+  }
+
+  // If no Authorization header, check cookies
+  if (!token && cookieHeader) {
+    const cookies = cookieHeader.split("; ");
+    const authCookie = cookies.find((c) => c.startsWith("auth_token="));
+    if (authCookie) {
+      token = authCookie.split("=")[1];
+    }
+  }
+
+  if (!token) {
     return null;
   }
 
-  const token = authorization.substring(7);
   const decoded = verifyToken(token);
 
   if (!decoded) {

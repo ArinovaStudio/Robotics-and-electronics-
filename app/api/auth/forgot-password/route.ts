@@ -3,11 +3,13 @@ import prisma from "@/app/lib/db";
 import { forgotPasswordSchema } from "@/app/lib/validations/auth";
 import { generateOTP, getOTPExpiryTime } from "@/app/lib/utils/otp";
 import { sendOTPEmail } from "@/app/lib/email";
+import { sanitizeEmail } from "@/app/lib/sanitization";
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
 } from "@/app/lib/api-response";
+import { handleApiError } from "@/app/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,9 +27,12 @@ export async function POST(request: NextRequest) {
 
     const { email } = validation.data;
 
+    // Sanitize email
+    const sanitizedEmail = sanitizeEmail(email);
+
     // Find user by email
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: sanitizedEmail },
     });
 
     // For security, always return success even if user doesn't exist
@@ -35,7 +40,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return successResponse(
         null,
-        "If the email exists, you will receive a password reset OTP",
+        "If an account exists with this email, you will receive a password reset code.",
         200,
       );
     }
@@ -43,7 +48,7 @@ export async function POST(request: NextRequest) {
     // Delete existing PASSWORD_RESET OTPs for this email
     await prisma.otpToken.deleteMany({
       where: {
-        email,
+        email: sanitizedEmail,
         type: "PASSWORD_RESET",
       },
     });
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Save OTP to database
     await prisma.otpToken.create({
       data: {
-        email,
+        email: sanitizedEmail,
         token: otp,
         type: "PASSWORD_RESET",
         expiresAt,
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Send OTP email
     try {
-      await sendOTPEmail(email, otp, "PASSWORD_RESET");
+      await sendOTPEmail(sanitizedEmail, otp, "PASSWORD_RESET");
     } catch (emailError) {
       console.error("Failed to send password reset email:", emailError);
       // Don't throw error to prevent email enumeration
@@ -74,11 +79,11 @@ export async function POST(request: NextRequest) {
 
     return successResponse(
       null,
-      "If the email exists, you will receive a password reset OTP",
+      "If an account exists with this email, you will receive a password reset code.",
       200,
     );
   } catch (error) {
     console.error("Forgot password error:", error);
-    return errorResponse("Internal server error", 500);
+    return handleApiError(error, "Forgot Password");
   }
 }

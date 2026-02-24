@@ -177,7 +177,7 @@ export default function SingleProductPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">(
-    "reviews"
+    "reviews",
   );
   const router = useRouter();
 
