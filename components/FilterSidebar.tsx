@@ -1,21 +1,41 @@
-
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
-import { Funnel } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Funnel, Loader2 } from "lucide-react";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+type CategoryOption = {
+  id: string;
+  name: string;
+  slug: string;
+  productCount: number;
+};
+
+export type FilterState = {
+  categories: string[];     // slugs
+  discounts: string[];      // e.g. ["10% OFF", "20% OFF"]
+  minPrice: number;
+  maxPrice: number;
+};
+
+type FilterSidebarProps = {
+  onFiltersChange: (filters: FilterState) => void;
+  resetKey?: number;
+};
 
 // ─── Price Range Slider ──────────────────────────────────────────────────────
 
 interface PriceRangeSliderProps {
-  min?: number;
-  max?: number;
+  min: number;
+  max: number;
   value: [number, number];
   onChange: (value: [number, number]) => void;
 }
 
 const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
-  min = 100,
-  max = 1000,
+  min,
+  max,
   value,
   onChange,
 }) => {
@@ -53,13 +73,11 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
 
   return (
     <div className="px-1 py-2">
-      {/* Track */}
       <div
         ref={trackRef}
-        className="relative"
-        style={{ height: 3, background: "#e0e0e0", borderRadius: 2, margin: "10px 10px" }}
+        className="relative mx-2.5 my-2.5"
+        style={{ height: 3, background: "#e0e0e0", borderRadius: 2 }}
       >
-        {/* Filled range */}
         <div
           className="absolute h-full"
           style={{
@@ -69,8 +87,6 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
             borderRadius: 2,
           }}
         />
-
-        {/* Low thumb */}
         <div
           onMouseDown={startDrag("low")}
           className="absolute cursor-grab active:cursor-grabbing select-none"
@@ -87,8 +103,6 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
             zIndex: 3,
           }}
         />
-
-        {/* High thumb */}
         <div
           onMouseDown={startDrag("high")}
           className="absolute cursor-grab active:cursor-grabbing select-none"
@@ -106,9 +120,7 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
           }}
         />
       </div>
-
-      {/* Label */}
-      <p className="text-center font-bold text-[#111] mt-3" style={{ fontSize: 14 }}>
+      <p className="text-center font-bold text-[#111] mt-3 text-sm">
         ₹{value[0]} - ₹{value[1] >= max ? `${max}+` : value[1]}
       </p>
     </div>
@@ -117,12 +129,10 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
 
 // ─── Custom Checkbox ─────────────────────────────────────────────────────────
 
-interface CheckboxProps {
-  checked: boolean;
-  onChange: () => void;
-}
-
-const CustomCheckbox: React.FC<CheckboxProps> = ({ checked, onChange }) => (
+const CustomCheckbox: React.FC<{ checked: boolean; onChange: () => void }> = ({
+  checked,
+  onChange,
+}) => (
   <span
     onClick={onChange}
     className="inline-flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-100"
@@ -151,34 +161,96 @@ const CustomCheckbox: React.FC<CheckboxProps> = ({ checked, onChange }) => (
 
 // ─── Filter Sidebar ──────────────────────────────────────────────────────────
 
-type FilterSidebarProps = {
-  brands: string[];
-  types: string[];
-  discounts: string[];
-  checkedDiscounts: string[];
-  toggleDiscount: (discount: string) => void;
-};
+const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, resetKey = 0 }) => {
+  // Filter options from API
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [discountOptions, setDiscountOptions] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({
+    min: 0,
+    max: 10000,
+  });
+  const [loading, setLoading] = useState(true);
 
-const FilterSidebar: React.FC<FilterSidebarProps> = ({
-  brands,
-  types,
-  discounts,
-  checkedDiscounts,
-  toggleDiscount,
-}) => {
-  const [priceRange, setPriceRange] = useState<[number, number]>([100, 1000]);
-  const [checkedBrands, setCheckedBrands] = useState<string[]>([]);
-  const [checkedTypes, setCheckedTypes] = useState<string[]>([]);
+  // Selected filter state
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<[number, number]>([0, 10000]);
+
+  // Track if initial data loaded
+  const initializedRef = useRef(false);
+
+  // Fetch filter options on mount
+  useEffect(() => {
+    async function fetchFilters() {
+      try {
+        const res = await fetch("/api/products/filters");
+        const data = await res.json();
+        if (data.success) {
+          const d = data.data;
+          setCategories(d.categories || []);
+          setDiscountOptions(d.discounts || []);
+          setPriceRange(d.priceRange || { min: 0, max: 10000 });
+          setSelectedPriceRange([
+            d.priceRange?.min || 0,
+            d.priceRange?.max || 10000,
+          ]);
+          initializedRef.current = true;
+        }
+      } catch (err) {
+        console.error("Failed to fetch filter options:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFilters();
+  }, []);
+
+  // Reset all selections when resetKey changes (parent clicked "Clear Filters")
+  useEffect(() => {
+    if (resetKey > 0) {
+      setSelectedCategories([]);
+      setSelectedDiscounts([]);
+      setSelectedPriceRange([priceRange.min, priceRange.max]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
+
+  // Notify parent when filters change
+  useEffect(() => {
+    if (!initializedRef.current) return;
+    onFiltersChange({
+      categories: selectedCategories,
+      discounts: selectedDiscounts,
+      minPrice: selectedPriceRange[0],
+      maxPrice: selectedPriceRange[1],
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategories, selectedDiscounts, selectedPriceRange]);
 
   const toggleItem = (
     list: string[],
     setList: React.Dispatch<React.SetStateAction<string[]>>,
     item: string
-  ) => setList(list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
+  ) =>
+    setList(list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
 
   const Divider = () => (
-    <hr className="border-t border-[#e0e0e0]" style={{ margin: "8px 0" }} />
+    <hr className="border-t border-[#e0e0e0] my-2" />
   );
+
+  const showMoreCategories = 5;
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const visibleCategories = showAllCategories
+    ? categories
+    : categories.slice(0, showMoreCategories);
+
+  if (loading) {
+    return (
+      <aside className="w-[260px] bg-[#f8f8f8] rounded p-4 shadow-sm flex items-center justify-center min-h-[300px]">
+        <Loader2 className="animate-spin text-[#f0b31e]" size={28} />
+      </aside>
+    );
+  }
 
   return (
     <aside className="w-[260px] bg-[#f8f8f8] rounded p-4 shadow-sm flex flex-col gap-0">
@@ -190,50 +262,40 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
       <Divider />
 
-      {/* BY BRANDS */}
+      {/* BY CATEGORY */}
       <div className="mb-3 mt-1">
         <span className="text-sm font-bold text-[#f0b31e] mb-2 block tracking-wide">
-          BY BRANDS
+          BY CATEGORY
         </span>
         <div className="flex flex-col gap-[10px]">
-          {brands.map((b) => (
+          {visibleCategories.map((c) => (
             <label
-              key={b}
+              key={c.id}
               className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer select-none"
             >
               <CustomCheckbox
-                checked={checkedBrands.includes(b)}
-                onChange={() => toggleItem(checkedBrands, setCheckedBrands, b)}
+                checked={selectedCategories.includes(c.slug)}
+                onChange={() =>
+                  toggleItem(selectedCategories, setSelectedCategories, c.slug)
+                }
               />
-              {b}
+              {c.name}
+              <span className="ml-auto text-xs text-gray-400">
+                ({c.productCount})
+              </span>
             </label>
           ))}
         </div>
-        <span className="mt-2 block text-sm font-semibold text-[#bdbdbd]">+10 MORE</span>
-      </div>
-
-      <Divider />
-
-      {/* BY TYPES */}
-      <div className="mb-3 mt-1">
-        <span className="text-sm font-bold text-[#f0b31e] mb-2 block tracking-wide">
-          BY TYPES
-        </span>
-        <div className="flex flex-col gap-[10px]">
-          {types.map((t) => (
-            <label
-              key={t}
-              className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer select-none"
-            >
-              <CustomCheckbox
-                checked={checkedTypes.includes(t)}
-                onChange={() => toggleItem(checkedTypes, setCheckedTypes, t)}
-              />
-              {t}
-            </label>
-          ))}
-        </div>
-        <span className="mt-2 block text-sm font-semibold text-[#bdbdbd]">+10 MORE</span>
+        {categories.length > showMoreCategories && (
+          <button
+            onClick={() => setShowAllCategories(!showAllCategories)}
+            className="mt-2 block text-sm font-semibold text-[#bdbdbd] hover:text-[#f0b31e] transition-colors"
+          >
+            {showAllCategories
+              ? "SHOW LESS"
+              : `+${categories.length - showMoreCategories} MORE`}
+          </button>
+        )}
       </div>
 
       <Divider />
@@ -244,36 +306,39 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           PRICE
         </span>
         <PriceRangeSlider
-          min={100}
-          max={1000}
-          value={priceRange}
-          onChange={setPriceRange}
+          min={priceRange.min}
+          max={priceRange.max}
+          value={selectedPriceRange}
+          onChange={setSelectedPriceRange}
         />
       </div>
 
       <Divider />
 
       {/* DISCOUNT RANGE */}
-      <div className="mt-1">
-        <span className="text-sm font-bold text-[#f0b31e] mb-2 block tracking-wide">
-          DISCOUNT RANGE
-        </span>
-        <div className="flex flex-col gap-[10px]">
-          {discounts.map((d) => (
-            <label
-              key={d}
-              className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer select-none"
-            >
-              <CustomCheckbox
-                checked={checkedDiscounts.includes(d)}
-                onChange={() => toggleDiscount(d)}
-              />
-              {d}
-            </label>
-          ))}
+      {discountOptions.length > 0 && (
+        <div className="mt-1">
+          <span className="text-sm font-bold text-[#f0b31e] mb-2 block tracking-wide">
+            DISCOUNT RANGE
+          </span>
+          <div className="flex flex-col gap-[10px]">
+            {discountOptions.map((d) => (
+              <label
+                key={d}
+                className="flex items-center gap-3 text-sm text-black font-semibold cursor-pointer select-none"
+              >
+                <CustomCheckbox
+                  checked={selectedDiscounts.includes(d)}
+                  onChange={() =>
+                    toggleItem(selectedDiscounts, setSelectedDiscounts, d)
+                  }
+                />
+                {d}
+              </label>
+            ))}
+          </div>
         </div>
-        <span className="mt-2 block text-sm font-semibold text-[#bdbdbd]">+3 MORE</span>
-      </div>
+      )}
     </aside>
   );
 };

@@ -3,39 +3,18 @@ import { Unbounded } from "next/font/google";
 
 const unbounded = Unbounded({ subsets: ["latin"], weight: ["900"] });
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Star,
   ShoppingCart,
-  User,
-  Search,
-  ChevronDown,
-  SlidersHorizontal,
+  Loader2,
+  Check,
 } from "lucide-react";
+import { useCart, useAuth } from "@/app/contexts";
 
-// ─── Mock data ────────────────────────────────────────────────────
-const product = {
-  name: "Aurdino uno 2.4",
-  rating: 4.5,
-  price: 260,
-  oldPrice: 300,
-  discount: 40,
-  description:
-    "This graphic t-shirt which is perfect for any occasion. Crafted from a soft and breathable fabric, it offers superior comfort and style.",
-  images: [
-    "/images/arduino1.png",
-    "/images/arduino2.png",
-    "/images/arduino3.png",
-  ],
-  variants: [
-    { name: "Arduino Mega 2560", image: "/images/variant1.png" },
-    { name: "Arduino Mega 2560", image: "/images/variant2.png" },
-    { name: "Arduino Mega 2560", image: "/images/variant3.png" },
-    { name: "Arduino Mega 2560", image: "/images/variant4.png" },
-  ],
-};
-
+// ─── Mock Reviews Data ────────────────────────────────────────────────────
 const reviews = [
   {
     name: "Samantha D.",
@@ -65,38 +44,20 @@ const reviews = [
     text: '"As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt not only represents those principles but also feels great to wear. It\'s evident that the designer poured their creativity into making this t-shirt stand out."',
     date: "Posted on August 17, 2023",
   },
-  {
-    name: "Liam K.",
-    rating: 5,
-    verified: true,
-    text: "\"This t-shirt is a fusion of comfort and creativity. The fabric is soft, and the design speaks volumes about the designer's skill. It's like wearing a piece of art that reflects my passion for both design and fashion.\"",
-    date: "Posted on August 18, 2023",
-  },
-  {
-    name: "Ava H.",
-    rating: 4.5,
-    verified: true,
-    text: "\"I'm not just wearing a t-shirt; I'm wearing a piece of design philosophy. The intricate details and thoughtful layout of the design make this shirt a conversation starter.\"",
-    date: "Posted on August 19, 2023",
-  },
 ];
 
-type Product = {
+type APIProduct = {
   id: string;
-  name: string;
-  desc: string;
-  price: number;
-  oldPrice: number;
-  discount: string;
+  title: string;
+  description: string;
+  imageLink: string;
+  additionalImageLinks: string[];
+  price: { value: number; currency: string };
+  salePrice: { value: number; currency: string } | null;
+  link: string;
+  productHighlights: string[];
+  availability: string;
 };
-
-const suggestedProducts: Product[] = Array(4).fill({
-  name: "Aurdino uno 3.4",
-  desc: "Lorem ipsum dolor sit amet consectetur. Augue ut nec mauris mauris cras gravida suspendisse.",
-  price: 400,
-  oldPrice: 600,
-  discount: "20% OFF",
-});
 
 // ─── Star Rating ──────────────────────────────────────────────────
 function StarRating({ rating, size = 20 }: { rating: number; size?: number }) {
@@ -116,14 +77,14 @@ function StarRating({ rating, size = 20 }: { rating: number; size?: number }) {
               fill="#e0e0e0"
               className="text-[#e0e0e0] absolute inset-0"
             />
-            {(filled || half) && (
+            {filled || half ? (
               <span
                 className="absolute inset-0 overflow-hidden"
                 style={{ width: filled ? "100%" : "50%" }}
               >
                 <Star size={size} fill="#f0b31e" className="text-[#f0b31e]" />
               </span>
-            )}
+            ) : null}
           </span>
         );
       })}
@@ -173,18 +134,79 @@ function ReviewCard({ review }: { review: (typeof reviews)[0] }) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────
-export default function SingleProductPage() {
+export default function SingleProductPage({ product }: { product: APIProduct }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">(
-    "reviews",
-  );
+  const [activeTab, setActiveTab] = useState<"details" | "reviews">("details");
+  const [suggestedProducts, setSuggestedProducts] = useState<APIProduct[]>([]);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
   const router = useRouter();
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      router.push(`/login?callbackUrl=/products/${product.link}`);
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      await addToCart(product.id, quantity);
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    } catch (err: any) {
+      alert(err.message || "Failed to add to cart");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      router.push(`/login?callbackUrl=/products/${product.link}`);
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      await addToCart(product.id, quantity);
+      router.push("/cart");
+    } catch (err: any) {
+      alert(err.message || "Failed to add to cart");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  // Load related featured products
+  useEffect(() => {
+    async function fetchRelated() {
+      try {
+        const res = await fetch("/api/products/featured?type=bestsellers&limit=4");
+        const data = await res.json();
+        if (data.success) {
+          setSuggestedProducts(data.data.filter((p: APIProduct) => p.id !== product.id).slice(0, 4));
+        }
+      } catch (err) {
+        console.error("Failed to load suggested products", err);
+      }
+    }
+    fetchRelated();
+  }, [product.id]);
 
   const tabs = [
     { id: "details" as const, label: "Product Details" },
     { id: "reviews" as const, label: "Rating & Reviews" },
   ];
+
+  const allImages = [product.imageLink, ...(product.additionalImageLinks || [])].filter(Boolean);
+  
+  let discountPct = 0;
+  if (product.salePrice && product.price.value > product.salePrice.value) {
+      discountPct = Math.round(((product.price.value - product.salePrice.value) / product.price.value) * 100);
+  }
+
+  const currentPrice = product.salePrice ? product.salePrice.value : product.price.value;
 
   return (
     <div className="bg-white min-h-screen font-sans">
@@ -192,7 +214,7 @@ export default function SingleProductPage() {
       <div className="max-w-[1100px] mx-auto px-8 py-8">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-sm text-[#9ca3af] mb-8">
-          {["Home", "Shop", "Robotics"].map((crumb) => (
+          {["Home", "Shop", "Products"].map((crumb) => (
             <React.Fragment key={crumb}>
               <a href="#" className="hover:text-[#050a30] transition-colors">
                 {crumb}
@@ -200,147 +222,153 @@ export default function SingleProductPage() {
               <span className="text-[#ccc]">›</span>
             </React.Fragment>
           ))}
-          <span className="text-[#050a30] font-semibold">{product.name}</span>
+          <span className="text-[#050a30] font-semibold">{product.title}</span>
         </div>
 
         {/* ── PRODUCT LAYOUT ── */}
-        <div className="flex lg:flex-row flex-col gap-6 items-start">
-          <div className="flex lg:flex-row flex-col gap-6 items-start w-full">
+        <div className="flex xl:flex-row flex-col gap-8 xl:gap-8 items-start">
+          <div className="flex lg:flex-row flex-col gap-6 items-start w-full xl:w-[60%] shrink-0">
             {/* Thumbnails + Main */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full">
+            <div className="flex flex-col-reverse sm:flex-row gap-4 sm:gap-6 w-full">
               {/* Thumbnails */}
               <div className="flex sm:flex-col flex-row gap-3 sm:gap-3 overflow-x-auto sm:overflow-visible">
-                {product.images.map((_, idx) => (
+                {allImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
                     className={`flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[95px] lg:w-[120px] lg:h-[110px] 
-          rounded-xl border-2 overflow-hidden bg-white transition-all
-          ${
-            selectedImage === idx
-              ? "border-[#f0b31e]"
-              : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
-          }`}
+                      rounded-xl border-2 overflow-hidden bg-white transition-all relative
+                      ${
+                        selectedImage === idx
+                          ? "border-[#f0b31e]"
+                          : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
+                      }`}
                   >
-                    {/* Replace with img */}
-                    <div className="w-full h-full bg-[#f5f5f5]" />
+                     <Image src={img} alt={`Thumb ${idx}`} fill className="object-contain p-2" />
                   </button>
                 ))}
               </div>
 
               {/* Main image */}
-              <div className="flex-1 flex justify-center sm:justify-start">
-                <div className="w-full! md:w-[400px] h-[350px] md:h-[430px] rounded-2xl bg-[#f0f0f0] overflow-hidden shrink-0">
-                  {/* Replace with img */}
-                  <div className="w-full h-full bg-[#ececec]" />
+              <div className="flex-1 flex justify-center sm:justify-start w-full">
+                <div className="w-full relative h-[350px] md:h-[450px] rounded-2xl bg-[#f8fafd] border border-[#e8e8e8] overflow-hidden shrink-0">
+                  {allImages.length > 0 && (
+                     <Image src={allImages[selectedImage]} alt={product.title} fill className="object-contain p-6" />
+                  )}
                 </div>
               </div>
             </div>
           </div>
           {/* Details */}
-          <div className="flex-1 pl-2">
-            <h1 className="text-[#050a30] text-[30px] font-extrabold leading-tight mb-3">
-              {product.name}
+          <div className="flex-1 w-full pl-0 xl:pl-6 leading-tight">
+            <h1 className="text-[#050a30] text-[28px] md:text-[32px] font-extrabold leading-tight mb-3">
+              {product.title}
             </h1>
 
             <div className="flex items-center gap-2 mb-4">
-              <StarRating rating={product.rating} />
+              <StarRating rating={4.5} />
               <span className="text-[#434343] text-sm font-semibold">
-                {product.rating}/5
+                4.5/5
               </span>
             </div>
 
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-[#050a30] text-2xl font-extrabold">
-                ₹{product.price}
+              <span className="text-[#050a30] text-[28px] font-extrabold">
+                ₹{currentPrice}
               </span>
-              <span className="text-[#9ca3af] text-2xl font-bold line-through">
-                ₹{product.oldPrice}
-              </span>
-              <span className="bg-[#ffe5e5] text-[#ff4d4d] text-sm font-bold px-3 py-[5px] rounded-md">
-                -{product.discount}%
-              </span>
+              {discountPct > 0 && (
+                  <span className="text-[#9ca3af] text-xl font-bold line-through">
+                    ₹{product.price.value}
+                  </span>
+              )}
+              {discountPct > 0 && (
+                  <span className="bg-[#ffe5e5] text-[#ff4d4d] text-sm font-bold px-3 py-[5px] rounded-md">
+                    -{discountPct}% OFF
+                  </span>
+              )}
             </div>
 
-            <p className="text-[#555] text-xs break-words md:text-[14px] leading-relaxed md:max-w-[400px] mb-5">
+            <p className="text-[#555] text-sm leading-relaxed mb-5 whitespace-pre-wrap">
               {product.description}
             </p>
-            <hr className="border-[#e8e8e8] mb-5" />
-            {/* Variants */}
-            <div className="mb-6">
-              <p className="text-[#9ca3af] text-xs font-bold tracking-widest mb-3 uppercase">
-                Other Variants
-              </p>
-              <div className="flex overflow-x-auto max-md:max-w-[250px] gap-3">
-                {product.variants.map((v, idx) => (
-                  <button
-                    key={idx}
-                    className="w-[115px] flex flex-col items-center gap-2 bg-[#f8f8f8] hover:bg-[#fff5e0] border border-[#e8e8e8] hover:border-[#f0b31e] rounded-xl p-1 transition-all"
-                  >
-                    {/* Replace with <img src={v.image} className="w-[60px] h-[48px] object-contain" /> */}
-                    <div className="w-[100px] h-[68px] bg-[#e0e0e0] rounded-lg" />
-                    <span className="text-[11px] font-semibold text-[#434343] text-center leading-tight">
-                      {v.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
+            
+            <div className="mb-4 text-sm font-semibold">
+              <span className={product.availability === 'IN_STOCK' ? 'text-green-600' : 'text-red-500'}>
+                {product.availability === 'IN_STOCK' ? '✓ In Stock' : '✗ Out of Stock'}
+              </span>
             </div>
 
+            <hr className="border-[#e8e8e8] mb-6 mt-6" />
+
             {/* Quantity + Actions */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mt-6 w-full">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full">
               {/* Quantity Selector */}
-              <div className="flex items-center justify-center md:justify-start bg-[#f5f5f5] rounded-full px-5 py-[10px] gap-4 border border-[#e8e8e8] w-full md:w-auto">
+              <div className="flex items-center justify-between bg-[#f5f5f5] rounded-full px-5 py-[12px] md:py-[10px] gap-4 border border-[#e8e8e8] w-full md:w-[130px] shrink-0">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-6 text-center leading-none"
+                  className="text-[#050a30] text-2xl font-bold hover:text-[#f0b31e] w-8 h-8 flex items-center justify-center leading-none"
                 >
                   −
                 </button>
 
-                <span className="text-[#050a30] text-sm font-bold w-6 text-center">
+                <span className="text-[#050a30] text-base font-bold text-center">
                   {quantity}
                 </span>
 
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-6 text-center leading-none"
+                  className="text-[#050a30] text-2xl font-bold hover:text-[#f0b31e] w-8 h-8 flex items-center justify-center leading-none"
                 >
                   +
                 </button>
               </div>
 
-              {/* Add to Cart */}
-              <button
-                className="
-    w-full md:flex-1
-    bg-white text-[#f0b31e]
-    font-bold text-sm
-    px-6 py-[12px]
-    rounded-full
-    border-2 border-[#f0b31e]
-    hover:bg-[#fffbe6]
-    transition-all
-  "
-              >
-                Add to Cart
-              </button>
+              <div className="flex flex-row gap-3 w-full">
+                  {/* Add to Cart */}
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={addingToCart || product.availability !== 'IN_STOCK'}
+                    className="
+        flex-1
+        bg-white text-[#f0b31e]
+        font-bold text-sm
+        px-6 py-[14px] md:py-[13px]
+        rounded-full
+        border-2 border-[#f0b31e]
+        hover:bg-[#fffbe6]
+        transition-all shadow-sm hover:shadow
+        disabled:opacity-50 disabled:cursor-not-allowed
+        flex items-center justify-center gap-2
+      "
+                  >
+                    {addingToCart ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : addedToCart ? (
+                      <><Check size={18} /> Added!</>
+                    ) : (
+                      "Add to Cart"
+                    )}
+                  </button>
 
-              {/* Buy Now */}
-              <button
-                className="
-    w-full md:flex-1
-    bg-[#f0b31e] text-white
-    font-bold text-sm
-    px-6 py-[12px]
-    rounded-full
-    border-2 border-[#f0b31e]
-    hover:bg-[#e0a800]
-    transition-all
-  "
-              >
-                BUY NOW
-              </button>
+                  {/* Buy Now */}
+                  <button
+                    onClick={handleBuyNow}
+                    disabled={addingToCart || product.availability !== 'IN_STOCK'}
+                    className="
+        flex-1
+        bg-[#f0b31e] text-white
+        font-bold text-sm
+        px-6 py-[14px] md:py-[13px]
+        rounded-full
+        border-2 border-[#f0b31e]
+        hover:bg-[#e0a800] hover:border-[#e0a800]
+        transition-all shadow-md hover:shadow-lg
+        disabled:opacity-50 disabled:cursor-not-allowed
+      "
+                  >
+                    BUY NOW
+                  </button>
+              </div>
             </div>
           </div>
         </div>
@@ -348,14 +376,14 @@ export default function SingleProductPage() {
         {/* ══════════════════════════════════════════
             TABS SECTION
         ══════════════════════════════════════════ */}
-        <div className="mt-16">
+        <div className="mt-20">
           {/* Tab bar */}
           <div className="flex border-b border-[#e8e8e8]">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 text-center pb-4 text-sm transition-all relative
+                className={`flex-1 text-center pb-4 text-sm md:text-base transition-all relative
                   ${
                     activeTab === tab.id
                       ? "text-[#050a30] font-bold"
@@ -364,118 +392,132 @@ export default function SingleProductPage() {
               >
                 {tab.label}
                 {activeTab === tab.id && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[170px] h-[2.5px] bg-[#050a30] rounded-full" />
+                  <span className="absolute bottom-0 left-[20%] right-[20%] md:left-1/2 md:-translate-x-1/2 md:w-[170px] h-[3px] bg-[#050a30] rounded-t-lg" />
                 )}
               </button>
             ))}
           </div>
 
+          {/* ── Product Details ── */}
+          {activeTab === "details" && (
+            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed md:max-w-4xl space-y-4">
+              <h3 className="text-xl font-bold text-[#050a30] mb-4">Features & Specifications</h3>
+              {product.productHighlights && product.productHighlights.length > 0 ? (
+                 <ul className="list-disc pl-5 space-y-2">
+                   {product.productHighlights.map((highlight, i) => (
+                      <li key={i}>{highlight}</li>
+                   ))}
+                 </ul>
+              ) : (
+                <p>No extra specifications strictly defined for this product right now.</p>
+              )}
+            </div>
+          )}
+
           {/* ── Rating & Reviews ── */}
           {activeTab === "reviews" && (
             <div className="mt-8">
               {/* Header row */}
-              <div className="flex max-md:flex-col items-center max-md:items-start gap-5 md:justify-between mb-6">
-                <h2 className="text-[#050a30] text-xl font-extrabold">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:justify-between mb-8">
+                <h2 className="text-[#050a30] text-2xl font-extrabold">
                   All Reviews
-                  <span className="text-[#9ca3af] text-base font-semibold ml-1">
-                    (451)
+                  <span className="text-[#9ca3af] text-lg font-semibold ml-2">
+                    ({reviews.length})
                   </span>
                 </h2>
-                <div className="flex items-center gap-3">
-                  {/* Filter icon button */}
-                  <button className="w-[38px] h-[38px] flex items-center justify-center border border-[#e0e0e0] rounded-full hover:border-[#050a30] transition-all">
-                    <SlidersHorizontal size={15} className="text-[#555]" />
-                  </button>
-
-                  {/* Sort */}
-                  <button className="flex items-center gap-2 border border-[#e0e0e0] rounded-full px-4 py-[9px] text-sm font-semibold text-[#050a30] hover:border-[#050a30] transition-all">
-                    Latest <ChevronDown size={14} />
-                  </button>
-
-                  {/* Write a review */}
-                  <button className="bg-[#050a30] text-white text-sm font-bold px-5 py-[9px] rounded-full hover:bg-[#0a1560] transition-all">
+                <div className="flex items-center gap-3 w-full md:w-auto self-end">
+                  <button className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all">
                     Write a Review
                   </button>
                 </div>
               </div>
 
               {/* 2-column grid */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-5">
                 {reviews.map((review, i) => (
                   <ReviewCard key={i} review={review} />
                 ))}
               </div>
 
               {/* Load More */}
-              <div className="flex justify-center mt-8 mb-4">
-                <button className="border border-[#e0e0e0] text-[#050a30] text-sm font-bold px-10 py-3 rounded-full hover:border-[#050a30] hover:bg-[#f8f8f8] transition-all">
+              <div className="flex justify-center mt-10 mb-4">
+                <button className="border-2 border-[#e0e0e0] text-[#050a30] text-sm font-bold px-10 py-[12px] rounded-full hover:border-[#050a30] hover:bg-[#f8f8f8] transition-all">
                   Load More Reviews
                 </button>
               </div>
             </div>
           )}
 
-          {activeTab === "details" && (
-            <div className="mt-8 text-[#434343] text-sm leading-relaxed max-w-2xl">
-              <p>Detailed product information will appear here.</p>
-            </div>
-          )}
-
-          {activeTab === "faqs" && (
-            <div className="mt-8 text-[#434343] text-sm leading-relaxed max-w-2xl">
-              <p>Frequently asked questions will appear here.</p>
-            </div>
-          )}
+         
         </div>
 
         {/* ══════════════════════════════════════════
             YOU MIGHT ALSO LIKE
         ══════════════════════════════════════════ */}
-        <section className="mt-20 mb-10">
-          {/* Title */}
-          <h2
-            className={`text-center text-[#050a30] text-[38px] font-black tracking-tight mb-12 ${unbounded.className}`}
-          >
-            You might also like
-          </h2>
+        {suggestedProducts.length > 0 && (
+            <section className="mt-24 mb-10">
+            {/* Title */}
+            <h2
+                className={`text-center text-[#050a30] text-[32px] md:text-[38px] font-black tracking-tight mb-12 ${unbounded.className}`}
+            >
+                You might also like
+            </h2>
 
-          {/* 4-column product grid */}
-          <div className="grid md:grid-cols-4 gap-6">
-            {suggestedProducts.map((p, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full md:max-w-[340px] min-h-[420px] cursor-pointer"
-                onClick={() => router.push(`/products/${p.id ?? i}`)}
-              >
-                <div className="w-full flex justify-center">
-                  <div className="md:w-[220px] w-full h-[180px] bg-[#f8fafd] rounded-[18px] flex items-center justify-center">
-                    {/* Image placeholder */}
-                  </div>
-                </div>
-                <span className="mt-4 text-xs font-semibold text-[#34d399] bg-[#eafaf1] px-3 py-1 rounded-full mb-2">
-                  {p.discount}
-                </span>
-                <h3 className="text-2xl font-extrabold text-[#050a30] mb-1 mt-2">
-                  {p.name}
-                </h3>
-                <p
-                  className="text-sm text-[#434343] mb-4 mt-1"
-                  style={{ minHeight: "40px" }}
+            {/* 4-column product grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 place-items-center">
+                {suggestedProducts.map((p, i) => {
+                  let recDiscountPct = 0;
+                  if (p.salePrice && p.price.value > p.salePrice.value) {
+                      recDiscountPct = Math.round(((p.price.value - p.salePrice.value) / p.price.value) * 100);
+                  }
+
+                return (
+                 <div
+                    key={p.id || i}
+                    className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full max-w-[340px] border border-transparent hover:border-[#f0b31e]/30 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
+                    onClick={() => router.push(`/products/${p.link || p.id}`)}
                 >
-                  {p.desc}
-                </p>
-                <div className="flex items-end gap-2 mt-auto mb-2">
-                  <span className="text-2xl font-bold text-[#f0b31e]">
-                    ₹ {p.price}
-                  </span>
-                  <span className="text-base font-semibold text-[#434343] line-through">
-                    ₹{p.oldPrice}
-                  </span>
+                    <div className="w-full flex justify-center mb-4">
+                    <div className="w-full h-[180px] bg-[#f8fafd] rounded-[18px] relative overflow-hidden flex items-center justify-center">
+                        {p.imageLink ? (
+                            <Image src={p.imageLink} alt={p.title} fill className="object-contain p-2 group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                            <div className="w-full h-full bg-[#f1f1f1]" />
+                        )}
+                    </div>
+                    </div>
+                    {recDiscountPct > 0 ? (
+                        <span className="text-xs font-semibold text-[#34d399] bg-[#eafaf1] px-3 py-1 rounded-full mb-2">
+                        {recDiscountPct}% OFF
+                        </span>
+                    ) : (
+                        <span className="h-6 mb-2"></span>
+                    )}
+                    <h3 className="text-lg font-extrabold text-[#050a30] mb-1 line-clamp-2" title={p.title}>
+                    {p.title}
+                    </h3>
+                    <p
+                    className="text-xs text-[#434343] mb-4 mt-1 line-clamp-2"
+                    style={{ minHeight: "35px" }}
+                    >
+                    {p.description}
+                    </p>
+                    <div className="flex items-end gap-2 mt-auto">
+                    <span className="text-xl font-bold text-[#f0b31e]">
+                        ₹{p.salePrice ? p.salePrice.value : p.price?.value || 0}
+                    </span>
+                    {p.salePrice && p.salePrice.value < p.price.value && (
+                       <span className="text-sm font-semibold text-[#434343] line-through">
+                        ₹{p.price.value}
+                       </span>
+                    )}
+                    </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+                )
+             })}
+            </div>
+            </section>
+        )}
       </div>
     </div>
   );

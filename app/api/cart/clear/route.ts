@@ -3,11 +3,20 @@ import prisma from "@/app/lib/db";
 import { requireAuth } from "@/app/lib/auth";
 import { successResponse, errorResponse } from "@/app/lib/api-response";
 
+async function resolveUserId(authUser: { id: string; email?: string | null }): Promise<string> {
+  const userById = await prisma.user.findUnique({ where: { id: authUser.id }, select: { id: true } });
+  if (userById) return userById.id;
+  if (authUser.email) {
+    const userByEmail = await prisma.user.findUnique({ where: { email: authUser.email }, select: { id: true } });
+    if (userByEmail) return userByEmail.id;
+  }
+  throw new Error("User not found in database");
+}
+
 export async function DELETE(request: NextRequest) {
   try {
-    // Authenticate user
     const user = await requireAuth();
-    const userId = user.id;
+    const userId = await resolveUserId(user);
 
     // Get user's cart
     const cart = await prisma.cart.findUnique({

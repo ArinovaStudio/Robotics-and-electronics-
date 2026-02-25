@@ -89,6 +89,8 @@ function CartPageContent() {
   const discount = cart?.summary?.discount || 0;
   const delivery = cart?.summary?.shippingEstimate || 0;
   const total = cart?.summary?.estimatedTotal || 0;
+  const freeShipping = cart?.summary?.eligibleForFreeShipping || false;
+  const discountPct = subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
 
   if (authLoading || cartLoading) {
     return (
@@ -216,13 +218,15 @@ function CartPageContent() {
             <span>Subtotal</span>
             <span className="font-bold">₹{subtotal}</span>
           </div>
-          <div className="flex justify-between text-[#22c55e] text-base mb-3">
-            <span>Discount (-20%)</span>
-            <span className="font-bold">-₹{discount}</span>
-          </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-[#22c55e] text-base mb-3">
+              <span>Discount{discountPct > 0 ? ` (-${discountPct}%)` : ""}</span>
+              <span className="font-bold">-₹{discount}</span>
+            </div>
+          )}
           <div className="flex justify-between text-[#434343] text-base mb-3">
             <span>Delivery Fee</span>
-            <span className="font-bold">₹{delivery}</span>
+            <span className="font-bold">{freeShipping ? <span className="text-[#22c55e]">Free</span> : `₹${delivery}`}</span>
           </div>
           <hr className="my-4 border-[#ececec]" />
           <div className="flex justify-between text-[#050a30] text-xl font-bold mb-6">

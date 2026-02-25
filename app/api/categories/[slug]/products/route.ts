@@ -31,14 +31,14 @@ export async function GET(
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const queryValidation = categoryProductsQuerySchema.safeParse({
-      page: searchParams.get("page"),
-      limit: searchParams.get("limit"),
-      sort: searchParams.get("sort"),
-      minPrice: searchParams.get("minPrice"),
-      maxPrice: searchParams.get("maxPrice"),
-      brand: searchParams.get("brand"),
-      availability: searchParams.get("availability"),
-      condition: searchParams.get("condition"),
+      page: searchParams.get("page") ?? undefined,
+      limit: searchParams.get("limit") ?? undefined,
+      sort: searchParams.get("sort") ?? undefined,
+      minPrice: searchParams.get("minPrice") ?? undefined,
+      maxPrice: searchParams.get("maxPrice") ?? undefined,
+      brand: searchParams.get("brand") ?? undefined,
+      availability: searchParams.get("availability") ?? undefined,
+      condition: searchParams.get("condition") ?? undefined,
     });
 
     if (!queryValidation.success) {

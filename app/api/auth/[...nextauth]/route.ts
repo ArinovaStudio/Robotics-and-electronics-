@@ -71,11 +71,27 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (user) {
-        token.userId = user.id;
+        // For Google OAuth, user.id is profile.sub — we need the real DB user ID
+        if (account?.provider === "google" && user.email) {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { id: true, role: true },
+          });
+          if (dbUser) {
+            token.userId = dbUser.id;
+            token.role = dbUser.role || "CUSTOMER";
+          } else {
+            token.userId = user.id;
+            token.role = "CUSTOMER";
+          }
+        } else {
+          // Credentials login — user.id is already the DB id
+          token.userId = user.id;
+          token.role = user.role || "CUSTOMER";
+        }
         token.email = user.email;
-        token.role = user.role || "CUSTOMER";
       }
 
       // Handle session update

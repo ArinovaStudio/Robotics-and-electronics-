@@ -1,166 +1,109 @@
 "use client";
-import { JSX, useState } from "react";
+import { JSX, useState, useEffect, useCallback } from "react";
 import { ArrowRight, Filter } from "lucide-react";
-import FilterSidebar from "./FilterSidebar";
+import FilterSidebar, { FilterState } from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
 import { Button } from "./ui/button";
-
-const brands: string[] = [
-  "FANUC",
-  "ABB",
-  "KUKA",
-  "Denso Corporation",
-  "Arduino",
-];
-const types: string[] = [
-  "Electric Motor",
-  "Semi-Conductors",
-  "Ultra Sonic Sensors",
-  "Sensors",
-  "Wires",
-];
-const discounts: string[] = [
-  "10% OFF",
-  "20% OFF",
-  "30% OFF",
-  "40% OFF",
-  "50% OFF",
-  "60% OFF",
-  "70% OFF",
-];
-
-type Product = {
-  name: string;
-  desc: string;
-  price: number;
-  oldPrice: number;
-  discount: string;
-};
-const products: Product[] = Array(6).fill({
-  name: "Aurdino uno 3.4",
-  desc: "Lorem ipsum dolor sit amet consectetur. Augue ut nec mauris mauris cras gravida suspendisse.",
-  price: 400,
-  oldPrice: 600,
-  discount: "20% OFF",
-});
-
-function PriceRangeSlider(): JSX.Element {
-  const [minVal, setMinVal] = useState<number>(100);
-  const [maxVal, setMaxVal] = useState<number>(1000);
-  const MIN: number = 100;
-  const MAX: number = 1000;
-
-  const minPercent: number = ((minVal - MIN) / (MAX - MIN)) * 100;
-  const maxPercent: number = ((maxVal - MIN) / (MAX - MIN)) * 100;
-
-  return (
-    <div className="mb-2">
-      <span className="text-base font-bold text-[#f0b31e] mb-3 block">
-        PRICE
-      </span>
-      <div
-        className="relative h-6 flex items-center"
-        style={{ marginTop: "8px" }}
-      >
-        {/* Track background */}
-        <div className="absolute w-full h-[4px] bg-[#e0e0e0] rounded-full" />
-        {/* Yellow fill between handles */}
-        <div
-          className="absolute h-[4px] bg-[#f0b31e] rounded-full"
-          style={{
-            left: `${minPercent}%`,
-            width: `${maxPercent - minPercent}%`,
-          }}
-        />
-        {/* Min thumb */}
-        <input
-          type="range"
-          min={MIN}
-          max={MAX}
-          value={minVal}
-          onChange={(e) => {
-            const val = Math.min(Number(e.target.value), maxVal - 50);
-            setMinVal(val);
-          }}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none"
-          style={{ zIndex: 3 }}
-        />
-        {/* Max thumb */}
-        <input
-          type="range"
-          min={MIN}
-          max={MAX}
-          value={maxVal}
-          onChange={(e) => {
-            const val = Math.max(Number(e.target.value), minVal + 50);
-            setMaxVal(val);
-          }}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none"
-          style={{ zIndex: 4 }}
-        />
-      </div>
-      <div className="text-center mt-3 text-sm font-semibold text-[#434343]">
-        ₹{minVal} - ₹{maxVal === MAX ? `${MAX}+` : maxVal}
-      </div>
-      <style>{`
-        input[type='range'].appearance-none::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          height: 18px;
-          width: 18px;
-          border-radius: 50%;
-          background: #f0b31e;
-          border: 2.5px solid #fff;
-          box-shadow: 0 0 0 2px #f0b31e;
-          pointer-events: all;
-          cursor: pointer;
-        }
-        input[type='range']::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          height: 18px;
-          width: 18px;
-          border-radius: 50%;
-          background: #f0b31e;
-          border: 2.5px solid #fff;
-          box-shadow: 0 0 0 2px #f0b31e;
-          pointer-events: all;
-          cursor: pointer;
-        }
-        input[type='range']::-webkit-slider-runnable-track {
-          background: transparent;
-        }
-        input[type='range']::-moz-range-thumb {
-          height: 18px;
-          width: 18px;
-          border-radius: 50%;
-          background: #f0b31e;
-          border: 2.5px solid #fff;
-          box-shadow: 0 0 0 2px #f0b31e;
-          pointer-events: all;
-          cursor: pointer;
-        }
-      `}</style>
-    </div>
-  );
-}
+import Link from "next/link";
 
 export default function RoboticsPartsSection(): JSX.Element {
-  const [checkedDiscounts, setCheckedDiscounts] = useState<string[]>([
-    "20% OFF",
-  ]);
-
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
+  const [filterResetKey, setFilterResetKey] = useState(0);
 
-  const toggleDiscount = (d: string): void => {
-    setCheckedDiscounts((prev: string[]) =>
-      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
-    );
+  // Build query string from filter state
+  const buildQuery = useCallback((filters: FilterState | null): string => {
+    const params = new URLSearchParams();
+    params.set("limit", "6");
+
+    if (filters) {
+      if (filters.categories.length === 1) {
+        params.set("category", filters.categories[0]);
+      }
+      if (filters.minPrice > 0) {
+        params.set("minPrice", String(filters.minPrice));
+      }
+      if (filters.maxPrice < 999999) {
+        params.set("maxPrice", String(filters.maxPrice));
+      }
+    }
+
+    return params.toString();
+  }, []);
+
+  // Fetch products (with optional filters)
+  const fetchProducts = useCallback(
+    async (filters: FilterState | null) => {
+      setLoading(true);
+      try {
+        const query = buildQuery(filters);
+        const res = await fetch(`/api/products?${query}`);
+        const data = await res.json();
+        if (data.success) {
+          let items = data.data.products || [];
+
+          // Client-side: filter by multiple categories
+          if (filters && filters.categories.length > 1) {
+            items = items.filter((p: any) =>
+              filters.categories.includes(p.category?.slug)
+            );
+          }
+
+          // Client-side: filter by discount ranges
+          if (filters && filters.discounts.length > 0) {
+            const minDiscounts = filters.discounts.map((d) =>
+              parseInt(d.replace("% OFF", ""))
+            );
+            items = items.filter((p: any) => {
+              const regular = p.price?.value || 0;
+              const sale = p.salePrice?.value;
+              if (!sale || regular <= sale) return false;
+              const pct = Math.round(((regular - sale) / regular) * 100);
+              const bucket = Math.floor(pct / 10) * 10;
+              return minDiscounts.includes(bucket);
+            });
+          }
+
+          // Limit to 6 on homepage
+          setProducts(items.slice(0, 6));
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [buildQuery]
+  );
+
+  // Initial fetch
+  useEffect(() => {
+    fetchProducts(null);
+  }, [fetchProducts]);
+
+  // Handle filter changes
+  const handleFiltersChange = useCallback(
+    (filters: FilterState) => {
+      setActiveFilters(filters);
+      fetchProducts(filters);
+    },
+    [fetchProducts]
+  );
+
+  // Clear all filters (also resets sidebar)
+  const clearFilters = () => {
+    setActiveFilters(null);
+    setFilterResetKey((k) => k + 1);
+    fetchProducts(null);
   };
 
   return (
-    <section className="w-full max-w-[1200px] mx-auto mt-12 relative">
+    <section className="w-full max-w-[1200px] mx-auto mt-12 mb-12 relative px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-12 px-2">
-        <h2 className="text-3xl md:text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
+      <div className="flex items-center justify-between mb-10">
+        <h2 className="text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
           TOP SELLING{" "}
           <span className="relative inline-block">
             <span
@@ -171,17 +114,17 @@ export default function RoboticsPartsSection(): JSX.Element {
           </span>{" "}
           PARTS
         </h2>
-        <a
-          href="#"
+        <Link
+          href="/products"
           className="text-[#f0b31e] font-semibold text-base flex items-center gap-1 hover:underline"
         >
           VIEW ALL
           <ArrowRight size={20} strokeWidth={2.2} className="ml-1" />
-        </a>
+        </Link>
       </div>
 
       {/* Mobile Filter Button */}
-      <div className="md:hidden mb-6 px-2">
+      <div className="md:hidden mb-6">
         <Button
           size={"icon"}
           onClick={() => setIsFilterOpen(true)}
@@ -210,15 +153,21 @@ export default function RoboticsPartsSection(): JSX.Element {
           `}
         >
           <FilterSidebar
-            brands={brands}
-            types={types}
-            discounts={discounts}
-            checkedDiscounts={checkedDiscounts}
-            toggleDiscount={toggleDiscount}
+            onFiltersChange={handleFiltersChange}
+            resetKey={filterResetKey}
           />
         </div>
 
-        {products.length === 0 ? (
+        {loading ? (
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-gray-100 animate-pulse rounded-[20px] min-h-[360px] w-full"
+              ></div>
+            ))}
+          </div>
+        ) : products.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center min-h-[420px]">
             <h2 className="text-3xl font-black text-[#050a30] mb-2 flex items-center gap-2">
               OOPS! <span>😥</span>
@@ -228,24 +177,9 @@ export default function RoboticsPartsSection(): JSX.Element {
             </p>
             <button
               className="bg-[#0a0f3c] text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#050a30] transition-all"
-              onClick={() => {
-                setCheckedDiscounts([]);
-              }}
+              onClick={clearFilters}
             >
               Clear Filters
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                viewBox="0 0 24 24"
-              >
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
             </button>
           </div>
         ) : (

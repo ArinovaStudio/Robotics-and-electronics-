@@ -88,6 +88,12 @@ export function CartProvider({ children }: CartProviderProps) {
         credentials: 'include',
       });
 
+      // 401 = not logged in — just clear cart, don't show error
+      if (res.status === 401) {
+        setCart(null);
+        return;
+      }
+
       const data = await res.json();
 
       if (!res.ok || !data.success) {
@@ -209,7 +215,7 @@ export function CartProvider({ children }: CartProviderProps) {
   const clearCart = async () => {
     try {
       const res = await fetch("/api/cart/clear", {
-        method: "POST",
+        method: "DELETE",
         headers: getHeaders(),
         credentials: 'include',
       });

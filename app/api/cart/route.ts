@@ -8,11 +8,32 @@ import {
 } from "@/app/lib/api-response";
 import { addToCartSchema } from "@/app/lib/validations/cart";
 
+// Resolve the real DB user ID (handles Google OAuth mismatch)
+async function resolveUserId(authUser: { id: string; email?: string | null }): Promise<string> {
+  // Check if user exists by the provided ID
+  const userById = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    select: { id: true },
+  });
+  if (userById) return userById.id;
+
+  // Fallback: look up by email (handles Google OAuth where id = profile.sub)
+  if (authUser.email) {
+    const userByEmail = await prisma.user.findUnique({
+      where: { email: authUser.email },
+      select: { id: true },
+    });
+    if (userByEmail) return userByEmail.id;
+  }
+
+  throw new Error("User not found in database");
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
+    // Authenticate user and resolve real DB ID
     const user = await requireAuth();
-    const userId = user.id;
+    const userId = await resolveUserId(user);
 
     // Get or create cart for user
     let cart = await prisma.cart.findUnique({
@@ -137,9 +158,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
+    // Authenticate user and resolve real DB ID
     const user = await requireAuth();
-    const userId = user.id;
+    const userId = await resolveUserId(user);
 
     // Parse and validate request body
     const body = await request.json();

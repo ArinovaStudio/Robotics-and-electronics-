@@ -31,6 +31,7 @@ const EndReached: React.FC<{ onScrollTop?: () => void }> = ({
           className={`bg-white text-[#f0b31e] cursor-pointer font-bold text-md md:text-xl px-4 md:px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-150 border-none outline-none ${spaceGrotesk.className}`}
           style={{ boxShadow: "6px 6px 0 #d6a01a" }}
           onClick={handleScrollTop}
+          suppressHydrationWarning
         >
           SCROLL TO TOP
         </button>
