@@ -172,6 +172,7 @@ export async function GET(request: NextRequest) {
     const formattedProducts = paginatedProducts.map((product: any) => ({
       id: product.id,
       title: product.title,
+      description: product.description,
       link: product.link,
       imageLink: product.imageLink,
       price: product.price,

@@ -25,27 +25,29 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
         let discountPct = 0;
         if (p.salePrice && p.price.value > p.salePrice.value) {
           discountPct = Math.round(
-            ((p.price.value - p.salePrice.value) / p.price.value) * 100
+            ((p.price.value - p.salePrice.value) / p.price.value) * 100,
           );
         }
 
-        const displayPrice = p.salePrice ? p.salePrice.value : p.price?.value || 0;
+        const displayPrice = p.salePrice
+          ? p.salePrice.value
+          : p.price?.value || 0;
 
         return (
           <div
             key={p.id || i}
-            className=" rounded-[20px] max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-300 hover:shadow-[0_10px_36px_rgba(0,0,0,0.13)] hover:-translate-y-[5px] overflow-hidden"
+            className=" rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
             onClick={() => router.push(`/products/${p.link || p.id}`)}
           >
             {/* Image Area */}
             <div className="w-full relative">
-              <div className="w-full h-[200px] bg-[#f5f7fa] rounded-t-[20px] flex items-center justify-center relative overflow-hidden">
+              <div className="w-full h-[200px]  relative rounded flex items-center justify-center  overflow-hidden">
                 {p.imageLink ? (
                   <Image
                     src={p.imageLink}
                     alt={p.title || "Product image"}
                     fill
-                    className="object-contain overflow-hidden rounded p-2"
+                    className="object-contain overflow-hidden rounded h-full w-full"
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                   />
                 ) : (
@@ -55,14 +57,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
 
               {/* Discount Badge */}
               {discountPct > 0 && (
-                <span className="absolute bottom-3.5 left-4 text-[11px] font-bold text-green-600 bg-green-300 px-3.5 py-[5px] rounded-full tracking-wide uppercase z-[2]">
+                <span className="absolute top-3.5 right-1 text-[10px] font-bold text-green-600 bg-green-300 px-3 py-[3px] rounded-full tracking-wide uppercase z-[2]">
                   {discountPct}% OFF
                 </span>
               )}
             </div>
 
             {/* Card Content */}
-            <div className="px-5 pt-5 pb-[22px] flex flex-col flex-1 border-t border-[#f0f0f0]">
+            <div className="px-5 pt-5 pb-[22px] flex flex-col flex-1 ">
               {/* Title */}
               <h3
                 className="text-lg font-bold text-[#1a1a2e] leading-tight mb-1.5 line-clamp-2"
@@ -82,8 +84,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
               {/* Price */}
               <div className="flex items-baseline gap-2.5 mt-auto">
                 <span className="text-[26px] font-bold text-[#1a1a2e] tracking-tight flex items-baseline gap-0.5">
-                  <span className="text-[#f0b31e] text-[22px]">₹{displayPrice.toLocaleString()}</span>
-                  
+                  <span className="text-[#f0b31e] text-[22px]">
+                    ₹{displayPrice.toLocaleString()}
+                  </span>
                 </span>
                 {p.salePrice && p.salePrice.value < p.price.value && (
                   <span className="text-sm font-medium text-gray-300 line-through">

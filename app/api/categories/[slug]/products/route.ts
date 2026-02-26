@@ -84,6 +84,7 @@ export async function GET(
       select: {
         id: true,
         title: true,
+        description: true,
         link: true,
         imageLink: true,
         price: true,

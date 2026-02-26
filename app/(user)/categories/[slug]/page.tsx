@@ -1,10 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Filter } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import ProductGrid from "@/components/ProductGrid";
-import FilterSidebar, { FilterState } from "@/components/FilterSidebar";
 import { Button } from "@/components/ui/button";
 
 type Category = {
@@ -26,9 +25,6 @@ export default function CategoryDetailPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
-  const [filterResetKey, setFilterResetKey] = useState(0);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sort, setSort] = useState("newest");
   const LIMIT = 12;
 
@@ -53,53 +49,27 @@ export default function CategoryDetailPage() {
   }, [slug]);
 
   // Build query
-  const buildQuery = useCallback(
-    (filters: FilterState | null, p: number, s: string): string => {
-      const qp = new URLSearchParams();
-      qp.set("page", String(p));
-      qp.set("limit", String(LIMIT));
-      qp.set("sort", s);
+  const buildQuery = useCallback((p: number, s: string): string => {
+    const qp = new URLSearchParams();
+    qp.set("page", String(p));
+    qp.set("limit", String(LIMIT));
+    qp.set("sort", s);
 
-      if (filters) {
-        if (filters.minPrice > 0) qp.set("minPrice", String(filters.minPrice));
-        if (filters.maxPrice < 999999)
-          qp.set("maxPrice", String(filters.maxPrice));
-      }
-
-      return qp.toString();
-    },
-    []
-  );
+    return qp.toString();
+  }, []);
 
   // Fetch products for this category
   const fetchProducts = useCallback(
-    async (filters: FilterState | null, p: number, s: string) => {
+    async (p: number, s: string) => {
       if (!slug) return;
       setLoading(true);
       try {
-        const query = buildQuery(filters, p, s);
-        const res = await fetch(
-          `/api/categories/${slug}/products?${query}`
-        );
+        const query = buildQuery(p, s);
+        const res = await fetch(`/api/categories/${slug}/products?${query}`);
         const data = await res.json();
 
         if (res.ok && data.success) {
-          let items = data.data.products || [];
-
-          // Client-side: filter by discount ranges
-          if (filters && filters.discounts.length > 0) {
-            const buckets = filters.discounts.map((d) =>
-              parseInt(d.replace("% OFF", ""))
-            );
-            items = items.filter((prod: any) => {
-              const regular = prod.price?.value || 0;
-              const sale = prod.salePrice?.value;
-              if (!sale || regular <= sale) return false;
-              const pct = Math.round(((regular - sale) / regular) * 100);
-              const bucket = Math.floor(pct / 10) * 10;
-              return buckets.includes(bucket);
-            });
-          }
+          const items = data.data.products || [];
 
           setProducts(items);
           setTotalPages(data.data.pagination?.totalPages || 1);
@@ -114,35 +84,17 @@ export default function CategoryDetailPage() {
         setLoading(false);
       }
     },
-    [slug, buildQuery]
+    [slug, buildQuery],
   );
 
   // Fetch on page/sort change
   useEffect(() => {
-    if (slug) fetchProducts(activeFilters, page, sort);
-  }, [page, sort, slug]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Handle sidebar filter changes
-  const handleFiltersChange = useCallback(
-    (filters: FilterState) => {
-      setActiveFilters(filters);
-      setPage(1);
-      fetchProducts(filters, 1, sort);
-    },
-    [fetchProducts, sort]
-  );
+    if (slug) fetchProducts(page, sort);
+  }, [page, sort, slug, fetchProducts]);
 
   const handleSortChange = (s: string) => {
     setSort(s);
     setPage(1);
-  };
-
-  const clearFilters = () => {
-    setActiveFilters(null);
-    setFilterResetKey((k) => k + 1);
-    setPage(1);
-    setSort("newest");
-    fetchProducts(null, 1, "newest");
   };
 
   // Pagination helper
@@ -223,16 +175,8 @@ export default function CategoryDetailPage() {
                 </p>
               </div>
 
-              {/* Sort + Mobile filter */}
+              {/* Sort */}
               <div className="flex items-center gap-3">
-                <Button
-                  size="icon"
-                  onClick={() => setIsFilterOpen(true)}
-                  className="md:hidden bg-[#f0b31e] text-white rounded-full shadow"
-                >
-                  <Filter size={18} />
-                </Button>
-
                 <select
                   value={sort}
                   onChange={(e) => handleSortChange(e.target.value)}
@@ -249,32 +193,9 @@ export default function CategoryDetailPage() {
           </div>
         )}
 
-        {/* Mobile Overlay */}
-        {isFilterOpen && (
-          <div
-            onClick={() => setIsFilterOpen(false)}
-            className="fixed inset-0 bg-black/40 z-40 md:hidden"
-          />
-        )}
-
-        <div className="flex gap-8 relative">
-          {/* Sidebar */}
-          <div
-            className={`
-              fixed md:static top-0 left-0 h-full md:h-auto
-              z-50 md:z-auto
-              transform overflow-y-auto transition-transform duration-300
-              ${isFilterOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-            `}
-          >
-            <FilterSidebar
-              onFiltersChange={handleFiltersChange}
-              resetKey={filterResetKey}
-            />
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1">
+        {/* Main Content */}
+        <div>
+          <div>
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
@@ -290,14 +211,8 @@ export default function CategoryDetailPage() {
                   OOPS! <span>😥</span>
                 </h2>
                 <p className="text-[#bdbdbd] text-lg mb-6">
-                  No product found, please try to clear filters
+                  No products found in this category
                 </p>
-                <button
-                  className="bg-[#0a0f3c] text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#050a30] transition-all"
-                  onClick={clearFilters}
-                >
-                  Clear Filters
-                </button>
               </div>
             ) : (
               <>
@@ -335,7 +250,7 @@ export default function CategoryDetailPage() {
                           >
                             {p}
                           </button>
-                        )
+                        ),
                       )}
                     </div>
 

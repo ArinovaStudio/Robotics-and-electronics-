@@ -8,11 +8,13 @@ import { ShoppingBag, Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AppProviders, useAuth } from "@/app/contexts";
+import { useAdminStore } from "@/store/adminStore";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loginWithJWT } = useAuth();
+  const { setAdmin } = useAdminStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,9 +47,15 @@ function LoginForm() {
       // Use AuthContext to login
       loginWithJWT(data.data.token, data.data.user);
 
-      // Redirect to home or callback URL
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
-      router.push(callbackUrl);
+      // If user is admin, set admin session and redirect to /admin
+      if (data.data.user.role === "ADMIN") {
+        setAdmin(data.data.user, data.data.token);
+        router.push("/admin");
+      } else {
+        // Redirect to home or callback URL for customers
+        const callbackUrl = searchParams.get("callbackUrl") || "/";
+        router.push(callbackUrl);
+      }
       router.refresh();
     } catch (err: any) {
       setError(err.message);

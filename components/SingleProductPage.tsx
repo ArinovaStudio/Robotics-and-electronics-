@@ -1,4 +1,31 @@
 "use client";
+// ─── Breadcrumbs Component ────────────────────────────────────────────────
+type BreadcrumbItem = { label: string; href?: string };
+
+function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
+  return (
+    <nav
+      className="flex items-center gap-2 text-sm text-[#9ca3af] mb-8"
+      aria-label="Breadcrumb"
+    >
+      {items.map((item, idx) => (
+        <React.Fragment key={item.label}>
+          {item.href && idx !== items.length - 1 ? (
+            <Link
+              href={item.href}
+              className="hover:text-[#050a30] transition-colors"
+            >
+              {item.label}
+            </Link>
+          ) : (
+            <span className="text-[#050a30] font-semibold">{item.label}</span>
+          )}
+          {idx < items.length - 1 && <span className="text-[#ccc]">›</span>}
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+}
 import { Unbounded } from "next/font/google";
 
 const unbounded = Unbounded({ subsets: ["latin"], weight: ["900"] });
@@ -6,12 +33,8 @@ const unbounded = Unbounded({ subsets: ["latin"], weight: ["900"] });
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  Star,
-  ShoppingCart,
-  Loader2,
-  Check,
-} from "lucide-react";
+import Link from "next/link";
+import { Star, ShoppingCart, Loader2, Check } from "lucide-react";
 import { useCart, useAuth } from "@/app/contexts";
 
 // ─── Mock Reviews Data ────────────────────────────────────────────────────
@@ -134,7 +157,11 @@ function ReviewCard({ review }: { review: (typeof reviews)[0] }) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────
-export default function SingleProductPage({ product }: { product: APIProduct }) {
+export default function SingleProductPage({
+  product,
+}: {
+  product: APIProduct;
+}) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"details" | "reviews">("details");
@@ -182,10 +209,16 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
   useEffect(() => {
     async function fetchRelated() {
       try {
-        const res = await fetch("/api/products/featured?type=bestsellers&limit=4");
+        const res = await fetch(
+          "/api/products/featured?type=bestsellers&limit=4",
+        );
         const data = await res.json();
         if (data.success) {
-          setSuggestedProducts(data.data.filter((p: APIProduct) => p.id !== product.id).slice(0, 4));
+          setSuggestedProducts(
+            data.data
+              .filter((p: APIProduct) => p.id !== product.id)
+              .slice(0, 4),
+          );
         }
       } catch (err) {
         console.error("Failed to load suggested products", err);
@@ -199,31 +232,35 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
     { id: "reviews" as const, label: "Rating & Reviews" },
   ];
 
-  const allImages = [product.imageLink, ...(product.additionalImageLinks || [])].filter(Boolean);
-  
+  const allImages = [
+    product.imageLink,
+    ...(product.additionalImageLinks || []),
+  ].filter(Boolean);
+
   let discountPct = 0;
   if (product.salePrice && product.price.value > product.salePrice.value) {
-      discountPct = Math.round(((product.price.value - product.salePrice.value) / product.price.value) * 100);
+    discountPct = Math.round(
+      ((product.price.value - product.salePrice.value) / product.price.value) *
+        100,
+    );
   }
 
-  const currentPrice = product.salePrice ? product.salePrice.value : product.price.value;
+  const currentPrice = product.salePrice
+    ? product.salePrice.value
+    : product.price.value;
 
   return (
     <div className="bg-white min-h-screen font-sans">
       {/* ── PAGE BODY ── */}
       <div className="max-w-[1100px] mx-auto px-8 py-8">
         {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-sm text-[#9ca3af] mb-8">
-          {["Home", "Shop", "Products"].map((crumb) => (
-            <React.Fragment key={crumb}>
-              <a href="#" className="hover:text-[#050a30] transition-colors">
-                {crumb}
-              </a>
-              <span className="text-[#ccc]">›</span>
-            </React.Fragment>
-          ))}
-          <span className="text-[#050a30] font-semibold">{product.title}</span>
-        </div>
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Shop", href: "/products" },
+            { label: product.title },
+          ]}
+        />
 
         {/* ── PRODUCT LAYOUT ── */}
         <div className="flex xl:flex-row flex-col gap-8 xl:gap-8 items-start">
@@ -244,7 +281,12 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
                           : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
                       }`}
                   >
-                     <Image src={img} alt={`Thumb ${idx}`} fill className="object-contain p-2" />
+                    <Image
+                      src={img}
+                      alt={`Thumb ${idx}`}
+                      fill
+                      className="object-contain p-2"
+                    />
                   </button>
                 ))}
               </div>
@@ -253,7 +295,12 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
               <div className="flex-1 flex justify-center sm:justify-start w-full">
                 <div className="w-full relative h-[350px] md:h-[450px] rounded-2xl bg-[#f8fafd] border border-[#e8e8e8] overflow-hidden shrink-0">
                   {allImages.length > 0 && (
-                     <Image src={allImages[selectedImage]} alt={product.title} fill className="object-contain p-6" />
+                    <Image
+                      src={allImages[selectedImage]}
+                      alt={product.title}
+                      fill
+                      className="object-contain p-6"
+                    />
                   )}
                 </div>
               </div>
@@ -277,24 +324,32 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
                 ₹{currentPrice}
               </span>
               {discountPct > 0 && (
-                  <span className="text-[#9ca3af] text-xl font-bold line-through">
-                    ₹{product.price.value}
-                  </span>
+                <span className="text-[#9ca3af] text-xl font-bold line-through">
+                  ₹{product.price.value}
+                </span>
               )}
               {discountPct > 0 && (
-                  <span className="bg-[#ffe5e5] text-[#ff4d4d] text-sm font-bold px-3 py-[5px] rounded-md">
-                    -{discountPct}% OFF
-                  </span>
+                <span className="bg-[#ffe5e5] text-[#ff4d4d] text-sm font-bold px-3 py-[5px] rounded-md">
+                  -{discountPct}% OFF
+                </span>
               )}
             </div>
 
             <p className="text-[#555] text-sm leading-relaxed mb-5 whitespace-pre-wrap">
               {product.description}
             </p>
-            
+
             <div className="mb-4 text-sm font-semibold">
-              <span className={product.availability === 'IN_STOCK' ? 'text-green-600' : 'text-red-500'}>
-                {product.availability === 'IN_STOCK' ? '✓ In Stock' : '✗ Out of Stock'}
+              <span
+                className={
+                  product.availability === "IN_STOCK"
+                    ? "text-green-600"
+                    : "text-red-500"
+                }
+              >
+                {product.availability === "IN_STOCK"
+                  ? "✓ In Stock"
+                  : "✗ Out of Stock"}
               </span>
             </div>
 
@@ -324,11 +379,11 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
               </div>
 
               <div className="flex flex-row gap-3 w-full">
-                  {/* Add to Cart */}
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={addingToCart || product.availability !== 'IN_STOCK'}
-                    className="
+                {/* Add to Cart */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart || product.availability !== "IN_STOCK"}
+                  className="
         flex-1
         bg-white text-[#f0b31e]
         font-bold text-sm
@@ -340,21 +395,23 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
         disabled:opacity-50 disabled:cursor-not-allowed
         flex items-center justify-center gap-2
       "
-                  >
-                    {addingToCart ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : addedToCart ? (
-                      <><Check size={18} /> Added!</>
-                    ) : (
-                      "Add to Cart"
-                    )}
-                  </button>
+                >
+                  {addingToCart ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : addedToCart ? (
+                    <>
+                      <Check size={18} /> Added!
+                    </>
+                  ) : (
+                    "Add to Cart"
+                  )}
+                </button>
 
-                  {/* Buy Now */}
-                  <button
-                    onClick={handleBuyNow}
-                    disabled={addingToCart || product.availability !== 'IN_STOCK'}
-                    className="
+                {/* Buy Now */}
+                <button
+                  onClick={handleBuyNow}
+                  disabled={addingToCart || product.availability !== "IN_STOCK"}
+                  className="
         flex-1
         bg-[#f0b31e] text-white
         font-bold text-sm
@@ -365,9 +422,9 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
         transition-all shadow-md hover:shadow-lg
         disabled:opacity-50 disabled:cursor-not-allowed
       "
-                  >
-                    BUY NOW
-                  </button>
+                >
+                  BUY NOW
+                </button>
               </div>
             </div>
           </div>
@@ -401,15 +458,21 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
           {/* ── Product Details ── */}
           {activeTab === "details" && (
             <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed md:max-w-4xl space-y-4">
-              <h3 className="text-xl font-bold text-[#050a30] mb-4">Features & Specifications</h3>
-              {product.productHighlights && product.productHighlights.length > 0 ? (
-                 <ul className="list-disc pl-5 space-y-2">
-                   {product.productHighlights.map((highlight, i) => (
-                      <li key={i}>{highlight}</li>
-                   ))}
-                 </ul>
+              <h3 className="text-xl font-bold text-[#050a30] mb-4">
+                Features & Specifications
+              </h3>
+              {product.productHighlights &&
+              product.productHighlights.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-2">
+                  {product.productHighlights.map((highlight, i) => (
+                    <li key={i}>{highlight}</li>
+                  ))}
+                </ul>
               ) : (
-                <p>No extra specifications strictly defined for this product right now.</p>
+                <p>
+                  No extra specifications strictly defined for this product
+                  right now.
+                </p>
               )}
             </div>
           )}
@@ -447,76 +510,84 @@ export default function SingleProductPage({ product }: { product: APIProduct }) 
               </div>
             </div>
           )}
-
-         
         </div>
 
         {/* ══════════════════════════════════════════
             YOU MIGHT ALSO LIKE
         ══════════════════════════════════════════ */}
         {suggestedProducts.length > 0 && (
-            <section className="mt-24 mb-10">
+          <section className="mt-24 mb-10">
             {/* Title */}
             <h2
-                className={`text-center text-[#050a30] text-[32px] md:text-[38px] font-black tracking-tight mb-12 ${unbounded.className}`}
+              className={`text-center text-[#050a30] text-[32px] md:text-[38px] font-black tracking-tight mb-12 ${unbounded.className}`}
             >
-                You might also like
+              You might also like
             </h2>
 
             {/* 4-column product grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 place-items-center">
-                {suggestedProducts.map((p, i) => {
-                  let recDiscountPct = 0;
-                  if (p.salePrice && p.price.value > p.salePrice.value) {
-                      recDiscountPct = Math.round(((p.price.value - p.salePrice.value) / p.price.value) * 100);
-                  }
+              {suggestedProducts.map((p, i) => {
+                let recDiscountPct = 0;
+                if (p.salePrice && p.price.value > p.salePrice.value) {
+                  recDiscountPct = Math.round(
+                    ((p.price.value - p.salePrice.value) / p.price.value) * 100,
+                  );
+                }
 
                 return (
-                 <div
+                  <div
                     key={p.id || i}
                     className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full max-w-[340px] border border-transparent hover:border-[#f0b31e]/30 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
                     onClick={() => router.push(`/products/${p.link || p.id}`)}
-                >
+                  >
                     <div className="w-full flex justify-center mb-4">
-                    <div className="w-full h-[180px] bg-[#f8fafd] rounded-[18px] relative overflow-hidden flex items-center justify-center">
+                      <div className="w-full h-[180px] bg-[#f8fafd] rounded-[18px] relative overflow-hidden flex items-center justify-center">
                         {p.imageLink ? (
-                            <Image src={p.imageLink} alt={p.title} fill className="object-contain p-2 group-hover:scale-105 transition-transform duration-500" />
+                          <Image
+                            src={p.imageLink}
+                            alt={p.title}
+                            fill
+                            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                          />
                         ) : (
-                            <div className="w-full h-full bg-[#f1f1f1]" />
+                          <div className="w-full h-full bg-[#f1f1f1]" />
                         )}
-                    </div>
+                      </div>
                     </div>
                     {recDiscountPct > 0 ? (
-                        <span className="text-xs font-semibold text-[#34d399] bg-[#eafaf1] px-3 py-1 rounded-full mb-2">
+                      <span className="text-xs font-semibold text-[#34d399] bg-[#eafaf1] px-3 py-1 rounded-full mb-2">
                         {recDiscountPct}% OFF
-                        </span>
+                      </span>
                     ) : (
-                        <span className="h-6 mb-2"></span>
+                      <span className="h-6 mb-2"></span>
                     )}
-                    <h3 className="text-lg font-extrabold text-[#050a30] mb-1 line-clamp-2" title={p.title}>
-                    {p.title}
+                    <h3
+                      className="text-lg font-extrabold text-[#050a30] mb-1 line-clamp-2"
+                      title={p.title}
+                    >
+                      {p.title}
                     </h3>
                     <p
-                    className="text-xs text-[#434343] mb-4 mt-1 line-clamp-2"
-                    style={{ minHeight: "35px" }}
+                      className="text-xs text-[#434343] mb-4 mt-1 line-clamp-2"
+                      style={{ minHeight: "35px" }}
                     >
-                    {p.description}
+                      {p.description}
                     </p>
                     <div className="flex items-end gap-2 mt-auto">
-                    <span className="text-xl font-bold text-[#f0b31e]">
+                      <span className="text-xl font-bold text-[#f0b31e]">
                         ₹{p.salePrice ? p.salePrice.value : p.price?.value || 0}
-                    </span>
-                    {p.salePrice && p.salePrice.value < p.price.value && (
-                       <span className="text-sm font-semibold text-[#434343] line-through">
-                        ₹{p.price.value}
-                       </span>
-                    )}
+                      </span>
+                      {p.salePrice && p.salePrice.value < p.price.value && (
+                        <span className="text-sm font-semibold text-[#434343] line-through">
+                          ₹{p.price.value}
+                        </span>
+                      )}
                     </div>
-                </div>
-                )
-             })}
+                  </div>
+                );
+              })}
             </div>
-            </section>
+          </section>
         )}
       </div>
     </div>

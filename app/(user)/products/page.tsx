@@ -39,7 +39,7 @@ export default function ProductsPage() {
 
       return params.toString();
     },
-    []
+    [],
   );
 
   // Fetch products
@@ -56,14 +56,14 @@ export default function ProductsPage() {
           // Client-side: filter by multiple categories
           if (filters && filters.categories.length > 1) {
             items = items.filter((prod: any) =>
-              filters.categories.includes(prod.category?.slug)
+              filters.categories.includes(prod.category?.slug),
             );
           }
 
           // Client-side: filter by discount ranges
           if (filters && filters.discounts.length > 0) {
             const buckets = filters.discounts.map((d) =>
-              parseInt(d.replace("% OFF", ""))
+              parseInt(d.replace("% OFF", "")),
             );
             items = items.filter((prod: any) => {
               const regular = prod.price?.value || 0;
@@ -85,7 +85,7 @@ export default function ProductsPage() {
         setLoading(false);
       }
     },
-    [buildQuery]
+    [buildQuery],
   );
 
   // Initial fetch
@@ -100,7 +100,7 @@ export default function ProductsPage() {
       setPage(1);
       fetchProducts(filters, 1, sort);
     },
-    [fetchProducts, sort]
+    [fetchProducts, sort],
   );
 
   // Handle sort change
@@ -189,7 +189,7 @@ export default function ProductsPage() {
           {/* Sidebar */}
           <div
             className={`
-              fixed md:static top-0 left-0 h-full md:h-auto
+              fixed md:sticky top-0 left-0 h-full md:h-fit md:self-start
               z-50 md:z-auto
               transform overflow-y-auto transition-transform duration-300
               ${isFilterOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
@@ -263,7 +263,7 @@ export default function ProductsPage() {
                           >
                             {p}
                           </button>
-                        )
+                        ),
                       )}
                     </div>
 

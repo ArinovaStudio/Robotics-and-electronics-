@@ -1,5 +1,6 @@
 "use client";
 import { JSX, useState, useEffect, useCallback } from "react";
+import { useDebounce } from "../hooks/useDebounce";
 import { ArrowRight, Filter } from "lucide-react";
 import FilterSidebar, { FilterState } from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
@@ -11,12 +12,14 @@ export default function RoboticsPartsSection(): JSX.Element {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
+  // Debounce filter state to avoid rapid fetches
+  const debouncedFilters = useDebounce(activeFilters, 350);
   const [filterResetKey, setFilterResetKey] = useState(0);
 
   // Build query string from filter state
   const buildQuery = useCallback((filters: FilterState | null): string => {
     const params = new URLSearchParams();
-    params.set("limit", "6");
+    params.set("limit", "50");
 
     if (filters) {
       if (filters.categories.length === 1) {
@@ -47,14 +50,14 @@ export default function RoboticsPartsSection(): JSX.Element {
           // Client-side: filter by multiple categories
           if (filters && filters.categories.length > 1) {
             items = items.filter((p: any) =>
-              filters.categories.includes(p.category?.slug)
+              filters.categories.includes(p.category?.slug),
             );
           }
 
           // Client-side: filter by discount ranges
           if (filters && filters.discounts.length > 0) {
             const minDiscounts = filters.discounts.map((d) =>
-              parseInt(d.replace("% OFF", ""))
+              parseInt(d.replace("% OFF", "")),
             );
             items = items.filter((p: any) => {
               const regular = p.price?.value || 0;
@@ -66,8 +69,8 @@ export default function RoboticsPartsSection(): JSX.Element {
             });
           }
 
-          // Limit to 6 on homepage
-          setProducts(items.slice(0, 6));
+          // Show all products
+          setProducts(items);
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -75,7 +78,7 @@ export default function RoboticsPartsSection(): JSX.Element {
         setLoading(false);
       }
     },
-    [buildQuery]
+    [buildQuery],
   );
 
   // Initial fetch
@@ -83,14 +86,16 @@ export default function RoboticsPartsSection(): JSX.Element {
     fetchProducts(null);
   }, [fetchProducts]);
 
-  // Handle filter changes
-  const handleFiltersChange = useCallback(
-    (filters: FilterState) => {
-      setActiveFilters(filters);
-      fetchProducts(filters);
-    },
-    [fetchProducts]
-  );
+  // Handle filter changes (debounced fetch)
+  const handleFiltersChange = useCallback((filters: FilterState) => {
+    setActiveFilters(filters);
+  }, []);
+
+  // Fetch products when debounced filters change
+  useEffect(() => {
+    fetchProducts(debouncedFilters ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedFilters]);
 
   // Clear all filters (also resets sidebar)
   const clearFilters = () => {
@@ -100,14 +105,14 @@ export default function RoboticsPartsSection(): JSX.Element {
   };
 
   return (
-    <section className="w-full max-w-[1200px] mx-auto mt-12 mb-12 relative px-4">
+    <section className="w-full max-w-[1200px] gap-8 mt-12 mb-12 relative ">
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <h2 className="text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
           TOP SELLING{" "}
           <span className="relative inline-block">
             <span
-              className="absolute bottom-0 left-0 w-full bg-[#f0b31e]"
+              className="absolute bottom-0 left-0 w-full bg-[#FFE29A]"
               style={{ height: "55%" }}
             ></span>
             <span className="relative z-10">ROBOTICS</span>
@@ -142,11 +147,11 @@ export default function RoboticsPartsSection(): JSX.Element {
         />
       )}
 
-      <div className="flex gap-8 relative">
+      <div className="flex gap-12 relative">
         {/* Responsive Sidebar Wrapper */}
         <div
           className={`
-            fixed md:static top-0 left-0 h-full md:h-auto
+            fixed md:sticky top-0 left-0 h-full md:h-fit md:self-start
             z-50 md:z-auto
             transform overflow-y-auto transition-transform duration-300
             ${isFilterOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
