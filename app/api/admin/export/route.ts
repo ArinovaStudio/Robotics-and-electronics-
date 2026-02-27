@@ -13,13 +13,12 @@ const exportQuerySchema = z.object({
   isVerified: z.string().optional(), // for customers
 });
 
-
 function jsonToCsv(items: any[]) {
   if (!items || !items.length) return "No data available";
-  
+
   const headers = Object.keys(items[0]);
   const csvRows = [
-    headers.join(","), 
+    headers.join(","),
     ...items.map((row) =>
       headers
         .map((fieldName) => {
@@ -28,7 +27,7 @@ function jsonToCsv(items: any[]) {
           const stringValue = String(value).replace(/"/g, '""');
           return `"${stringValue}"`;
         })
-        .join(",")
+        .join(","),
     ),
   ];
   return csvRows.join("\r\n");
@@ -46,7 +45,8 @@ export async function GET(request: NextRequest) {
       return errorResponse(validation.error.issues[0].message, 400);
     }
 
-    const { type, startDate, endDate, status, availability, isVerified } = validation.data;
+    const { type, startDate, endDate, status, availability, isVerified } =
+      validation.data;
 
     const dateFilter: any = {};
     if (startDate) dateFilter.gte = new Date(startDate);
@@ -69,14 +69,14 @@ export async function GET(request: NextRequest) {
         include: {
           user: { select: { name: true, email: true } },
           payment: { select: { status: true, paymentMethod: true } },
-          _count: { select: { items: true } }
+          _count: { select: { items: true } },
         },
         orderBy: { orderedAt: "desc" },
       });
 
       dataToExport = orders.map((o) => ({
         "Order ID": o.orderNumber,
-        "Date": o.orderedAt.toISOString(),
+        Date: o.orderedAt.toISOString(),
         "Customer Name": o.user.name,
         "Customer Email": o.user.email,
         "Total Items": o._count.items,
@@ -89,12 +89,11 @@ export async function GET(request: NextRequest) {
         "Payment Status": o.payment?.status || "UNPAID",
         "Payment Method": o.payment?.paymentMethod || "N/A",
       }));
-    }
-
-    else if (type === "products") {
+    } else if (type === "products") {
       const where: any = {};
       if (startDate || endDate) where.createdAt = dateFilter;
-      if (availability && availability !== "all") where.availability = availability;
+      if (availability && availability !== "all")
+        where.availability = availability;
 
       const products = await prisma.product.findMany({
         where,
@@ -103,25 +102,23 @@ export async function GET(request: NextRequest) {
       });
 
       dataToExport = products.map((p) => ({
-        "SKU": p.sku,
+        SKU: p.sku,
         "Product Name": p.title,
-        "Category": p.category?.name || "Uncategorized",
-        "Brand": p.brand || "N/A",
+        Category: p.category?.name || "Uncategorized",
+        Brand: p.brand || "N/A",
         "Stock Quantity": p.stockQuantity,
-        "Availability": p.availability,
-        "Condition": p.condition,
+        Availability: p.availability,
+        Condition: p.condition,
         "Regular Price (INR)": (p.price as any)?.value || 0,
         "Sale Price (INR)": (p.salePrice as any)?.value || "",
         "Active Status": p.isActive ? "Active" : "Hidden",
         "Is Bundle": p.isBundle ? "Yes" : "No",
         "Added On": p.createdAt.toISOString(),
       }));
-    }
-
-    else if (type === "customers") {
+    } else if (type === "customers") {
       const where: any = { role: "CUSTOMER" };
       if (startDate || endDate) where.createdAt = dateFilter;
-      
+
       if (isVerified === "verified") where.emailVerified = { not: null };
       if (isVerified === "unverified") where.emailVerified = null;
 
@@ -133,9 +130,9 @@ export async function GET(request: NextRequest) {
 
       dataToExport = customers.map((c) => ({
         "Customer ID": c.id,
-        "Name": c.name,
-        "Email": c.email,
-        "Phone": c.phone || "N/A",
+        Name: c.name,
+        Email: c.email,
+        Phone: c.phone || "N/A",
         "Verification Status": c.emailVerified ? "Verified" : "Unverified",
         "Total Orders": c._count.orders,
         "Joined On": c.createdAt.toISOString(),
@@ -143,7 +140,7 @@ export async function GET(request: NextRequest) {
     }
 
     const csvContent = jsonToCsv(dataToExport);
-    
+
     return new Response(csvContent, {
       status: 200,
       headers: {
@@ -151,8 +148,9 @@ export async function GET(request: NextRequest) {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
-
   } catch {
-    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
 }
