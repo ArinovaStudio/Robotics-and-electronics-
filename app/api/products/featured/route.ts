@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       result.bestsellers = bestsellers.map((product: any) => ({
         id: product.id,
         title: product.title,
+        description: product.description,
         link: product.link,
         imageLink: product.imageLink,
         price: product.price,
@@ -63,6 +64,7 @@ export async function GET(request: NextRequest) {
       result.newArrivals = newArrivals.map((product: any) => ({
         id: product.id,
         title: product.title,
+        description: product.description,
         link: product.link,
         imageLink: product.imageLink,
         price: product.price,
@@ -101,6 +103,7 @@ export async function GET(request: NextRequest) {
       result.onSale = onSaleProducts.map((product: any) => ({
         id: product.id,
         title: product.title,
+        description: product.description,
         link: product.link,
         imageLink: product.imageLink,
         price: product.price,
@@ -153,6 +156,7 @@ export async function GET(request: NextRequest) {
         result.trending = fallbackTrending.map((product: any) => ({
           id: product.id,
           title: product.title,
+          description: product.description,
           link: product.link,
           imageLink: product.imageLink,
           price: product.price,
@@ -167,6 +171,7 @@ export async function GET(request: NextRequest) {
         result.trending = trendingProducts.map((product: any) => ({
           id: product.id,
           title: product.title,
+          description: product.description,
           link: product.link,
           imageLink: product.imageLink,
           price: product.price,

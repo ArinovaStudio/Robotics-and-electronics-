@@ -30,7 +30,7 @@ export function ProductMetricCard({
     const gradientId = `spark-${title.replace(/\s/g, "")}`;
 
     return (
-        <div className="w-80 h-37.5 rounded-2xl border border-slate-200 bg-white px-5 py-5 flex justify-between">
+        <div className="w-full h-37.5 rounded-2xl border border-slate-200 bg-white px-5 py-5 flex justify-between">
 
 
             {/* LEFT */}

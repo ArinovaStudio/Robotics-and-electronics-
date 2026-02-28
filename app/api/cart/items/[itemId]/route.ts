@@ -8,14 +8,23 @@ import {
 } from "@/app/lib/api-response";
 import { updateCartItemSchema } from "@/app/lib/validations/cart";
 
+async function resolveUserId(authUser: { id: string; email?: string | null }): Promise<string> {
+  const userById = await prisma.user.findUnique({ where: { id: authUser.id }, select: { id: true } });
+  if (userById) return userById.id;
+  if (authUser.email) {
+    const userByEmail = await prisma.user.findUnique({ where: { email: authUser.email }, select: { id: true } });
+    if (userByEmail) return userByEmail.id;
+  }
+  throw new Error("User not found in database");
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string }> },
 ) {
   try {
-    // Authenticate user
     const user = await requireAuth();
-    const userId = user.id;
+    const userId = await resolveUserId(user);
 
     const { itemId } = await params;
 
@@ -144,9 +153,8 @@ export async function DELETE(
   { params }: { params: Promise<{ itemId: string }> },
 ) {
   try {
-    // Authenticate user
     const user = await requireAuth();
-    const userId = user.id;
+    const userId = await resolveUserId(user);
 
     const { itemId } = await params;
 

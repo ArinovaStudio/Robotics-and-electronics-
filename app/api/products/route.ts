@@ -7,20 +7,23 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
+    // Helper: convert null to undefined (searchParams.get returns null, but Zod .optional() expects undefined)
+    const param = (key: string) => searchParams.get(key) ?? undefined;
+
     // Parse query parameters
     const queryValidation = listProductsQuerySchema.safeParse({
-      page: searchParams.get("page"),
-      limit: searchParams.get("limit"),
-      search: searchParams.get("search"),
-      category: searchParams.get("category"),
-      sort: searchParams.get("sort"),
-      minPrice: searchParams.get("minPrice"),
-      maxPrice: searchParams.get("maxPrice"),
-      brand: searchParams.get("brand"),
-      availability: searchParams.get("availability"),
-      condition: searchParams.get("condition"),
-      customLabel0: searchParams.get("customLabel0"),
-      customLabel1: searchParams.get("customLabel1"),
+      page: param("page"),
+      limit: param("limit"),
+      search: param("search"),
+      category: param("category"),
+      sort: param("sort"),
+      minPrice: param("minPrice"),
+      maxPrice: param("maxPrice"),
+      brand: param("brand"),
+      availability: param("availability"),
+      condition: param("condition"),
+      customLabel0: param("customLabel0"),
+      customLabel1: param("customLabel1"),
     });
 
     if (!queryValidation.success) {
@@ -176,6 +179,7 @@ export async function GET(request: NextRequest) {
     const formattedProducts = paginatedProducts.map((product: any) => ({
       id: product.id,
       title: product.title,
+      description: product.description,
       link: product.link,
       imageLink: product.imageLink,
       price: product.price,
