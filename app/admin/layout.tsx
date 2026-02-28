@@ -2,26 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdminStore } from '@/store/adminStore';
 import TopBar from '@/components/admin/TopBar';
 import Navbar from '@/components/admin/Navbar';
+import { useSession } from 'next-auth/react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const { isValidSession, logout } = useAdminStore();
-    const [isMounted, setIsMounted] = useState(false);
+    const { data: session, status } = useSession();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
-        setIsMounted(true);
         
-        if (!isValidSession()) {
-            logout();
+        if (status === 'unauthenticated') {
             router.push('/login');
+        } 
+        else if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
+            router.push('/'); 
         }
-    }, [isValidSession, logout, router]);
+    }, [status, session, router]);
 
-    if (!isMounted || !isValidSession()) {
+    if (status === 'loading' || status === 'unauthenticated' || session?.user?.role !== 'ADMIN') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>

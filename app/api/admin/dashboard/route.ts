@@ -1,11 +1,13 @@
-import { NextRequest } from "next/server";
 import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
+import { NextResponse } from "next/server";
+import { getAdminUser } from "@/lib/auth";
 
 export async function GET() {
   try {
-    await requireAdmin();
+    const admin = await getAdminUser();
+    if (!admin){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -134,19 +136,22 @@ export async function GET() {
        }
     });
 
-    return successResponse({
-      overview: { totalOrders, totalRevenue, totalCustomers, totalProducts },
-      recentStats: { ordersToday: ordersTodayCount, revenueToday, ordersThisWeek: ordersWeekCount, revenueThisWeek, ordersThisMonth: ordersMonthCount, revenueThisMonth },
-      ordersByStatus,
-      lowStockProducts,
-      topSellingProducts: topSellingProductsWithRevenue,
-      chartData: {
-          weekly: Array.from(weeklyMap.values()),
-          monthly: Array.from(monthlyMap.values()),
-          yearly: Array.from(yearlyMap.values())
-      }
-    });
+    return NextResponse.json({
+      success: true,
+      data: {
+        overview: { totalOrders, totalRevenue, totalCustomers, totalProducts },
+        recentStats: { ordersToday: ordersTodayCount, revenueToday, ordersThisWeek: ordersWeekCount, revenueThisWeek, ordersThisMonth: ordersMonthCount, revenueThisMonth },
+        ordersByStatus,
+        lowStockProducts,
+        topSellingProducts: topSellingProductsWithRevenue,
+        chartData: {
+            weekly: Array.from(weeklyMap.values()),
+            monthly: Array.from(monthlyMap.values()),
+            yearly: Array.from(yearlyMap.values())
+        }
+      },
+    }, { status: 200 });
   } catch  {
-    return errorResponse("Internal server error", 500);
+    return NextResponse.json( { success: false, message: "Internal server error" },{ status: 500 });
   }
 }

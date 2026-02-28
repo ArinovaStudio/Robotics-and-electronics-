@@ -1,8 +1,7 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
 import { z } from "zod";
-import { errorResponse } from "@/app/lib/api-response";
+import { getAdminUser } from "@/lib/auth";
 
 const exportQuerySchema = z.object({
   type: z.enum(["orders", "products", "customers"]),
@@ -36,14 +35,17 @@ function jsonToCsv(items: any[]) {
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    const admin = await getAdminUser();
+    if (!admin){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
     const queryObject = Object.fromEntries(searchParams.entries());
 
     const validation = exportQuerySchema.safeParse(queryObject);
     if (!validation.success) {
-      return errorResponse(validation.error.issues[0].message, 400);
+      return NextResponse.json({ success: false, message: "Validation Errors", error: validation.error.issues[0].message }, { status: 400 });
     }
 
     const { type, startDate, endDate, status, availability, isVerified } = validation.data;
@@ -144,7 +146,7 @@ export async function GET(request: NextRequest) {
 
     const csvContent = jsonToCsv(dataToExport);
     
-    return new Response(csvContent, {
+    return new NextResponse(csvContent, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
@@ -153,6 +155,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch {
-    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
+    return new NextResponse(JSON.stringify({ success: false, message: "Internal server error" }), { status: 500 });
   }
 }

@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAdminStore } from "@/store/adminStore";
 import { LayoutGrid, Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getSession, signIn } from 'next-auth/react';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { setAdmin } = useAdminStore();
     
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -24,33 +23,24 @@ export default function LoginPage() {
         setError("");
 
         try {
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
+            const result = await signIn("credentials", { email, password, redirect: false });
 
-            const data = await res.json();
-
-            if (!res.ok || !data.success) {
-                throw new Error(data.message || "Invalid credentials");
+            if (result?.error) {
+                throw new Error(result.error);
             }
 
-            const { user, token } = data.data;
-
-            if (user.role !== "ADMIN") {
-                throw new Error("Access denied. Admin privileges required.");
+            if (result?.ok) {
+                const session = await getSession();
+                
+                if (session?.user?.role === "ADMIN") {
+                    router.push("/admin");
+                } else {
+                    router.push("/");
+                }
             }
-
-            localStorage.setItem("admin_token", token);
-            
-
-            setAdmin(user, token);
-
-            router.push("/admin");
             
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "An unexpected error occurred.");
         } finally {
             setIsLoading(false);
         }

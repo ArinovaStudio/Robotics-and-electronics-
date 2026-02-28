@@ -170,8 +170,8 @@ export default function OrdersPage() {
                                                 <span className="font-mono text-slate-800 font-semibold">{order.orderNumber}</span>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="font-semibold text-slate-800">{order.user.name}</div>
-                                                <div className="text-xs text-slate-500">{order.user.email}</div>
+                                                <div className="font-semibold text-slate-800">{order.customer.name}</div>
+                                                <div className="text-xs text-slate-500">{order.customer.email}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="text-sm font-medium text-slate-700">{formatDate(order.orderedAt)}</div>

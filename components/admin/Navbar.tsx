@@ -1,5 +1,4 @@
 'use client';
-import { useAdminStore } from "@/store/adminStore";
 import {
     LayoutGrid,
     ShoppingCart,
@@ -10,8 +9,9 @@ import {
     FolderTree,
     X
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const navItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -28,8 +28,6 @@ interface NavbarProps {
 
 export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
     const pathname = usePathname();
-    const router = useRouter();
-    const { logout } = useAdminStore();
 
     const activeItem = navItems.find(item => 
         item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
@@ -37,9 +35,7 @@ export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
 
     const handleLogout = async () => {
         try {
-            logout();
-            // call actual logout later
-            router.push("/login");
+            await signOut({ redirect: true, callbackUrl: '/login' });
         } catch (err) {
             console.error("Logout failed", err);
         }

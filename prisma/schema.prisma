@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -78,7 +72,6 @@ model User {
   cart      Cart?
   orders    Order[]
   addresses Address[]
-  otpTokens OtpToken[]
 }
 
 model Account {
@@ -101,17 +94,11 @@ model Account {
 }
 
 model OtpToken {
-  id        String   @id @default(cuid())
-  email     String
-  token     String
-  type      OtpType
+  id String @id @default(cuid())
+  email String
+  code String
+  type OtpType
   expiresAt DateTime
-  createdAt DateTime @default(now())
-  used      Boolean  @default(false)
-
-  user User? @relation(fields: [email], references: [email], onDelete: Cascade)
-
-  @@index([email, token])
 }
 
 model Address {
@@ -155,8 +142,6 @@ model Category {
 
 model Product {
   id String @id @default(cuid())
-
-  // Basic Information
   title       String
   description String @db.Text
   link        String @unique // URL slug
@@ -165,10 +150,10 @@ model Product {
   imageLink            String // Primary image path
   additionalImageLinks String[] // Array of additional image paths
 
-  // Pricing
-  price                  Json // { value: number, currency: string }
-  salePrice              Json? // { value: number, currency: string }
-  salePriceEffectiveDate Json? // { startDate: DateTime, endDate: DateTime }
+  price Decimal
+  salePrice Decimal?
+  salePriceStartDate DateTime? 
+  salePriceEndDate DateTime?
 
   // Availability & Stock
   availability  ProductAvailability @default(IN_STOCK)

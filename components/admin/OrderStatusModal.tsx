@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import api from "@/app/lib/axios";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
     PENDING: ["CONFIRMED", "CANCELLED"],
@@ -55,14 +54,23 @@ export function OrderStatusModal({ isOpen, onClose, order, onSuccess }: any) {
                 payload.trackingUrl = trackingUrl;
             }
 
-            const res = await api.patch(`/api/admin/orders/${order.id}`, payload);
-            
-            if (res.data.success) {
+            const res = await fetch(`/api/admin/orders/${order.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await res.json();
+
+            if (res.ok && result.success) {
                 if (onSuccess) onSuccess();
                 onClose();
             } else {
-                throw new Error(res.data.message || "Failed to update order");
+                throw new Error(result.message || "Failed to update order");
             }
+
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || "Something went wrong.");
         } finally {

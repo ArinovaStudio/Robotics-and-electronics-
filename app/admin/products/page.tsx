@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { ProductMetricCard } from "@/components/admin/ProductMetricCard";
 import { ProductModal } from "@/components/admin/ProductModal";
 import { authFetcher } from "@/store/adminStore";
-import api from "@/app/lib/axios";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { ExportModal } from "@/components/admin/ExportModal";
 
@@ -55,12 +54,18 @@ export default function ProductPage() {
         if (!deletingProduct) return;
         setIsDeleting(true);
         try {
-            const res = await api.delete(`/api/admin/products/${deletingProduct.id}`);
-            
-            if (res.data.success) {
-                mutate(); 
-                setDeletingProduct(null);
+            const res = await fetch(`/api/admin/products/${deletingProduct.id}`, {
+                method: "DELETE",
+            });
+
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                throw new Error(result.message || "Failed to delete product");
             }
+
+            mutate(); 
+            setDeletingProduct(null);
         } catch (error: any) {
             const msg = error.response?.data?.message || "Failed to delete product";
             alert(msg);
@@ -78,8 +83,13 @@ export default function ProductPage() {
         }
     };
 
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+    const formatCurrency = (val: any) => {
+        const amount = typeof val === 'number' ? val : parseFloat(val || 0);
+        return new Intl.NumberFormat('en-IN', { 
+            style: 'currency', 
+            currency: 'INR', 
+            maximumFractionDigits: 0 
+        }).format(amount);
     };
 
     return (
@@ -205,7 +215,7 @@ export default function ProductPage() {
                                             </TableCell>
                                             <TableCell className="text-slate-600 font-mono text-xs">{product.sku}</TableCell>
                                             <TableCell className="font-semibold text-slate-800">
-                                                {product.price?.currency === "INR" ? "₹" : "$"}{product.price?.value.toLocaleString()}
+                                                {formatCurrency(product.price)}
                                             </TableCell>
                                             <TableCell>
                                                 <span className={`font-semibold px-2 py-1 rounded-md text-xs ${product.stockQuantity < 5 ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-700"}`}>

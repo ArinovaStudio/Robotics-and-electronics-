@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { ProductMetricCard } from "@/components/admin/ProductMetricCard";
 import { CategoryModal } from "@/components/admin/CategoryModal"; 
 import { authFetcher } from "@/store/adminStore";
-import api from "@/app/lib/axios";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 export default function CategoriesPage() {
@@ -51,11 +50,18 @@ export default function CategoriesPage() {
         if (!deletingCategory) return;
         setIsDeleting(true);
         try {
-            const res = await api.delete(`/api/admin/categories/${deletingCategory.id}`);
-            if (res.data.success) {
-                mutate(); 
-                setDeletingCategory(null);
+            const res = await fetch(`/api/admin/categories/${deletingCategory.id}`, {
+                method: "DELETE",
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || "Failed to delete category");
             }
+
+            mutate(); 
+            setDeletingCategory(null);
         } catch (error: any) {
             alert(error.response?.data?.message || "Failed to delete category");
         } finally {

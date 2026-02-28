@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, DownloadCloud } from "lucide-react";
-import { useAdminStore } from "@/store/adminStore";
 
 interface ExportModalProps {
     isOpen: boolean;
@@ -53,12 +52,8 @@ export function ExportModal({ isOpen, onClose, type }: ExportModalProps) {
             if (type === "customers" && isVerified !== "all") params.append("isVerified", isVerified);
 
             // Fetch the CSV file securely using your token
-            const token = useAdminStore.getState().token;
             const response = await fetch(`/api/admin/export?${params.toString()}`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                method: "GET"
             });
 
             if (!response.ok) {
