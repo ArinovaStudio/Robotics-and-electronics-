@@ -20,25 +20,25 @@ export default function Footer() {
           <div className="flex gap-3 mt-1">
             <a
               href="#"
-              className="w-9 h-9 rounded-full border border-[#bbb] flex items-center justify-center text-[#222] hover:bg-[#ddd] transition"
+              className="w-9 h-9 bg-white rounded-full border border-[#bbb] flex items-center justify-center text-[#222] hover:bg-[#ddd] transition"
             >
               <FaTwitter size={16} />
             </a>
             <a
               href="#"
-              className="w-9 h-9 rounded-full border border-[#111] flex items-center justify-center bg-[#111] text-white"
+              className="w-9 h-9  rounded-full border border-[#111] flex items-center justify-center bg-[#111] text-white"
             >
               <FaFacebookF size={16} />
             </a>
             <a
               href="#"
-              className="w-9 h-9 rounded-full border border-[#bbb] flex items-center justify-center text-[#222] hover:bg-[#ddd] transition"
+              className="w-9 h-9 bg-white rounded-full border border-[#bbb] flex items-center justify-center text-[#222] hover:bg-[#ddd] transition"
             >
               <FaInstagram size={16} />
             </a>
             <a
               href="#"
-              className="w-9 h-9 rounded-full border border-[#bbb] flex items-center justify-center text-[#222] hover:bg-[#ddd] transition"
+              className="w-9 h-9 bg-white rounded-full border border-[#bbb] flex items-center justify-center text-[#222] hover:bg-[#ddd] transition"
             >
               <FaGithub size={16} />
             </a>
