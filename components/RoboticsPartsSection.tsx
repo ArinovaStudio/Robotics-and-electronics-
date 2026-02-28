@@ -105,10 +105,10 @@ export default function RoboticsPartsSection(): JSX.Element {
   };
 
   return (
-    <section className="w-full max-w-[1200px] gap-8 mt-12 mb-12 relative ">
+    <section className="w-full gap-8 mt-12 mb-12 relative ">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
-        <h2 className="text-2xl md:text-4xl font-semibold text-[#0a0f3c] tracking-wide uppercase">
+      <div className="flex  px-5  items-center justify-between mb-10">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#050A30] tracking-wide uppercase">
           TOP SELLING{" "}
           <span className="relative inline-block">
             <span
@@ -121,7 +121,7 @@ export default function RoboticsPartsSection(): JSX.Element {
         </h2>
         <Link
           href="/products"
-          className="text-[#f0b31e] font-semibold text-base flex items-center gap-1 hover:underline"
+          className="text-[#f0b31e] font-space-grotesk font-semibold text-base flex items-center gap-1 hover:underline"
         >
           VIEW ALL
           <ArrowRight size={20} strokeWidth={2.2} className="ml-1" />

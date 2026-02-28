@@ -47,7 +47,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
                     src={p.imageLink}
                     alt={p.title || "Product image"}
                     fill
-                    className="object-contain overflow-hidden rounded h-full w-full"
+                    className="overflow-hidden rounded-xl h-full w-full"
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                   />
                 ) : (
@@ -57,17 +57,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
 
               {/* Discount Badge */}
               {discountPct > 0 && (
-                <span className="absolute top-3.5 right-1 text-[10px] font-bold text-green-600 bg-green-300 px-3 py-[3px] rounded-full tracking-wide uppercase z-[2]">
+                <span className="absolute bottom-2 left-1 font-space-grotesk text-[10px] font-bold text-green-600 bg-green-300 px-3 py-[3px] rounded-full tracking-wide uppercase z-[2]">
                   {discountPct}% OFF
                 </span>
               )}
             </div>
 
             {/* Card Content */}
-            <div className="px-5 pt-5 pb-[22px] flex flex-col flex-1 ">
+            <div className="pt-5 pb-[22px] flex flex-col flex-1 ">
               {/* Title */}
               <h3
-                className="text-lg font-bold text-[#1a1a2e] leading-tight mb-1.5 line-clamp-2"
+                className="text-lg font-bold text-[#050A30] leading-tight mb-1.5 line-clamp-2"
                 title={p.title}
               >
                 {p.title}
@@ -82,14 +82,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
               </p>
 
               {/* Price */}
-              <div className="flex items-baseline gap-2.5 mt-auto">
-                <span className="text-[26px] font-bold text-[#1a1a2e] tracking-tight flex items-baseline gap-0.5">
-                  <span className="text-[#f0b31e] text-[22px]">
+              <div className="flex items-baseline font-inter gap-2.5 mt-auto">
+                <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
+                  <span className="text-[#F0B31E] text-[28px]">
                     ₹{displayPrice.toLocaleString()}
                   </span>
                 </span>
                 {p.salePrice && p.salePrice.value < p.price.value && (
-                  <span className="text-sm font-medium text-gray-300 line-through">
+                  <span className="text-[16px] font-medium text-gray-300 line-through">
                     ₹{p.price.value.toLocaleString()}
                   </span>
                 )}

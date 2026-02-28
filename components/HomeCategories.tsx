@@ -75,20 +75,20 @@ export default function HomeCategories() {
   }
 
   return (
-    <section className="w-full max-w-300 mx-auto mt-8 mb-16">
+    <section className="w-full px-5 mt-8 mb-16">
       <div className="flex items-center justify-between mb-2 px-2">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[#050a30] mb-5 tracking-wide">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#050A30] mb-5 tracking-wide">
           SHOP BY CATEGORIES
         </h2>
         <Link
           href="/categories"
-          className="text-[#f0b31e] font-semibold text-sm md:text-base flex items-center gap-1 hover:underline"
+          className="text-[#f0b31e] font-space-grotesk font-semibold text-sm md:text-base flex items-center gap-1 hover:underline"
         >
           VIEW ALL
           <ArrowRight size={18} strokeWidth={2.2} className="ml-1" />
         </Link>
       </div>
-      <div className="w-full flex justify-between items-center gap-6 md:gap-8 overflow-x-auto pb-2 px-2">
+      <div className="w-full no-scrollbar flex justify-between items-center gap-6 md:gap-15 overflow-x-auto pb-2 px-2">
         {categories.map((cat) => (
           <Link
             key={cat.id}
@@ -97,11 +97,10 @@ export default function HomeCategories() {
             onMouseEnter={() => setSelectedSlug(cat.slug)}
           >
             <div
-              className={`w-20 h-20 md:w-25 md:h-25 rounded-full bg-gray-100 flex items-center justify-center border-4 transition-all overflow-hidden ${
-                selectedSlug === cat.slug
+              className={`w-20 h-20 md:w-25 md:h-25 rounded-full bg-gray-100 flex items-center justify-center border-4 transition-all overflow-hidden ${selectedSlug === cat.slug
                   ? "border-[#f0b31e]"
                   : "border-transparent"
-              } group-hover:border-[#f0b31e]`}
+                } group-hover:border-[#f0b31e]`}
             >
               {cat.image ? (
                 <Image
@@ -117,9 +116,8 @@ export default function HomeCategories() {
               )}
             </div>
             <span
-              className={`mt-2 text-xs md:text-sm font-bold text-center whitespace-pre-line flex items-center justify-center w-full transition-colors ${
-                selectedSlug === cat.slug ? "text-[#f0b31e]" : "text-[#050a30]"
-              } group-hover:text-[#f0b31e] ${spaceGrotesk.className}`}
+              className={`mt-2 text-xs md:text-sm font-space-grotesk font-bold text-center whitespace-pre-line flex items-center justify-center w-full transition-colors ${selectedSlug === cat.slug ? "text-[#f0b31e]" : "text-[#050a30]"
+                } group-hover:text-[#f0b31e] ${spaceGrotesk.className}`}
               style={{ minHeight: "2.5em", lineHeight: "1.2" }}
             >
               {cat.name.toUpperCase()}

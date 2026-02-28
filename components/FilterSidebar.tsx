@@ -140,7 +140,7 @@ const CustomCheckbox: React.FC<{ checked: boolean; onChange: () => void }> = ({
       width: 17,
       height: 17,
       minWidth: 17,
-      border: `1.5px solid ${checked ? "#f0b31e" : "#bdbdbd"}`,
+      border: `1px solid ${checked ? "#f0b31e" : "#B1B1B1"}`,
       borderRadius: 2,
       background: checked ? "#f0b31e" : "#fff",
     }}
@@ -256,7 +256,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, resetKey
     <aside className="w-[260px] bg-[#f8f8f8] rounded p-4 shadow-sm flex flex-col gap-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-lg font-bold text-[#050a30]">FILTERS</span>
+        <span className="text-lg font-space-grotesk font-medium text-[#050a30]">FILTERS</span>
         <Funnel size={20} className="text-[#434343]" />
       </div>
 
@@ -264,7 +264,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, resetKey
 
       {/* BY CATEGORY */}
       <div className="mb-3 mt-1">
-        <span className="text-sm font-bold text-[#f0b31e] mb-2 block tracking-wide">
+        <span className="text-sm font-semibold text-[#f0b31e] mb-2 block tracking-wide">
           BY CATEGORY
         </span>
         <div className="flex flex-col gap-[10px]">
@@ -302,7 +302,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, resetKey
 
       {/* PRICE */}
       <div className="mt-1 mb-1">
-        <span className="text-sm font-bold text-[#f0b31e] mb-1 block tracking-wide">
+        <span className="text-sm font-semibold text-[#f0b31e] mb-1 block tracking-wide">
           PRICE
         </span>
         <PriceRangeSlider
@@ -318,7 +318,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, resetKey
       {/* DISCOUNT RANGE */}
       {discountOptions.length > 0 && (
         <div className="mt-1">
-          <span className="text-sm font-bold text-[#f0b31e] mb-2 block tracking-wide">
+          <span className="text-sm font-semibold text-[#f0b31e] mb-2 block tracking-wide">
             DISCOUNT RANGE
           </span>
           <div className="flex flex-col gap-[10px]">

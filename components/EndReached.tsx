@@ -19,7 +19,7 @@ const EndReached: React.FC<{ onScrollTop?: () => void }> = ({
       {/* Left Content */}
       <div className="z-10">
         <h2
-          className={`text-white text-3xl md:text-5xl font-bold mb-6 tracking-tight ${spaceGrotesk.className}`}
+          className={`text-white font-space-grotesk text-3xl md:text-5xl font-bold mb-6 tracking-tight ${spaceGrotesk.className}`}
         >
           END REACHED
         </h2>
