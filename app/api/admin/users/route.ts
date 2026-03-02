@@ -103,7 +103,7 @@ export async function GET(request: Request) {
           hasPreviousPage: page > 1,
         },
       },
-    });
+    }, { status: 200 });
 
   } catch {
     return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });

@@ -75,7 +75,22 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
 
     if (description !== null) updateData.description = description;
     if (isActive !== null) updateData.isActive = isActive === "true";
-    if (sortOrder !== null) updateData.sortOrder = parseInt(sortOrder);
+    if (sortOrder !== null && sortOrder !== "") {
+      const parsedSortOrder = parseInt(sortOrder);
+      
+      const duplicateSortOrder = await prisma.category.findFirst({
+        where: {
+          sortOrder: parsedSortOrder,
+          id: { not: categoryId },
+        },
+      });
+
+      if (duplicateSortOrder) {
+        return NextResponse.json({ success: false, message: `Sort order ${parsedSortOrder} is already in use by another category` }, { status: 400 });
+      }
+
+      updateData.sortOrder = parsedSortOrder;
+    }
 
     if (parentId !== null) {
       const newParentId = parentId === "null" || parentId.trim() === "" ? null : parentId;

@@ -85,7 +85,7 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ use
       },
     };
 
-    return NextResponse.json({ success: true, data: userDetails });
+    return NextResponse.json({ success: true, data: userDetails }, { status: 200 });
 
   } catch {
     return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
