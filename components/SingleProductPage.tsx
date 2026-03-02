@@ -211,10 +211,11 @@ export default function SingleProductPage({
   // Load similar products and FAQs
   useEffect(() => {
     async function fetchData() {
+      if (!product?.id) return;
       try {
         const [similarRes, faqRes] = await Promise.all([
-          fetch(`/api/products/${product.id}/similar?productId=${product.id}&limit=4`),
-          fetch(`/api/products/${product.link}/faqs`)
+          fetch(`/api/products/${product.id}/similar?limit=4`),
+          fetch(`/api/products/${product.id}/faqs`)
         ]);
         const similarData = await similarRes.json();
         const faqData = await faqRes.json();
@@ -225,7 +226,7 @@ export default function SingleProductPage({
       }
     }
     fetchData();
-  }, [product.id, product.link]);
+  }, [product?.id]);
 
   const tabs = [
     { id: "details" as const, label: "Product Details" },

@@ -17,7 +17,7 @@ export default function ProductDetailPage() {
         const data = await res.json();
         
         if (data.success) {
-          setProduct(data.data);
+          setProduct(data.data.product);
         } else {
           setError(data.message || "Failed to load product");
         }

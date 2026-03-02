@@ -85,11 +85,11 @@ function CartPageContent() {
     }
   };
 
-  const subtotal = cart?.summary?.subtotal || 0;
-  const discount = cart?.summary?.discount || 0;
-  const delivery = cart?.summary?.shippingEstimate || 0;
-  const total = cart?.summary?.estimatedTotal || 0;
-  const freeShipping = cart?.summary?.eligibleForFreeShipping || false;
+  const subtotal = Number(cart?.summary?.subtotal || 0);
+  const discount = Number(cart?.summary?.totalSavings || 0);
+  const delivery = Number(cart?.summary?.shipping || 0);
+  const total = Number(cart?.summary?.total || 0);
+  const freeShipping = delivery === 0; // because API doesn't send this
   const discountPct = subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
 
   if (authLoading || cartLoading) {
@@ -145,8 +145,9 @@ function CartPageContent() {
         <div className="flex-1 w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ececec]">
           {cart.items.map((item) => {
             const isUpdating = updatingItems.has(item.id);
-            const price =
-              item.product.salePrice?.value || item.product.price.value;
+            const rawPrice = item.product?.salePrice ?? item.product?.price;
+            const price = Number(rawPrice || 0);
+            if (!item.product) return null;
             return (
               <div
                 key={item.id}
@@ -173,7 +174,7 @@ function CartPageContent() {
                     </Link>
                     <StarRating rating={4.5} />
                     <div className="text-lg font-bold text-[#050a30] mt-2">
-                      ₹{price}
+                      ₹{price?.toFixed(2) || "N/A"}
                     </div>
                   </div>
                 </div>
@@ -234,7 +235,7 @@ function CartPageContent() {
             <span>₹{total}</span>
           </div>
           <button
-            onClick={() => router.push("/checkout")}
+            onClick={() => router.push("/cart/address")}
             className="w-full bg-[#f0b31e] text-white font-bold text-lg py-3 rounded-full flex items-center justify-center gap-2 hover:bg-[#e0a800] transition-all"
           >
             Go to Checkout

@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
       return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
     }
 
-    const priceValue = Number(product.price) || 0;
+    const priceValue = (product.price as any)?.value || 0;
     const priceRange = priceValue * 0.3;
 
     const similarProducts = await prisma.product.findMany({
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
       .map((p) => {
         let score = 0;
         if (p.brand && p.brand === product.brand) score += 3;
-        const pPrice = Number(p.price) || 0;
+        const pPrice = (p.price as any)?.value || 0;
         if (Math.abs(pPrice - priceValue) <= priceRange) score += 2;
         return { ...p, score };
       })
@@ -62,8 +62,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
       description: p.description,
       link: p.link,
       imageLink: p.imageLink,
-      price: Number(p.price).toFixed(2),
-      salePrice: p.salePrice ? Number(p.salePrice).toFixed(2) : null,
+      price: p.price,
+      salePrice: p.salePrice,
       availability: p.availability,
       brand: p.brand,
       category: p.category,

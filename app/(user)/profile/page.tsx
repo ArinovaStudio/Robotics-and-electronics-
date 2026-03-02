@@ -3,17 +3,33 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/app/contexts";
 import { useRouter } from "next/navigation";
-import { User, Mail, Loader2, Save, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, fetchUser } = useAuth();
   const router = useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Mock data for order summary and addresses
+  const [orderSummary] = useState({
+    totalSpent: 14000,
+    totalOrders: 132,
+  });
+
+  const [addresses] = useState([
+    "20 Soojian Dr, Leicester MA 1524",
+    "121 Worcester Rd, Framingham MA 1701",
+  ]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -22,10 +38,19 @@ export default function ProfilePage() {
   }, [isLoading, isAuthenticated, router]);
 
   useEffect(() => {
-    if (user) {
-      setFormData({ name: user.name || "", email: user.email || "" });
+    if (user && !isEditing) {
+      const nameParts = (user.name || "").split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      setFormData({
+        firstName,
+        lastName,
+        email: user.email || "",
+        phone: user.phone || "", // <-- FIXED: use phone
+      });
     }
-  }, [user]);
+  }, [user, isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,17 +59,18 @@ export default function ProfilePage() {
     setSuccess("");
 
     try {
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       const res = await fetch("/api/auth/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formData.name }),
+        body: JSON.stringify({ name: fullName }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
         setSuccess("Profile updated successfully!");
-        await fetchUser(); // reload user data
+        await fetchUser();
         setIsEditing(false);
       } else {
         setError(data.message || "Failed to update profile.");
@@ -66,147 +92,211 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="bg-[#f8fafd] min-h-screen py-10 px-4">
-      <div className="max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#ececec] overflow-hidden">
-        {/* Header */}
-        <div className="bg-[#050a30] px-8 py-10 flex flex-col md:flex-row items-center gap-6">
-          <div className="w-24 h-24 bg-[#f0b31e] rounded-full flex items-center justify-center text-[#050a30] text-4xl font-bold shadow-lg shadow-[#050a30]/20">
-            {user?.name?.charAt(0).toUpperCase() || "U"}
-          </div>
-          <div className="text-center md:text-left text-white">
-            <h1 className="text-3xl font-black tracking-wide mb-1">
-              {user?.name}
-            </h1>
-            <p className="text-[#aeb5d1] text-lg font-medium">{user?.email}</p>
-          </div>
-        </div>
+    <main className="bg-[#f5f5f5]  font-space-grotesk  min-h-screen py-8 px-4">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Page Title */}
+        <h1 className="text-3xl font-black text-black mb-8 tracking-tight">
+          YOUR ACCOUNT
+        </h1>
 
-        {/* Content */}
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-[#050a30]">
-              Personal Information
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Personal Information Card */}
+          <div className="lg:col-span-2 bg-white rounded-lg pt-4 px-8 pb-8">
+            <h2 className="text-right text-[20px] text-[#F0B31E] font-medium tracking-wider mb-8">
+              PERSONAL INFORMATION
             </h2>
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="text-[#f0b31e] font-semibold hover:text-[#e6a700] transition-colors"
-              >
-                Edit Profile
-              </button>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
+                {error}
+              </div>
             )}
-          </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
-              {error}
-            </div>
-          )}
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 text-green-600 rounded-lg text-sm font-medium">
+                {success}
+              </div>
+            )}
 
-          {success && (
-             <div className="mb-6 p-4 bg-green-50 text-green-600 rounded-lg text-sm font-medium">
-               {success}
-             </div>
-          )}
-
-          {isEditing ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-[#434343] mb-2">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                    <User size={20} />
-                  </div>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* First Name */}
+                <div>
+                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
+                    FIRST NAME
+                  </label>
                   <input
                     type="text"
-                    value={formData.name}
+                    value={formData.firstName}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, firstName: e.target.value })
                     }
-                    className="w-full pl-11 pr-4 py-3 bg-[#f8f8f8] border-none rounded-xl focus:ring-2 focus:ring-[#f0b31e] outline-none text-[#050a30] font-medium transition-shadow"
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0B31E] text-black font-medium disabled:bg-gray-50 disabled:text-gray-700"
+                    required
+                  />
+                </div>
+
+                {/* Last Name */}
+                <div>
+                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
+                    LAST NAME
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, lastName: e.target.value })
+                    }
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0B31E] text-black font-medium disabled:bg-gray-50 disabled:text-gray-700"
                     required
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-[#434343] mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Mail size={20} />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Email Address */}
+                <div>
+                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
+                    EMAIL ADDRESS
+                  </label>
                   <input
                     type="email"
                     value={formData.email}
                     disabled
-                    className="w-full pl-11 pr-4 py-3 bg-[#f0f0f0] text-gray-500 border-none rounded-xl outline-none font-medium cursor-not-allowed"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-black rounded-lg text-black font-medium cursor-not-allowed"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Email cannot be changed directly. Contact support for help.
-                </p>
+
+                {/* Phone Number */}
+                <div>
+                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
+                    PHONE NUMBER
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0B31E] text-black font-medium disabled:bg-gray-50 disabled:text-gray-700"
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFormData({ name: user?.name || "", email: user?.email || "" });
-                  }}
-                  className="px-6 py-3 rounded-xl font-semibold text-[#434343] hover:bg-gray-100 transition-colors flex items-center gap-2"
-                >
-                  <X size={20} /> Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving || !formData.name.trim()}
-                  className="px-6 py-3 bg-[#f0b31e] hover:bg-[#e6a700] text-white rounded-xl font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <Save size={20} />
-                  )}
-                  Save Changes
-                </button>
+              {/* Edit/Save Button */}
+              <div className="flex justify-end">
+                {isEditing ? (
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        const nameParts = (user?.name || "").split(" ");
+                        setFormData({
+                          firstName: nameParts[0] || "",
+                          lastName: nameParts.slice(1).join(" ") || "",
+                          email: user?.email || "",
+                          phone: "",
+                        });
+                      }}
+                      className="px-8 py-2.5 bg-gray-200 hover:bg-gray-300 text-black rounded-lg font-bold text-sm tracking-wide transition-colors"
+                    >
+                      CANCEL
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="px-8 py-2.5 bg-[#f5e6d3] hover:bg-[#ead5ba] text-black rounded-lg font-bold text-sm tracking-wide transition-colors disabled:opacity-50"
+                    >
+                      {saving ? "SAVING..." : "SAVE"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className=" w-[120px] h-[42px] cursor-pointer hover:bg-[#FFDFB9] rounded-[8px] opacity-100 border border-[#FADAB9] bg-[#FFEFD6] shadow-[0_0_0_1px_#FFDFB9,0_0_0_3px_#FFF,0_0_0_5px_#FFDFB9]" >
+                    EDIT
+                  </button>
+                )}
               </div>
             </form>
-          ) : (
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#f8fafd] flex items-center justify-center text-[#f0b31e] shrink-0">
-                  <User size={24} />
-                </div>
+          </div>
+
+          {/* Order Summary Card */}
+          <div>
+
+            <div className="bg-white rounded-[20px]  pt-4 px-8 pb-8">
+              <h2 className="text-right text-[#F0B31E] font-medium text-[20px] tracking-wider mb-8">
+                ORDER SUMMARY
+              </h2>
+
+              <div className="grid grid-cols-2 font-sans gap-6 mb-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-[#8ca0b2] mb-1">
-                    Full Name
-                  </h3>
-                  <p className="text-[#050a30] font-bold text-lg">
-                    {user?.name}
+                  <p className="text-xs font-bold text-black mb-2 tracking-wide">
+                    TOTAL SPENT
+                  </p>
+                  <p className="text-3xl font-black text-black">
+                    ₹ {orderSummary.totalSpent.toLocaleString()}
                   </p>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#f8fafd] flex items-center justify-center text-[#f0b31e] shrink-0">
-                  <Mail size={24} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-[#8ca0b2] mb-1">
-                    Email Address
-                  </h3>
-                  <p className="text-[#050a30] font-bold text-lg">
-                    {user?.email}
+                <div className="border-l-4 border-black pl-16">
+                  <p className="text-xs font-bold text-black mb-2 tracking-wide">
+                    TOTAL ORDERS
+                  </p>
+                  <p className="text-3xl font-black text-black">
+                    {orderSummary.totalOrders}
                   </p>
                 </div>
               </div>
             </div>
-          )}
+            {/* Address Section */}
+            <div className="bg-white rounded-[20px] mt-4 pt-4 px-8 pb-8">
+              <h3 className="text-right text-[#F0B31E] font-medium text-[20px] tracking-wider mb-6">
+                ADDRESS
+              </h3>
+              <div className="space-y-4 font-inter mb-4">
+                {addresses.map((address, index) => (
+                  <p key={index} className="text-sm text-black font-medium">
+                    {address}
+                    <hr className="border-gray-200 my-4" />
+                  </p>
+                ))}
+              </div>
+              <button className="w-full text-[#F0B31E] font-medium text-[16px] tracking-wide hover:text-[#b8873d] transition-colors">
+                ADD NEW +
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Menu Section */}
+        <div>
+          <h2 className="text-3xl font-black text-black mb-6 tracking-tight">
+            MENU
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* My Orders Card */}
+            <button className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors">
+              <h3 className="text-2xl font-black text-black tracking-tight">
+                MY ORDERS
+              </h3>
+            </button>
+
+            {/* Wishlist Card */}
+            <button className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors">
+              <h3 className="text-2xl font-black text-black tracking-tight">
+                WISHLIST
+              </h3>
+            </button>
+          </div>
         </div>
       </div>
     </main>

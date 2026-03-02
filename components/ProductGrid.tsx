@@ -30,8 +30,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
         }
 
         const displayPrice = p.salePrice
-          ? p.salePrice.value
-          : p.price?.value || 0;
+          ? p.salePrice
+          : p.price || 0;
 
         return (
           <div
