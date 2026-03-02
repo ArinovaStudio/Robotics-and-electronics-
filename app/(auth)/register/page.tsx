@@ -78,7 +78,22 @@ export default function RegisterPage() {
         throw new Error(data.message || "Registration failed");
       }
 
-      // Redirect to OTP verification
+      const otpResponse = await fetch("/api/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email, 
+          type: "EMAIL_VERIFICATION" 
+        }),
+      });
+
+      const otpData = await otpResponse.json();
+
+      if (!otpResponse.ok || !otpData.success) {
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}&error=send_failed`);
+        return;
+      }
+
       router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err.message);

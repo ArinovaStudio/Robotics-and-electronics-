@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { z } from "zod";
 import sendEmail from "@/lib/email";
 import { getOTPTemplate } from "@/lib/templates";

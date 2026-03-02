@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Loader2, CheckCircle2, ShoppingBag } from "lucide-react";
+import { Mail, Loader2, CheckCircle2  } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -25,12 +25,12 @@ export default function VerifyOTPPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/verify-otp", {
+      const response = await fetch("/api/auth/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          otp,
+          code: otp,
           type: "EMAIL_VERIFICATION",
         }),
       });
@@ -58,10 +58,13 @@ export default function VerifyOTPPage() {
     setResendMessage("");
 
     try {
-      const response = await fetch("/api/auth/resend-otp", {
+      const response = await fetch("/api/auth/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, type: "EMAIL_VERIFICATION" }),
+        body: JSON.stringify({ 
+          email, 
+          type: "EMAIL_VERIFICATION" 
+        }),
       });
 
       const data = await response.json();
@@ -178,7 +181,7 @@ export default function VerifyOTPPage() {
 
         {/* Resend OTP */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 mb-2">Didn't receive the code?</p>
+          <p className="text-sm text-gray-600 mb-2">Didn&apos;t receive the code?</p>
           <button
             onClick={handleResendOTP}
             disabled={isResending}

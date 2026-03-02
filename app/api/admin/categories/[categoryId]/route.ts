@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { uploadFile, deleteFile } from "@/lib/upload";
 import { getAdminUser } from "@/lib/auth";
 
@@ -127,7 +127,7 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
-
+ 
 
 export async function DELETE( request: NextRequest, { params }: { params: Promise<{ categoryId: string }> } ) {
   try {

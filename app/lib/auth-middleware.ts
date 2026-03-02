@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { verifyToken, JWTPayload } from "./jwt";
 import { errorResponse } from "./api-response";
-import prisma from "./db";
+import prisma from "../../lib/prisma";
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: JWTPayload & { id: string };

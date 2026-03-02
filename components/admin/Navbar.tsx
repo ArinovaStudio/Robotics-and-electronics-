@@ -35,7 +35,7 @@ export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
 
     const handleLogout = async () => {
         try {
-            await signOut({ redirect: true, callbackUrl: '/login' });
+            await signOut({ redirect: true, callbackUrl: '/login', });
         } catch (err) {
             console.error("Logout failed", err);
         }

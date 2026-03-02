@@ -1,4 +1,4 @@
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/auth";
 

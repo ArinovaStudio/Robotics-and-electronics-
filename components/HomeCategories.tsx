@@ -31,7 +31,7 @@ export default function HomeCategories() {
     try {
       setLoading(true);
       const response = await axios.get(
-        "/api/categories?isActive=true&parentId=null&includeProducts=true",
+        "/api/categories",
       );
 
       if (response.data?.success && response.data?.data) {
@@ -92,7 +92,7 @@ export default function HomeCategories() {
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/categories/${cat.slug}`}
+            href={`/categories/${cat.id}`}
             className="flex flex-col items-center min-w-22.5 justify-start group"
             onMouseEnter={() => setSelectedSlug(cat.slug)}
           >

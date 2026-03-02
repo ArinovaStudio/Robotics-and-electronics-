@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth";
 import { uploadFile, uploadMultipleFiles } from "@/lib/upload";
 import z from "zod";

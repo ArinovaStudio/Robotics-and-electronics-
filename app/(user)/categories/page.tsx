@@ -30,7 +30,7 @@ export default function CategoriesPage() {
     try {
       setLoading(true);
       const response = await axios.get(
-        "/api/categories?isActive=true&parentId=null&includeProducts=true",
+        "/api/categories",
       );
 
       if (response.data?.success && response.data?.data) {
@@ -91,7 +91,7 @@ export default function CategoriesPage() {
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/categories/${category.slug}`}
+                href={`/categories/${category.id}`}
                 className="group flex flex-col items-center"
               >
                 <div className="w-full aspect-square bg-[#f8fafd] rounded-2xl flex items-center justify-center overflow-hidden mb-4 border-4 border-transparent group-hover:border-[#f0b31e] transition-all relative">

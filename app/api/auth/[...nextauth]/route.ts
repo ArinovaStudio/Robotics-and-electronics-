@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { compare } from "bcryptjs";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -12,13 +12,14 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
+    signIn: "/login",
+    error: "/error",
   },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -90,19 +91,24 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email as string },
+          include: { cart: true }
         });
 
-        if (!existingUser) {
-          await prisma.user.create({
-            data: {
-              email: user.email as string,
-              name: user.name as string,
-              image: user.image,
-              emailVerified: new Date(),
-              role: "CUSTOMER",
-            },
-          });
-        }
+       if (!existingUser) {
+        await prisma.user.create({
+          data: {
+            email: user.email as string,
+            name: user.name as string,
+            image: user.image,
+            emailVerified: new Date(),
+            role: "CUSTOMER",
+            cart: { create: {}}
+          },
+        });
+      } 
+      else if (!existingUser.cart) {
+        await prisma.cart.create({ data: { userId: existingUser.id } });
+      }
       }
       return true;
     },

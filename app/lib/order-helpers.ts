@@ -1,4 +1,4 @@
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 
 /**
  * Generate a unique order number in format: ORD-YYYY-XXXX
