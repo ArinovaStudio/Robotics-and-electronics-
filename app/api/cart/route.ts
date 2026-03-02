@@ -98,9 +98,6 @@ export async function GET() {
       };
     });
 
-    const SHIPPING_THRESHOLD = 500;
-    const SHIPPING_COST = subtotal >= SHIPPING_THRESHOLD ? 0 : 40;
-
     return NextResponse.json({
       success: true,
       data: {
@@ -109,8 +106,6 @@ export async function GET() {
         summary: {
           subtotal: subtotal.toFixed(2),
           totalSavings: totalSavings.toFixed(2),
-          shipping: SHIPPING_COST.toFixed(2),
-          total: (subtotal + SHIPPING_COST).toFixed(2),
           itemCount: totalItems
         },
         hasInventoryChanges: wasAdjusted

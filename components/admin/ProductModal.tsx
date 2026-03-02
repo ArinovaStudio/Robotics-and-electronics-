@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { authFetcher } from "@/store/adminStore"; 
-import api from "@/app/lib/axios";
 
 export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     const { data: categoriesData } = useSWR("/api/admin/categories", authFetcher);
@@ -44,6 +43,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     const [highlights, setHighlights] = useState<string[]>([]);
     const [details, setDetails] = useState<{sectionName:string, attributeName:string, attributeValue:string}[]>([]);
     const [faqs, setFaqs] = useState<{id?:string, question:string, answer:string, order:number}[]>([]);
+    const [faqsToDelete, setFaqsToDelete] = useState<string[]>([]);
     
     // Media
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -84,12 +84,16 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             setImageFile(null);
             setAdditionalFiles([]);
             setImagesToDelete([]);
+            setFaqsToDelete([]);
             setError("");
 
             // Load FAQs
-            api.get(`/api/admin/products/${product.id}/faqs`).then(res => {
-                if (res.data.success) setFaqs(res.data.data || []);
-            }).catch(() => setFaqs([]));
+            fetch(`/api/admin/products/${product.id}/faqs`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setFaqs(data.data || []);
+            })
+            .catch(() => setFaqs([]));
         } else if (isOpen) {
             setTitle(""); setLink(""); setDescription(""); setCategoryId(""); setSku("");
             setBrand(""); setMpn(""); setCustomLabel0(""); setCustomLabel1(""); 
@@ -97,6 +101,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             setPrice(""); setSalePrice(""); setSaleStart(""); setSaleEnd("");
             setHighlights([]); setDetails([]); setFaqs([]);
             setExistingPrimary(null); setExistingAdditional([]); setImageFile(null); setAdditionalFiles([]); setImagesToDelete([]); setError("");
+            setFaqsToDelete([]);
         }
     }, [product, isOpen]);
 
@@ -164,10 +169,27 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                 const validFaqs = faqs.filter(f => f.question.trim() && f.answer.trim());
                 for (const faq of validFaqs) {
                     if (faq.id) {
-                        await api.patch(`/api/admin/products/${product.id}/faqs`, faq);
+                        await fetch(`/api/admin/products/${product.id}/faqs`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(faq),
+                        });
                     } else {
-                        await api.post(`/api/admin/products/${product.id}/faqs`, faq);
+                        await fetch(`/api/admin/products/${product.id}/faqs`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(faq),
+                        });
                     }
+                }
+            }
+
+            // Delete FAQs
+            if (product && faqsToDelete.length > 0) {
+                for (const faqId of faqsToDelete) {
+                    await fetch(`/api/admin/products/${product.id}/faqs?id=${faqId}`, {
+                        method: "DELETE",
+                    });
                 }
             }
 
@@ -308,7 +330,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                         </div>
                                     )}
 
-                    {/* faqs */}
+                                    {/* faqs */}
                                     {product && (
                                         <div className="mt-6 pt-6 border-t border-slate-100">
                                             <div className="flex justify-between items-center mb-4">
@@ -320,7 +342,16 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                                     <div className="space-y-2">
                                                         <Input placeholder="Question" value={faq.question} onChange={e => { const newF = [...faqs]; newF[i].question = e.target.value; setFaqs(newF); }} className="bg-white focus-visible:ring-[#4a439a]" />
                                                         <textarea placeholder="Answer" value={faq.answer} onChange={e => { const newF = [...faqs]; newF[i].answer = e.target.value; setFaqs(newF); }} className="w-full border rounded-md p-2 text-sm min-h-[80px] bg-white border-slate-200 focus:ring-2 focus:ring-[#4a439a]/20 focus:border-[#4a439a] outline-none" />
-                                                        <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => setFaqs(faqs.filter((_, idx) => idx !== i))}><Trash2 size={14} className="mr-1"/> Remove</Button>
+                                                        <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" 
+                                                        onClick={() => {
+                                                            const faqToRemove = faqs[i];
+                                                            if (faqToRemove.id) {
+                                                                setFaqsToDelete([...faqsToDelete, faqToRemove.id]);
+                                                            }
+                                                            setFaqs(faqs.filter((_, idx) => idx !== i));
+                                                        }}>
+                                                            <Trash2 size={14} className="mr-1"/> Remove
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))}

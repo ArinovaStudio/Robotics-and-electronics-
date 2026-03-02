@@ -105,6 +105,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Category name already exists" }, { status: 400 });
     }
 
+    let finalSortOrder: number;
+
+    if (sortOrder) {
+      finalSortOrder = sortOrder;
+      
+      const duplicateSortOrder = await prisma.category.findFirst({ where: { sortOrder: finalSortOrder } });
+
+      if (duplicateSortOrder) {
+        return NextResponse.json({ success: false, message: `Sort order ${finalSortOrder} is already in use.` }, { status: 400 });
+      }
+    } else {
+      const maxCategory = await prisma.category.aggregate({ _max: { sortOrder: true } });
+      finalSortOrder = (maxCategory._max.sortOrder || 0) + 1;
+    }
+
     let imageUrl = null;
     if (imageFile && imageFile.size > 0) {
       try {
@@ -120,7 +135,7 @@ export async function POST(request: NextRequest) {
         slug,
         description,
         isActive,
-        sortOrder,
+        sortOrder: finalSortOrder,
         parentId: parentId && parentId !== "null" ? parentId : null,
         image: imageUrl,
       },
