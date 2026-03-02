@@ -28,7 +28,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
                         {user?.image ? (
                             <img src={user.image} alt="Profile" className="w-9 h-9 rounded-full object-cover shadow-sm" />
                         ) : (
-                            <div className="flex items-center justify-center text-white text-sm font-bold w-9 h-9 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 shadow-sm shadow-orange-200">
+                            <div className="flex items-center justify-center text-white text-sm font-bold w-9 h-9 rounded-full bg-gradient-to-tr from-[#463996] to-purple-400 shadow-sm shadow-purple-200">
                                 {initials}
                             </div>
                         )}

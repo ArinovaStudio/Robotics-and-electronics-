@@ -61,7 +61,7 @@ export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
                     {/* Logo Section */}
                     <div className="flex items-center justify-between px-4 py-6 border-b border-slate-50 md:border-none">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 shadow-lg shadow-orange-200">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#463996] shadow-lg shadow-purple-200">
                                 <LayoutGrid className="h-7 w-15 text-white" />
                             </div>
                             <h1 className="text-lg font-bold text-slate-800 tracking-tight">Robotics and Electronics</h1>
@@ -88,8 +88,8 @@ export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
                                             onClick={() => setIsOpen(false)} // Auto-close on mobile
                                             className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 ${
                                                 isActive
-                                                    ? "bg-orange-500 text-white shadow-md shadow-orange-200"
-                                                    : "text-slate-500 hover:bg-orange-50 hover:text-orange-600"
+                                                    ? "bg-[#463996] text-white shadow-md shadow-purple-200"
+                                                    : "text-slate-500 hover:bg-[#ebe9f1] hover:text-[#463996]"
                                             }`}
                                         >
                                             <item.icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`} />

@@ -21,6 +21,8 @@
 @theme inline {
   --font-space-grotesk: var(--font-space-grotesk);
   --font-inter: var(--font-inter);
+  --font-unbounded: var(--font-unbounded);
+  --font-geist-sans: var(--font-geist-sans);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

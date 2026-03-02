@@ -43,6 +43,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     // Arrays
     const [highlights, setHighlights] = useState<string[]>([]);
     const [details, setDetails] = useState<{sectionName:string, attributeName:string, attributeValue:string}[]>([]);
+    const [faqs, setFaqs] = useState<{id?:string, question:string, answer:string, order:number}[]>([]);
     
     // Media
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -87,12 +88,17 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             setAdditionalFiles([]);
             setImagesToDelete([]);
             setError("");
+
+            // Load FAQs
+            api.get(`/api/admin/products/${product.id}/faqs`).then(res => {
+                if (res.data.success) setFaqs(res.data.data || []);
+            }).catch(() => setFaqs([]));
         } else if (isOpen) {
             setTitle(""); setLink(""); setDescription(""); setCategoryId(""); setSku("");
             setBrand(""); setMpn(""); setCustomLabel0(""); setCustomLabel1(""); 
             setAvailability("IN_STOCK"); setCondition("NEW"); setIsActive(true); setIsBundle(false); setStockQuantity("0");
             setPrice(""); setSalePrice(""); setSaleStart(""); setSaleEnd("");
-            setHighlights([]); setDetails([]);
+            setHighlights([]); setDetails([]); setFaqs([]);
             setExistingPrimary(null); setExistingAdditional([]); setImageFile(null); setAdditionalFiles([]); setImagesToDelete([]); setError("");
         }
     }, [product, isOpen]);
@@ -161,6 +167,18 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
 
             if (!data.success) {
                 throw new Error(data.message || "Failed to save product");
+            }
+
+            // Save FAQs if product exists
+            if (product && faqs.length > 0) {
+                const validFaqs = faqs.filter(f => f.question.trim() && f.answer.trim());
+                for (const faq of validFaqs) {
+                    if (faq.id) {
+                        await api.patch(`/api/admin/products/${product.id}/faqs`, faq);
+                    } else {
+                        await api.post(`/api/admin/products/${product.id}/faqs`, faq);
+                    }
+                }
             }
 
             if (onSuccess) onSuccess();
@@ -299,6 +317,26 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                             ))}
                                         </div>
                                     )}
+
+                    {/* faqs */}
+                                    {product && (
+                                        <div className="mt-6 pt-6 border-t border-slate-100">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Product FAQs</label>
+                                                <Button type="button" size="sm" variant="outline" onClick={() => setFaqs([...faqs, {question:"", answer:"", order:faqs.length}])}><Plus size={14} className="mr-1"/> Add FAQ</Button>
+                                            </div>
+                                            {faqs.map((faq, i) => (
+                                                <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">
+                                                    <div className="space-y-2">
+                                                        <Input placeholder="Question" value={faq.question} onChange={e => { const newF = [...faqs]; newF[i].question = e.target.value; setFaqs(newF); }} className="bg-white focus-visible:ring-[#4a439a]" />
+                                                        <textarea placeholder="Answer" value={faq.answer} onChange={e => { const newF = [...faqs]; newF[i].answer = e.target.value; setFaqs(newF); }} className="w-full border rounded-md p-2 text-sm min-h-[80px] bg-white border-slate-200 focus:ring-2 focus:ring-[#4a439a]/20 focus:border-[#4a439a] outline-none" />
+                                                        <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => setFaqs(faqs.filter((_, idx) => idx !== i))}><Trash2 size={14} className="mr-1"/> Remove</Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
                                 </div>
                             </div>
 

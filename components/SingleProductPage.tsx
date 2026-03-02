@@ -165,10 +165,12 @@ export default function SingleProductPage({
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"details" | "reviews">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">("details");
   const [suggestedProducts, setSuggestedProducts] = useState<APIProduct[]>([]);
   const [addingToCart, setAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [faqs, setFaqs] = useState<{id:string, question:string, answer:string}[]>([]);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const router = useRouter();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
@@ -206,27 +208,29 @@ export default function SingleProductPage({
     }
   };
 
-  // Load similar products
+  // Load similar products and FAQs
   useEffect(() => {
-    async function fetchSimilar() {
+    async function fetchData() {
       try {
-        const res = await fetch(
-          `/api/products/similar-products?productId=${product.id}&limit=4`,
-        );
-        const data = await res.json();
-        if (data.success) {
-          setSuggestedProducts(data.data.products || []);
-        }
+        const [similarRes, faqRes] = await Promise.all([
+          fetch(`/api/products/similar-products?productId=${product.id}&limit=4`),
+          fetch(`/api/products/${product.link}/faqs`)
+        ]);
+        const similarData = await similarRes.json();
+        const faqData = await faqRes.json();
+        if (similarData.success) setSuggestedProducts(similarData.data.products || []);
+        if (faqData.success) setFaqs(faqData.data || []);
       } catch (err) {
-        console.error("Failed to load similar products", err);
+        console.error("Failed to load data", err);
       }
     }
-    fetchSimilar();
-  }, [product.id]);
+    fetchData();
+  }, [product.id, product.link]);
 
   const tabs = [
     { id: "details" as const, label: "Product Details" },
     { id: "reviews" as const, label: "Rating & Reviews" },
+    { id: "faqs" as const, label: "FAQs" },
   ];
 
   const allImages = [
@@ -493,6 +497,35 @@ export default function SingleProductPage({
               </div>
             </div>
           )}
+
+          {/* ── FAQs ── */}
+          {activeTab === "faqs" && (
+            <div className="mt-8 md:max-w-4xl">
+              <h3 className="text-xl font-bold text-[#050a30] mb-6">Frequently Asked Questions</h3>
+              {faqs.length > 0 ? (
+                <div className="space-y-3">
+                  {faqs.map((faq, index) => (
+                    <div key={faq.id} className="border border-[#e8e8e8] rounded-xl overflow-hidden bg-white">
+                      <button
+                        onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                        className="w-full flex justify-between items-center p-4 text-left hover:bg-[#f8fafd] transition-colors"
+                      >
+                        <span className="font-semibold text-[#050a30] pr-4">{faq.question}</span>
+                        <span className={`text-[#9ca3af] text-xl transition-transform ${openFaqIndex === index ? "rotate-180" : ""}`}>▼</span>
+                      </button>
+                      {openFaqIndex === index && (
+                        <div className="px-4 pb-4 text-[#434343] text-sm border-t border-[#e8e8e8] pt-3 leading-relaxed">
+                          {faq.answer}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[#9ca3af] text-sm">No FAQs available for this product yet.</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ══════════════════════════════════════════
@@ -502,7 +535,7 @@ export default function SingleProductPage({
           <section className="mt-24 mb-10">
             {/* Title */}
             <h2
-              className={`text-center text-[#050a30] text-[32px] md:text-[38px] font-black tracking-tight mb-12 ${unbounded.className}`}
+              className={`text-center font-unbounded text-[#050a30] text-[32px] md:text-[38px] font-black tracking-tight mb-12 ${unbounded.className}`}
             >
               You might also like
             </h2>

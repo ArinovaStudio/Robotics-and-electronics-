@@ -22,6 +22,11 @@ const inter = Inter({
   subsets: ["latin"],
 })
 
+const unbounded = Open_Sans({
+  variable: "--font-unbounded",
+  subsets: ["latin"],
+});
+
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
 
 export const metadata: Metadata = {
@@ -37,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${openSans.className} antialiased`}
+        className={`${geistSans.variable} ${unbounded.variable} ${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${openSans.className} antialiased`}
         suppressHydrationWarning
       >
         {children}

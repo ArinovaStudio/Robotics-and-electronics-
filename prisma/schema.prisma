@@ -205,11 +205,26 @@ model Product {
   category   Category    @relation(fields: [categoryId], references: [id])
   cartItems  CartItem[]
   orderItems OrderItem[]
+  faqs       ProductFaq[]
 
   @@index([categoryId])
   @@index([brand])
   @@index([availability])
   @@index([isActive])
+}
+
+model ProductFaq {
+  id        String   @id @default(cuid())
+  productId String
+  question  String
+  answer    String   @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
 }
 
 model Cart {

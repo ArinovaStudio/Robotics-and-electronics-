@@ -98,7 +98,7 @@ export default function AdminDashboard() {
             {/* BOTTOM ROW: Dynamic Graph & Lists */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
                 
-                {/* 📈 Dynamic Area Chart (Takes up 2 columns) */}
+                {/* Dynamic Area Chart (Takes up 2 columns) */}
                 <div className="lg:col-span-2 flex flex-col min-h-[400px]">
                     <AnalyticChart chartData={chartData} />
                 </div>
