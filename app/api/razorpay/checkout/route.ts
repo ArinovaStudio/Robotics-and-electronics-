@@ -51,7 +51,18 @@ export async function POST(request: NextRequest) {
       receipt: `rcpt_${Date.now()}_${user.id.substring(0, 5)}`,
     });
 
-    const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+    let orderNumber = "";
+    let isUnique = false;
+    
+    while (!isUnique) {
+      orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+      
+      const existingOrder = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true } });
+      
+      if (!existingOrder) {
+        isUnique = true;
+      }
+    }
 
     const newOrder = await prisma.$transaction(async (tx) => {
 

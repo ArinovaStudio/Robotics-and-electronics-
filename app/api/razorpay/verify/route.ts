@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import crypto from "crypto";
 import { getUser } from "@/lib/auth";
+import { getOrderConfirmationTemplate } from "@/lib/templates";
+import sendEmail from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Invalid payment signature" }, { status: 400 });
     }
 
-    await prisma.$transaction(async (tx) => {
+    const confirmedOrder = await prisma.$transaction(async (tx) => {
 
       await tx.payment.update({
         where: { razorpayOrderId: razorpay_order_id },
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      const confirmedOrder = await tx.order.update({
+      const order = await tx.order.update({
         where: { id: orderId },
         data: { 
           status: "CONFIRMED",
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
         include: { items: true }
       });
 
-      for (const item of confirmedOrder.items) {
+      for (const item of order.items) {
         await tx.product.update({
           where: { id: item.productId },
           data: { stockQuantity: { decrement: item.quantity } }
@@ -59,7 +61,18 @@ export async function POST(request: NextRequest) {
       }
 
       await tx.cartItem.deleteMany({ where: { cart: { userId: user.id } } });
+
+      return order;
     });
+
+    const emailHtml = getOrderConfirmationTemplate(
+      user.name || "Customer",
+      confirmedOrder.orderNumber,
+      Number(confirmedOrder.totalAmount),
+      confirmedOrder.items
+    );
+
+    await sendEmail( user.email, `Order Confirmed! #${confirmedOrder.orderNumber} - Robotics Store`, emailHtml );
 
     return NextResponse.json({ success: true, message: "Payment verified and order confirmed!" }, { status: 200 });
 
