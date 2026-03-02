@@ -1,26 +1,20 @@
-import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getAdminUser } from "@/lib/auth";
 
-// GET /api/admin/users/[userId] - Get user details
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { userId: string } },
-) {
+export async function GET( req: NextRequest, { params }: { params: Promise<{ userId: string }> } ) {
   try {
-    await requireAdmin();
+    const admin = await getAdminUser();
+    if (!admin) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
-    const { userId } = params;
+    const { userId } = await params;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        addresses: {
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
+        addresses: { orderBy: { createdAt: "desc" } },
         orders: {
           select: {
             id: true,
@@ -35,15 +29,11 @@ export async function GET(
               },
             },
             _count: {
-              select: {
-                items: true,
-              },
+              select: { items: true },
             },
           },
-          orderBy: {
-            orderedAt: "desc",
-          },
-          take: 20, // Last 20 orders
+          orderBy: { orderedAt: "desc" },
+          take: 20,
         },
         _count: {
           select: {
@@ -55,10 +45,9 @@ export async function GET(
     });
 
     if (!user) {
-      return errorResponse("User not found", 404);
+      return NextResponse.json( { success: false, message: "User not found" }, { status: 404 });
     }
 
-    // Calculate total spent
     const totalSpentData = await prisma.order.aggregate({
       where: {
         userId: user.id,
@@ -71,14 +60,12 @@ export async function GET(
       },
     });
 
-    // Format orders for response
     const formattedOrders = user.orders.map((order) => ({
       ...order,
-      totalAmount: order.totalAmount.toString(),
+      totalAmount: Number(order.totalAmount).toFixed(2),
       itemCount: order._count.items,
     }));
 
-    // Format user response
     const userDetails = {
       id: user.id,
       name: user.name,
@@ -90,19 +77,17 @@ export async function GET(
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       addresses: user.addresses,
-      orders: formattedOrders,
-      _count: user._count,
-      totalSpent: totalSpentData._sum.totalAmount || 0,
+      orderHistory: formattedOrders,
+      metrics: {
+        orderCount: user._count.orders,
+        addressCount: user._count.addresses,
+        totalSpent: Number(totalSpentData._sum.totalAmount || 0).toFixed(2),
+      },
     };
 
-    return successResponse(userDetails);
-  } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+    return NextResponse.json({ success: true, data: userDetails });
+
+  } catch {
+    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
   }
 }

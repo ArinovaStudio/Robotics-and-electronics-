@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { hash, compare } from "bcryptjs";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { requireAuth } from "@/app/lib/auth";
 import { changePasswordSchema } from "@/app/lib/validations/auth";
 import { sendPasswordChangedEmail } from "@/app/lib/email";

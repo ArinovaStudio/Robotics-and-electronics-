@@ -7,6 +7,7 @@ import { Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+
 export default function ForgotPasswordPage() {
   const router = useRouter();
 
@@ -21,10 +22,13 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetch("/api/auth/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email, 
+          type: "PASSWORD_RESET"
+        }),
       });
 
       const data = await response.json();
@@ -71,7 +75,7 @@ export default function ForgotPasswordPage() {
             Forgot Password?
           </h1>
           <p className="text-gray-600 mt-2 text-sm">
-            Enter your email and we'll send you a code to reset your password
+            Enter your email and we&apos;ll send you a code to reset your password
           </p>
         </div>
 

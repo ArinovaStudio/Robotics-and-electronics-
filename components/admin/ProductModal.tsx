@@ -6,8 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
-import { authFetcher } from "@/store/adminStore";
-import api from "@/app/lib/axios"; 
+import { authFetcher } from "@/store/adminStore"; 
 
 export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     const { data: categoriesData } = useSWR("/api/admin/categories", authFetcher);
@@ -69,15 +68,12 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             setIsActive(product.isActive ?? true);
             setIsBundle(product.isBundle ?? false);
             setStockQuantity(product.stockQuantity?.toString() || "0");
-            setPrice(product.price?.value?.toString() || "");
-            setSalePrice(product.salePrice?.value?.toString() || "");
             
-            if (product.salePriceEffectiveDate) {
-                setSaleStart(product.salePriceEffectiveDate.startDate ? new Date(product.salePriceEffectiveDate.startDate).toISOString().slice(0, 16) : "");
-                setSaleEnd(product.salePriceEffectiveDate.endDate ? new Date(product.salePriceEffectiveDate.endDate).toISOString().slice(0, 16) : "");
-            } else {
-                setSaleStart(""); setSaleEnd("");
-            }
+            setPrice(product.price?.toString() || "");
+            setSalePrice(product.salePrice?.toString() || "");
+            
+            setSaleStart(product.salePriceStartDate ? new Date(product.salePriceStartDate).toISOString().slice(0, 16) : "");
+            setSaleEnd(product.salePriceEndDate ? new Date(product.salePriceEndDate).toISOString().slice(0, 16) : "");
 
             setHighlights(product.productHighlights || []);
             setDetails(product.productDetails || []);
@@ -134,16 +130,11 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             formData.append("isBundle", isBundle.toString());
             formData.append("stockQuantity", stockQuantity);
             
-            // JSON Fields
-            formData.append("price", JSON.stringify({ value: parseFloat(price), currency: "INR" }));
+            formData.append("price", price);
             if (salePrice) {
-                formData.append("salePrice", JSON.stringify({ value: parseFloat(salePrice), currency: "INR" }));
-                if (saleStart || saleEnd) {
-                    formData.append("salePriceEffectiveDate", JSON.stringify({
-                        startDate: saleStart ? new Date(saleStart).toISOString() : undefined,
-                        endDate: saleEnd ? new Date(saleEnd).toISOString() : undefined
-                    }));
-                }
+                formData.append("salePrice", salePrice);
+                if (saleStart) formData.append("salePriceStartDate", new Date(saleStart).toISOString());
+                if (saleEnd) formData.append("salePriceEndDate", new Date(saleEnd).toISOString());
             }
             
             formData.append("productHighlights", JSON.stringify(highlights.filter(h => h.trim() !== "")));
@@ -156,16 +147,14 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
 
             const url = product ? `/api/admin/products/${product.id}` : "/api/admin/products";
             
-            let res;
-            if (product) {
-                res = await api.patch(url, formData);
-            } else {
-                res = await api.post(url, formData);
-            }
+            const res = await fetch(url, {
+                method: product ? "PATCH" : "POST",
+                body: formData,
+            });
 
-            const data = res.data;
+            const data = await res.json();
 
-            if (!data.success) {
+            if (!res.ok || !data.success) {
                 throw new Error(data.message || "Failed to save product");
             }
 

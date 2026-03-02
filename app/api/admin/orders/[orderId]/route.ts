@@ -1,16 +1,14 @@
-import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
-import { updateOrderStatusSchema } from "@/app/lib/validations/admin-order";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getAdminUser } from "@/lib/auth";
+import { z } from "zod";
 
-// GET /api/admin/orders/[orderId] - Get order details
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> },
-) {
+export async function GET( req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   try {
-    await requireAdmin();
+    const admin = await getAdminUser();
+    if (!admin){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
     const { orderId } = await params;
 
@@ -18,23 +16,13 @@ export async function GET(
       where: { id: orderId },
       include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
+          select: { id: true, name: true, email: true, phone: true },
         },
         address: true,
         items: {
           include: {
             product: {
-              select: {
-                id: true,
-                title: true,
-                imageLink: true,
-                sku: true,
-              },
+              select: { id: true, title: true, imageLink: true, sku: true },
             },
           },
         },
@@ -43,10 +31,9 @@ export async function GET(
     });
 
     if (!order) {
-      return errorResponse("Order not found", 404);
+      return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
     }
 
-    // Format order for response
     const formattedOrder = {
       ...order,
       subtotal: order.subtotal.toString(),
@@ -60,135 +47,93 @@ export async function GET(
       })),
     };
 
-    return successResponse(formattedOrder);
-  } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+    return NextResponse.json({ success: true, data: formattedOrder });
+
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
 
-// PATCH /api/admin/orders/[orderId] - Update order status
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> },
-) {
+const updateOrderStatusSchema = z.object({
+  status: z.enum(["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"]),
+  trackingNumber: z.string().optional().nullable(),
+  trackingUrl: z.string().url("Invalid tracking URL").optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export async function PATCH( req: NextRequest, { params }: { params: Promise<{ orderId: string }> } ) {
   try {
-    await requireAdmin();
-
-    const { orderId } = await params;
-
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: {
-        id: true,
-        status: true,
-        orderNumber: true,
-      },
-    });
-
-    if (!order) {
-      return errorResponse("Order not found", 404);
+    const admin = await getAdminUser();
+    if (!admin){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const { orderId } = await params;
+    const body = await req.json();
 
     const validation = updateOrderStatusSchema.safeParse(body);
     if (!validation.success) {
-      return errorResponse(validation.error.issues[0].message, 400);
+      return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
     const { status, trackingNumber, trackingUrl, notes } = validation.data;
 
-    // Validate status transitions
+    const currentOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true, notes: true },
+    });
+
+    if (!currentOrder) {
+      return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
+    }
+
     const validTransitions: Record<string, string[]> = {
       PENDING: ["CONFIRMED", "CANCELLED"],
       CONFIRMED: ["PROCESSING", "CANCELLED"],
       PROCESSING: ["SHIPPED", "CANCELLED"],
-      SHIPPED: ["DELIVERED"],
-      DELIVERED: [],
+      SHIPPED: ["DELIVERED", "CANCELLED"],
+      DELIVERED: ["REFUNDED"],
       CANCELLED: [],
       REFUNDED: [],
     };
 
-    const allowedStatuses = validTransitions[order.status];
-    if (!allowedStatuses.includes(status)) {
-      return errorResponse(
-        `Cannot transition from ${order.status} to ${status}. Allowed: ${allowedStatuses.join(", ") || "None"}`,
-        400,
-      );
+    const allowed = validTransitions[currentOrder.status] || [];
+    if (!allowed.includes(status) && status !== currentOrder.status) {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Invalid status change. Cannot move from ${currentOrder.status} to ${status}.` 
+      }, { status: 400 });
     }
 
-    // Build update data with timestamps
-    const updateData: any = {
-      status,
-    };
+    const updateData: any = { status };
 
-    // Update timestamp based on new status
-    switch (status) {
-      case "CONFIRMED":
-        updateData.confirmedAt = new Date();
-        break;
-      case "PROCESSING":
-        updateData.processedAt = new Date();
-        break;
-      case "SHIPPED":
-        updateData.shippedAt = new Date();
-        if (trackingNumber) updateData.trackingNumber = trackingNumber;
-        if (trackingUrl) updateData.trackingUrl = trackingUrl;
-        break;
-      case "DELIVERED":
-        updateData.deliveredAt = new Date();
-        break;
-      case "CANCELLED":
-        updateData.cancelledAt = new Date();
-        break;
+    if (status === "CONFIRMED") updateData.confirmedAt = new Date();
+    if (status === "PROCESSING") updateData.processedAt = new Date();
+    if (status === "SHIPPED") {
+      updateData.shippedAt = new Date();
+      updateData.trackingNumber = trackingNumber;
+      updateData.trackingUrl = trackingUrl;
     }
+    if (status === "DELIVERED") updateData.deliveredAt = new Date();
+    if (status === "CANCELLED") updateData.cancelledAt = new Date();
 
-    // Append notes if provided
     if (notes) {
-      const existingNotes = await prisma.order.findUnique({
-        where: { id: orderId },
-        select: { notes: true },
-      });
-      updateData.notes = existingNotes?.notes
-        ? `${existingNotes.notes}\n\n[${new Date().toISOString()}] ${notes}`
-        : notes;
+      const timestamp = new Date().toLocaleString('en-IN');
+      updateData.notes = currentOrder.notes ? `${currentOrder.notes}\n\n[${timestamp}]: ${notes}` : `[${timestamp}]: ${notes}`;
     }
 
-    // Update order
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: updateData,
-      select: {
-        id: true,
-        orderNumber: true,
-        status: true,
-        trackingNumber: true,
-        trackingUrl: true,
-        confirmedAt: true,
-        processedAt: true,
-        shippedAt: true,
-        deliveredAt: true,
-        cancelledAt: true,
-      },
     });
 
-    // Note: Send status update email to customer (implementation depends on email service)
-    // await sendOrderStatusEmail(order.userId, order.orderNumber, status);
+    return NextResponse.json({
+      success: true,
+      message: `Order marked as ${status.toLowerCase()}`,
+      data: updatedOrder
+    });
 
-    return successResponse(updatedOrder, `Order status updated to ${status}.`);
-  } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

@@ -16,6 +16,8 @@ async function main() {
     create: {
       name: "Admin User",
       email: "admin@gmail.com",
+      name: 'Admin User',
+      email: 'admin@gmail.com',
       password: hashedPassword,
       role: Role.ADMIN,
       emailVerified: new Date(),

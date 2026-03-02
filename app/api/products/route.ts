@@ -1,208 +1,127 @@
-import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
-import { listProductsQuerySchema } from "@/app/lib/validations/product";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // Helper: convert null to undefined (searchParams.get returns null, but Zod .optional() expects undefined)
-    const param = (key: string) => searchParams.get(key) ?? undefined;
+    const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const limit = Math.max(1, Number(searchParams.get("limit")) || 12);
+    const skip = (page - 1) * limit;
 
-    // Parse query parameters
-    const queryValidation = listProductsQuerySchema.safeParse({
-      page: param("page"),
-      limit: param("limit"),
-      search: param("search"),
-      category: param("category"),
-      sort: param("sort"),
-      minPrice: param("minPrice"),
-      maxPrice: param("maxPrice"),
-      brand: param("brand"),
-      availability: param("availability"),
-      condition: param("condition"),
-      customLabel0: param("customLabel0"),
-      customLabel1: param("customLabel1"),
-    });
+    const search = searchParams.get("search") || "";
+    const categoryId = searchParams.get("categoryId");
+    const brand = searchParams.get("brand");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const sort = searchParams.get("sort") || "newest";
+    const type = searchParams.get("type") || "all"; // "all", "on_sale", "trending"
 
-    if (!queryValidation.success) {
-      return errorResponse("Invalid query parameters", 400);
+    const where: any = { isActive: true, category: { isActive: true } };
+
+    if (categoryId && categoryId !== "null") {
+      where.categoryId = categoryId;
     }
 
-    const {
-      page,
-      limit,
-      search,
-      category,
-      sort,
-      minPrice,
-      maxPrice,
-      brand,
-      availability,
-      condition,
-      customLabel0,
-      customLabel1,
-    } = queryValidation.data;
-
-    // Build where clause
-    const where: any = {
-      isActive: true,
-    };
-
-    // Filter by category slug
-    if (category) {
-      const categoryRecord = await prisma.category.findUnique({
-        where: { slug: category },
-        select: { id: true },
-      });
-
-      if (categoryRecord) {
-        where.categoryId = categoryRecord.id;
-      } else {
-        // Return empty result if category doesn't exist
-        return successResponse({
-          products: [],
-          pagination: {
-            currentPage: page,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: limit,
-          },
-        });
-      }
-    }
-
-    // Filter by availability
-    if (availability) {
-      where.availability = availability;
-    }
-
-    // Filter by condition
-    if (condition) {
-      where.condition = condition;
-    }
-
-    // Filter by brand (support comma-separated values)
-    if (brand) {
-      const brands = brand.split(",").map((b) => b.trim());
-      where.brand = { in: brands };
-    }
-
-    // Filter by custom labels
-    if (customLabel0) {
-      where.customLabel0 = customLabel0;
-    }
-
-    if (customLabel1) {
-      where.customLabel1 = customLabel1;
-    }
-
-    // Search functionality
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
         { brand: { contains: search, mode: "insensitive" } },
-        { mpn: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
         { sku: { contains: search, mode: "insensitive" } },
       ];
     }
 
-    // Fetch products with category info
-    const allProducts = await prisma.product.findMany({
-      where,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    // Filter by price range (since price is JSON field)
-    let filteredProducts = allProducts.filter((product: any) => {
-      const priceValue = product.price?.value || 0;
-      if (minPrice !== undefined && priceValue < minPrice) return false;
-      if (maxPrice !== undefined && priceValue > maxPrice) return false;
-      return true;
-    });
-
-    // Sort products
-    switch (sort) {
-      case "price_asc":
-        filteredProducts.sort((a: any, b: any) => {
-          const priceA = a.salePrice?.value || a.price?.value || 0;
-          const priceB = b.salePrice?.value || b.price?.value || 0;
-          return priceA - priceB;
-        });
-        break;
-      case "price_desc":
-        filteredProducts.sort((a: any, b: any) => {
-          const priceA = a.salePrice?.value || a.price?.value || 0;
-          const priceB = b.salePrice?.value || b.price?.value || 0;
-          return priceB - priceA;
-        });
-        break;
-      case "newest":
-        filteredProducts.sort(
-          (a: any, b: any) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        );
-        break;
-      case "popular":
-        // Sort by stock quantity as a proxy for popularity
-        filteredProducts.sort(
-          (a: any, b: any) => b.stockQuantity - a.stockQuantity,
-        );
-        break;
-      case "title_asc":
-        filteredProducts.sort((a: any, b: any) =>
-          a.title.localeCompare(b.title),
-        );
-        break;
-      default:
-        break;
+    if (minPrice || maxPrice) {
+      where.price = {};
+      if (minPrice) where.price.gte = parseFloat(minPrice);
+      if (maxPrice) where.price.lte = parseFloat(maxPrice);
     }
 
-    // Calculate pagination
-    const totalItems = filteredProducts.length;
+    if (brand) {
+      const brandList = brand.split(",").map((b) => b.trim());
+      where.brand = { in: brandList, mode: "insensitive" };
+    }
+
+    if (type === "on_sale") {
+      where.salePrice = { not: null };
+    } else if (type === "trending") {
+      where.OR = [
+        { customLabel0: { contains: "trending", mode: "insensitive" } },
+        { customLabel1: { contains: "trending", mode: "insensitive" } }
+      ];
+    }
+
+    let orderBy: any = { createdAt: "desc" };
+    switch (sort) {
+      case "price_asc": orderBy = { price: "asc" }; break;
+      case "price_desc": orderBy = { price: "desc" }; break;
+      case "popular": orderBy = { stockQuantity: "desc" }; break;
+      case "title_asc": orderBy = { title: "asc" }; break;
+      default: orderBy = { createdAt: "desc" };
+    }
+
+    const [products, totalItems, filterStats] = await Promise.all([
+      
+      prisma.product.findMany({
+        where,
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+        }, skip, take: limit, orderBy,
+      }),
+
+      prisma.product.count({ where }),
+
+      prisma.category.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          _count: { select: { products: { where: { isActive: true } } } },
+        },
+        orderBy: { sortOrder: "asc" },
+      }),
+    ]);
+
     const totalPages = Math.ceil(totalItems / limit);
-    const skip = (page - 1) * limit;
-    const paginatedProducts = filteredProducts.slice(skip, skip + limit);
 
-    // Format products for response
-    const formattedProducts = paginatedProducts.map((product: any) => ({
-      id: product.id,
-      title: product.title,
-      description: product.description,
-      link: product.link,
-      imageLink: product.imageLink,
-      price: product.price,
-      salePrice: product.salePrice,
-      availability: product.availability,
-      brand: product.brand,
-      condition: product.condition,
-      category: product.category,
-      productHighlights: product.productHighlights,
-      stockQuantity: product.stockQuantity,
-    }));
-
-    return successResponse({
-      products: formattedProducts,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
+    return NextResponse.json({
+      success: true,
+      message: "Products fetched successfully",
+      data: {
+        products: products.map((p) => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          image: p.imageLink,
+          price: Number(p.price).toFixed(2),
+          salePrice: p.salePrice ? Number(p.salePrice).toFixed(2) : null,
+          availability: p.availability,
+          brand: p.brand,
+          category: p.category,
+          stock: p.stockQuantity,
+          isLowStock: p.stockQuantity > 0 && p.stockQuantity < 5,
+        })),
+        facets: {
+          categories: filterStats
+            .filter((c) => c._count.products > 0)
+            .map((c) => ({
+              id: c.id,
+              name: c.name,
+              count: c._count.products,
+            })),
+          brands: [...new Set(products.map((p) => p.brand).filter(Boolean))],
+        },
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+        },
       },
     });
-  } catch (error) {
-    console.error("List products error:", error);
-    return errorResponse("Internal server error", 500);
+  } catch {
+    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 } );
   }
 }

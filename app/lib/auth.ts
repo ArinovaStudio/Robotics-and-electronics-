@@ -3,7 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { verifyToken } from "@/app/lib/jwt";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 
 export async function getSession() {
   return await getServerSession(authOptions);

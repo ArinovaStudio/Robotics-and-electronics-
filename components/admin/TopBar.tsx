@@ -1,14 +1,15 @@
 'use client';
 
-import { useAdminStore } from "@/store/adminStore";
 import { Menu } from "lucide-react"; 
+import { useSession } from "next-auth/react";
 
 interface TopBarProps {
     onMenuClick: () => void;
 }
 
 export default function TopBar({ onMenuClick }: TopBarProps) {
-    const { user } = useAdminStore();
+    const { data: session } = useSession();
+    const user = session?.user;
 
     const initials = user?.name ? user.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase(): 'AD';
 

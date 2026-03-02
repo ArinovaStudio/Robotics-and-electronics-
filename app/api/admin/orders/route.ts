@@ -1,115 +1,63 @@
-import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
-import { adminListOrdersQuerySchema } from "@/app/lib/validations/admin-order";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getAdminUser } from "@/lib/auth";
 
-// GET /api/admin/orders - List all orders with filters
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    await requireAdmin();
-
-    const { searchParams } = new URL(request.url);
-    const queryObject = Object.fromEntries(searchParams.entries());
-
-    const validation = adminListOrdersQuerySchema.safeParse(queryObject);
-    if (!validation.success) {
-      return errorResponse(validation.error.issues[0].message, 400);
+    const admin = await getAdminUser();
+    if (!admin) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const {
-      page,
-      limit,
-      search,
-      status,
-      startDate,
-      endDate,
-      paymentStatus,
-      sort,
-    } = validation.data;
+    const { searchParams } = new URL(request.url);
+
+    const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const limit = Math.max(1, Number(searchParams.get("limit")) || 10);
+    const search = searchParams.get("search") || "";
+    const status = searchParams.get("status") || "";
+    const paymentStatus = searchParams.get("paymentStatus") || "";
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const sort = searchParams.get("sort") || "newest";
+
     const skip = (page - 1) * limit;
 
-    // Build where clause
     const where: any = {};
 
-    // Search in order number, customer name, email
     if (search) {
       where.OR = [
         { orderNumber: { contains: search, mode: "insensitive" } },
-        {
-          user: {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { email: { contains: search, mode: "insensitive" } },
-            ],
-          },
-        },
+        { user: { name: { contains: search, mode: "insensitive" } } },
+        { user: { email: { contains: search, mode: "insensitive" } } },
       ];
     }
 
-    // Filter by order status
-    if (status) {
+    if (status && status !== "all") {
       where.status = status;
     }
 
-    // Date range filter
+    if (paymentStatus && paymentStatus !== "all") {
+      where.payment = { status: paymentStatus };
+    }
+
     if (startDate || endDate) {
       where.orderedAt = {};
-      if (startDate) {
-        where.orderedAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.orderedAt.lte = new Date(endDate);
-      }
+      if (startDate) where.orderedAt.gte = new Date(startDate);
+      if (endDate) where.orderedAt.lte = new Date(endDate);
     }
 
-    // Payment status filter
-    if (paymentStatus) {
-      where.payment = {
-        status: paymentStatus,
-      };
-    }
-
-    // Build orderBy clause
     let orderBy: any = { orderedAt: "desc" };
-    switch (sort) {
-      case "oldest":
-        orderBy = { orderedAt: "asc" };
-        break;
-      case "amount_high":
-        orderBy = { totalAmount: "desc" };
-        break;
-      case "amount_low":
-        orderBy = { totalAmount: "asc" };
-        break;
-      case "newest":
-      default:
-        orderBy = { orderedAt: "desc" };
-    }
+    if (sort === "oldest") orderBy = { orderedAt: "asc" };
+    if (sort === "amount_high") orderBy = { totalAmount: "desc" };
+    if (sort === "amount_low") orderBy = { totalAmount: "asc" };
 
-    // Fetch orders and total count in parallel
     const [orders, total, statusCounts] = await Promise.all([
       prisma.order.findMany({
         where,
         include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          payment: {
-            select: {
-              status: true,
-              paymentMethod: true,
-            },
-          },
-          _count: {
-            select: {
-              items: true,
-            },
-          },
+          user: { select: { id: true, name: true, email: true } },
+          payment: { select: { status: true, paymentMethod: true } },
+          _count: { select: { items: true } },
         },
         skip,
         take: limit,
@@ -122,24 +70,23 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Format orders for response
     const formattedOrders = orders.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
-      user: order.user,
+      customer: order.user ? {
+        name: order.user.name,
+        email: order.user.email
+      } : { name: "Guest User", email: "N/A" },
       status: order.status,
-      totalAmount: order.totalAmount.toString(),
+      totalAmount: Number(order.totalAmount).toFixed(2),
       itemCount: order._count.items,
-      payment: order.payment
-        ? {
-            status: order.payment.status,
-            paymentMethod: order.payment.paymentMethod,
-          }
-        : null,
-      orderedAt: order.orderedAt.toISOString(),
+      payment: order.payment ? {
+        status: order.payment.status,
+        method: order.payment.paymentMethod,
+      } : null,
+      orderedAt: order.orderedAt,
     }));
 
-    // Build summary from status counts
     const summary: any = {
       total,
       pending: 0,
@@ -148,34 +95,34 @@ export async function GET(request: NextRequest) {
       shipped: 0,
       delivered: 0,
       cancelled: 0,
+      refunded: 0
     };
 
     statusCounts.forEach((item) => {
-      const statusKey = item.status.toLowerCase();
-      summary[statusKey] = item._count.id;
+      const key = item.status.toLowerCase();
+      if (key in summary) summary[key] = item._count.id;
     });
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limit) || 1;
 
-    return successResponse({
-      orders: formattedOrders,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      },
-      summary,
+    return NextResponse.json({
+      success: true,
+      message: "Orders fetched successfully",
+      data: {
+        orders: formattedOrders,
+        summary,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        }
+      }
     });
-  } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+
+  } catch {
+    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
   }
 }

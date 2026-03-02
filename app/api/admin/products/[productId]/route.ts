@@ -1,191 +1,172 @@
-import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
-import { uploadFile, uploadMultipleFiles, deleteFile } from "@/app/lib/upload";
-import { updateProductSchema } from "@/app/lib/validations/admin-product";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { uploadFile, uploadMultipleFiles, deleteFile } from "@/lib/upload";
+import z from "zod";
+import { getAdminUser } from "@/lib/auth";
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
-) {
+const updateProductSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  link: z.string().min(1).optional(),
+  imageLink: z.string().optional(),
+  additionalImageLinks: z.array(z.string()).optional(),
+  price: z.preprocess((val) => Number(val), z.number().positive()).optional(),
+  salePrice: z.preprocess((val) => (val ? Number(val) : null), z.number().positive().nullable()).optional(),
+  salePriceStartDate: z.preprocess((val) => (val ? new Date(val as string) : null), z.date().nullable()).optional(),
+  salePriceEndDate: z.preprocess((val) => (val ? new Date(val as string) : null), z.date().nullable()).optional(),
+  availability: z.enum(["IN_STOCK", "OUT_OF_STOCK", "PREORDER", "BACKORDER"]).optional(),
+  stockQuantity: z.preprocess((val) => Number(val), z.number().int().min(0)).optional(),
+  sku: z.string().min(1).optional(),
+  mpn: z.string().nullable().optional(),
+  brand: z.string().nullable().optional(),
+  condition: z.enum(["NEW", "REFURBISHED", "USED"]).optional(),
+  categoryId: z.string().min(1).optional(),
+  isActive: z.preprocess((val) => val === "true" || val === true, z.boolean()).optional(),
+  isBundle: z.preprocess((val) => val === "true" || val === true, z.boolean()).optional(),
+  productDetails: z.array(z.any()).optional(),
+  productHighlights: z.array(z.string()).optional(),
+});
+
+export async function PATCH( request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
-    await requireAdmin();
+    const admin = await getAdminUser();
+    if (!admin){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
     const { productId } = await params;
 
-    const existingProduct = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-    if (!existingProduct) return errorResponse("Product not found", 404);
+    const existingProduct = await prisma.product.findUnique({ where: { id: productId } });
+    if (!existingProduct){
+      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
+    }
 
     const formData = await request.formData();
-
     const link = formData.get("link") as string;
     const sku = formData.get("sku") as string;
 
     if (link || sku) {
       const check = await prisma.product.findFirst({
         where: {
-          OR: [...(link ? [{ link }] : []), ...(sku ? [{ sku }] : [])],
-          NOT: { id: productId },
-        },
+          OR: [ ...(link ? [{ link }] : []), ...(sku ? [{ sku }] : []) ],
+          NOT: { id: productId }
+        }
       });
-      if (check?.link === link)
-        return errorResponse("Product with this link already exists", 400);
-      if (check?.sku === sku)
-        return errorResponse("Product with this SKU already exists", 400);
+      if (check?.link === link) return NextResponse.json({ success: false, message: "Link already in use" }, { status: 400 });
+      if (check?.sku === sku) return NextResponse.json({ success: false, message: "SKU already in use" }, { status: 400 });
     }
 
-    const parseJson = (key: string, fallback: any) => {
+    const helperParseJson = (key: string, fallback: any) => {
       const val = formData.get(key);
       if (!val) return fallback;
-      try {
-        return JSON.parse(val as string);
-      } catch {
-        return fallback;
-      }
+      try { return JSON.parse(val as string); } catch { return fallback; }
     };
-    const imagesToDelete = parseJson("imagesToDelete", []) as string[];
 
+    const imagesToDelete = helperParseJson("imagesToDelete", []) as string[];
     let imageLink = existingProduct.imageLink;
     let additionalImageLinks = [...existingProduct.additionalImageLinks];
 
     if (imagesToDelete.length > 0) {
       for (const img of imagesToDelete) {
-        await deleteFile(img).catch(() => {});
+        await deleteFile(img).catch(() => {}); 
       }
-      additionalImageLinks = additionalImageLinks.filter(
-        (img) => !imagesToDelete.includes(img),
-      );
+      additionalImageLinks = additionalImageLinks.filter(img => !imagesToDelete.includes(img));
     }
 
     const imageFile = formData.get("image") as File | null;
     if (imageFile && imageFile.size > 0) {
+
       imageLink = await uploadFile(imageFile, "products");
-      if (existingProduct.imageLink)
+
+      if (existingProduct.imageLink){
         await deleteFile(existingProduct.imageLink).catch(() => {});
+      }
     }
 
     const additionalFiles = formData.getAll("additionalImages") as File[];
-    const validAdditionalFiles = additionalFiles.filter((f) => f.size > 0);
+
+    const validAdditionalFiles = additionalFiles.filter(f => f.size > 0);
+
     if (validAdditionalFiles.length > 0) {
-      const newLinks = (
-        await uploadMultipleFiles(validAdditionalFiles, "products")
-      ).map((f) => f.path);
+      const newLinks = (await uploadMultipleFiles(validAdditionalFiles, "products")).map(f => f.path);
       additionalImageLinks = [...additionalImageLinks, ...newLinks];
     }
 
     const payload: any = { imageLink, additionalImageLinks };
-    if (formData.has("title")) payload.title = formData.get("title");
-    if (formData.has("description"))
-      payload.description = formData.get("description");
-    if (formData.has("link")) payload.link = link;
-    if (formData.has("price")) payload.price = parseJson("price", undefined);
-    if (formData.has("salePrice"))
-      payload.salePrice = parseJson("salePrice", null);
-    if (formData.has("salePriceEffectiveDate"))
-      payload.salePriceEffectiveDate = parseJson(
-        "salePriceEffectiveDate",
-        null,
-      );
-    if (formData.has("availability"))
-      payload.availability = formData.get("availability");
-    if (formData.has("stockQuantity"))
-      payload.stockQuantity = parseInt(formData.get("stockQuantity") as string);
-    if (formData.has("sku")) payload.sku = sku;
-    if (formData.has("mpn")) payload.mpn = formData.get("mpn");
-    if (formData.has("brand")) payload.brand = formData.get("brand");
-    if (formData.has("condition"))
-      payload.condition = formData.get("condition");
-    if (formData.has("categoryId"))
-      payload.categoryId = formData.get("categoryId");
-    if (formData.has("productDetails"))
-      payload.productDetails = parseJson("productDetails", undefined);
-    if (formData.has("productHighlights"))
-      payload.productHighlights = parseJson("productHighlights", undefined);
-    if (formData.has("customLabel0"))
-      payload.customLabel0 = formData.get("customLabel0");
-    if (formData.has("customLabel1"))
-      payload.customLabel1 = formData.get("customLabel1");
-    if (formData.has("isActive"))
-      payload.isActive = formData.get("isActive") === "true";
-    if (formData.has("isBundle"))
-      payload.isBundle = formData.get("isBundle") === "true";
+    
+    const fields = [
+      "title", "description", "link", "price", "salePrice", 
+      "salePriceStartDate", "salePriceEndDate", "availability", 
+      "stockQuantity", "sku", "mpn", "brand", "condition", 
+      "categoryId", "productDetails", "productHighlights", 
+      "isActive", "isBundle"
+    ];
+
+    fields.forEach(field => {
+      if (formData.has(field)) {
+          if (["productDetails", "productHighlights"].includes(field)) {
+              payload[field] = helperParseJson(field, undefined);
+          } else {
+              payload[field] = formData.get(field);
+          }
+      }
+    });
 
     const validation = updateProductSchema.safeParse(payload);
-    if (!validation.success)
-      return errorResponse(validation.error.issues[0].message, 400);
+    if (!validation.success){
+      return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
+    }
 
-    const updatedProduct = await prisma.product.update({
-      where: { id: productId },
-      data: validation.data,
+    const updatedProduct = await prisma.product.update({ 
+      where: { id: productId }, 
+      data: validation.data 
     });
-    return successResponse(updatedProduct, "Product updated successfully.");
-  } catch (error: any) {
-    return errorResponse(error.message || "Internal server error", 500);
+
+    return NextResponse.json({ success: true, message: "Product updated successfully", data: updatedProduct });
+
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
-) {
+export async function DELETE( request: Request, { params }: { params: Promise<{ productId: string }> }) {
   try {
-    await requireAdmin();
+    const admin = await getAdminUser();
+    if (!admin){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
     const { productId } = await params;
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-
-    if (!product) {
-      return errorResponse("Product not found", 404);
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product){
+      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
     }
 
-    const linkedOrders = await prisma.orderItem.findFirst({
-      where: { productId },
-    });
+    const linkedOrders = await prisma.orderItem.findFirst({ where: { productId } });
 
     if (linkedOrders) {
-      return errorResponse(
-        "Cannot hard-delete this product because it is linked to customer orders. Please edit the product and uncheck 'Active' to hide it instead.",
-        400,
-      );
+      return NextResponse.json({ 
+        success: false, 
+        message: "Cannot delete product linked to existing orders. Please deactivate it instead." 
+      }, { status: 400 });
     }
 
-    await prisma.product.delete({
-      where: { id: productId },
-    });
+    await prisma.product.delete({ where: { id: productId } });
 
-    const deletePromises: Promise<boolean>[] = [];
+    const deletePromises: Promise<any>[] = [];
 
-    if (product.imageLink) {
+    if (product.imageLink){
       deletePromises.push(deleteFile(product.imageLink));
     }
-
-    if (
-      product.additionalImageLinks &&
-      product.additionalImageLinks.length > 0
-    ) {
-      product.additionalImageLinks.forEach((imgUrl) => {
-        deletePromises.push(deleteFile(imgUrl));
-      });
-    }
-
+    
+    product.additionalImageLinks.forEach((imgUrl) => deletePromises.push(deleteFile(imgUrl)));
+    
     await Promise.allSettled(deletePromises);
 
-    return successResponse(
-      null,
-      "Product and its images deleted successfully.",
-    );
-  } catch (error: any) {
-    if (error.code === "P2003") {
-      return errorResponse(
-        "Cannot delete product because it is referenced elsewhere in the database.",
-        400,
-      );
-    }
+    return NextResponse.json({ success: true, message: "Product and images deleted successfully" });
 
-    return errorResponse(error.message || "Internal server error", 500);
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

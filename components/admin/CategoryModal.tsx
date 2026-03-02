@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Image as ImageIcon } from "lucide-react";
 import { authFetcher } from "@/store/adminStore";
-import api from "@/app/lib/axios";
 
 export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
     const { data: categoriesData } = useSWR("/api/admin/categories", authFetcher);
@@ -61,10 +60,15 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
 
             const method = category ? "put" : "post";
 
-            const res = await api[method](url, formData);
+            const res = await fetch(url, {
+                method,
+                body: formData,
+            });
 
-            if (!res.data.success) {
-                throw new Error(res.data.message || "Failed to save category");
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                throw new Error(result.message || "Failed to save category");
             }
 
             if (onSuccess) onSuccess();

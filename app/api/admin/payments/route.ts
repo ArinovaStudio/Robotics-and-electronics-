@@ -1,51 +1,41 @@
-import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
-import { adminListPaymentsQuerySchema } from "@/app/lib/validations/admin-payment";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getAdminUser } from "@/lib/auth";
 
-// GET /api/admin/payments - List all payments with filters
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    await requireAdmin();
-
-    const { searchParams } = new URL(request.url);
-    const queryObject = Object.fromEntries(searchParams.entries());
-
-    const validation = adminListPaymentsQuerySchema.safeParse(queryObject);
-    if (!validation.success) {
-      return errorResponse(validation.error.issues[0].message, 400);
+    const admin = await getAdminUser();
+    if (!admin) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const { page, limit, status, startDate, endDate, paymentMethod } =
-      validation.data;
+    const { searchParams } = new URL(request.url);
+
+    const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const limit = Math.max(1, Number(searchParams.get("limit")) || 10);
+    const status = searchParams.get("status") || "";
+    const paymentMethod = searchParams.get("paymentMethod") || "";
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    
     const skip = (page - 1) * limit;
 
-    // Build where clause
     const where: any = {};
 
-    // Filter by payment status
-    if (status) {
+    if (status && status !== "all") {
       where.status = status;
     }
 
-    // Date range filter
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
-    }
-
-    // Payment method filter
-    if (paymentMethod) {
+    if (paymentMethod && paymentMethod !== "all") {
       where.paymentMethod = paymentMethod;
     }
 
-    // Fetch payments and calculate summary in parallel
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
     const [payments, total, summaryData] = await Promise.all([
       prisma.payment.findMany({
         where,
@@ -55,10 +45,7 @@ export async function GET(request: NextRequest) {
               id: true,
               orderNumber: true,
               user: {
-                select: {
-                  name: true,
-                  email: true,
-                },
+                select: { name: true, email: true },
               },
             },
           },
@@ -70,80 +57,69 @@ export async function GET(request: NextRequest) {
       prisma.payment.count({ where }),
       prisma.payment.groupBy({
         by: ["status"],
-        _sum: {
-          amount: true,
-        },
+        _sum: { amount: true },
       }),
     ]);
 
-    // Format payments for response
     const formattedPayments = payments.map((payment) => ({
       id: payment.id,
       orderId: payment.orderId,
       orderNumber: payment.order.orderNumber,
       razorpayPaymentId: payment.razorpayPaymentId,
-      amount: payment.amount.toString(),
+      amount: Number(payment.amount).toFixed(2),
       status: payment.status,
-      paymentMethod: payment.paymentMethod,
-      cardNetwork: payment.cardNetwork,
-      cardLast4: payment.cardLast4,
-      vpa: payment.vpa,
-      walletName: payment.walletName,
-      bankName: payment.bankName,
-      paidAt: payment.paidAt?.toISOString() || null,
-      createdAt: payment.createdAt.toISOString(),
-      user: payment.order.user,
+      method: payment.paymentMethod,
+      details: {
+        cardNetwork: payment.cardNetwork,
+        cardLast4: payment.cardLast4,
+        vpa: payment.vpa,
+        wallet: payment.walletName,
+        bank: payment.bankName,
+      },
+      paidAt: payment.paidAt,
+      createdAt: payment.createdAt,
+      customer: payment.order.user ? {
+        name: payment.order.user.name,
+        email: payment.order.user.email
+      } : { name: "Guest User", email: "N/A" },
     }));
 
-    // Calculate summary
     const summary = {
-      totalSuccessful: 0,
-      totalFailed: 0,
-      totalPending: 0,
-      totalRefunded: 0,
+      successful: 0,
+      failed: 0,
+      pending: 0,
+      refunded: 0,
     };
 
     summaryData.forEach((item) => {
       const amount = Number(item._sum.amount) || 0;
-      switch (item.status) {
-        case "SUCCESS":
-          summary.totalSuccessful += amount;
-          break;
-        case "FAILED":
-          summary.totalFailed += amount;
-          break;
-        case "PENDING":
-        case "PROCESSING":
-          summary.totalPending += amount;
-          break;
-        case "REFUNDED":
-        case "PARTIALLY_REFUNDED":
-          summary.totalRefunded += amount;
-          break;
+      const s = item.status;
+
+      if (s === "SUCCESS") summary.successful += amount;
+      else if (s === "FAILED") summary.failed += amount;
+      else if (s === "PENDING" || s === "PROCESSING") summary.pending += amount;
+      else if (s === "REFUNDED" || s === "PARTIALLY_REFUNDED") summary.refunded += amount;
+    });
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        payments: formattedPayments,
+        summary,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        }
       }
     });
 
-    const totalPages = Math.ceil(total / limit);
-
-    return successResponse({
-      payments: formattedPayments,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      },
-      summary,
-    });
-  } catch (error: any) {
-    return (
-      error.response ||
-      new Response(
-        JSON.stringify({ success: false, error: "Internal server error" }),
-        { status: 500 },
-      )
-    );
+  } catch {
+    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
   }
 }

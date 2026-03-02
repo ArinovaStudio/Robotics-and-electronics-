@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { requireAuth } from "@/app/lib/auth";
 import {
   successResponse,
