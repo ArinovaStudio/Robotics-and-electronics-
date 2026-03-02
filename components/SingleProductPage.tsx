@@ -26,6 +26,7 @@ function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
     </nav>
   );
 }
+
 import { Unbounded } from "next/font/google";
 
 const unbounded = Unbounded({ subsets: ["latin"], weight: ["900"] });
@@ -205,26 +206,22 @@ export default function SingleProductPage({
     }
   };
 
-  // Load related featured products
+  // Load similar products
   useEffect(() => {
-    async function fetchRelated() {
+    async function fetchSimilar() {
       try {
         const res = await fetch(
-          "/api/products/featured?type=bestsellers&limit=4",
+          `/api/products/similar-products?productId=${product.id}&limit=4`,
         );
         const data = await res.json();
         if (data.success) {
-          setSuggestedProducts(
-            data.data
-              .filter((p: APIProduct) => p.id !== product.id)
-              .slice(0, 4),
-          );
+          setSuggestedProducts(data.data.products || []);
         }
       } catch (err) {
-        console.error("Failed to load suggested products", err);
+        console.error("Failed to load similar products", err);
       }
     }
-    fetchRelated();
+    fetchSimilar();
   }, [product.id]);
 
   const tabs = [
@@ -241,7 +238,7 @@ export default function SingleProductPage({
   if (product.salePrice && product.price.value > product.salePrice.value) {
     discountPct = Math.round(
       ((product.price.value - product.salePrice.value) / product.price.value) *
-        100,
+      100,
     );
   }
 
@@ -273,12 +270,11 @@ export default function SingleProductPage({
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[95px] lg:w-[120px] lg:h-[110px] 
-                      rounded-xl border-2 overflow-hidden bg-white transition-all relative
-                      ${
-                        selectedImage === idx
-                          ? "border-[#f0b31e]"
-                          : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
+                    className={`flex-shrink-0 w-[70px] h-[70px] sm:w-[100px] sm:h-[95px] lg:w-[120px] lg:h-[110px] 
+                      rounded-xl border-2 overflow-hidden bg-gray-100 transition-all relative
+                      ${selectedImage === idx
+                        ? "border-[#f0b31e]"
+                        : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
                       }`}
                   >
                     <Image
@@ -308,7 +304,7 @@ export default function SingleProductPage({
           </div>
           {/* Details */}
           <div className="flex-1 w-full pl-0 xl:pl-6 leading-tight">
-            <h1 className="text-[#050a30] text-[28px] md:text-[32px] font-extrabold leading-tight mb-3">
+            <h1 className="text-[#050a30] font-inter text-[28px] md:text-[32px] font-extrabold leading-tight mb-3">
               {product.title}
             </h1>
 
@@ -383,19 +379,7 @@ export default function SingleProductPage({
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart || product.availability !== "IN_STOCK"}
-                  className="
-        flex-1
-        bg-white text-[#f0b31e]
-        font-bold text-sm
-        px-6 py-[14px] md:py-[13px]
-        rounded-full
-        border-2 border-[#f0b31e]
-        hover:bg-[#fffbe6]
-        transition-all shadow-sm hover:shadow
-        disabled:opacity-50 disabled:cursor-not-allowed
-        flex items-center justify-center gap-2
-      "
-                >
+                  className="w-[170px] text-[#f0b31e] font-bold text-sm px-5 py-[15px] rounded-full border-2 border-[#f0b31e] hover:bg-[#fffbe6] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed">
                   {addingToCart ? (
                     <Loader2 size={18} className="animate-spin" />
                   ) : addedToCart ? (
@@ -412,10 +396,10 @@ export default function SingleProductPage({
                   onClick={handleBuyNow}
                   disabled={addingToCart || product.availability !== "IN_STOCK"}
                   className="
-        flex-1
+        w-[170px] font-space-grotesk
         bg-[#f0b31e] text-white
         font-bold text-sm
-        px-6 py-[14px] md:py-[13px]
+        px-6 py-[14px] md:py-[12px]
         rounded-full
         border-2 border-[#f0b31e]
         hover:bg-[#e0a800] hover:border-[#e0a800]
@@ -441,10 +425,9 @@ export default function SingleProductPage({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 text-center pb-4 text-sm md:text-base transition-all relative
-                  ${
-                    activeTab === tab.id
-                      ? "text-[#050a30] font-bold"
-                      : "text-[#9ca3af] font-semibold hover:text-[#050a30]"
+                  ${activeTab === tab.id
+                    ? "text-[#050a30] font-bold"
+                    : "text-[#9ca3af] font-semibold hover:text-[#050a30]"
                   }`}
               >
                 {tab.label}
@@ -462,7 +445,7 @@ export default function SingleProductPage({
                 Features & Specifications
               </h3>
               {product.productHighlights &&
-              product.productHighlights.length > 0 ? (
+                product.productHighlights.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-2">
                   {product.productHighlights.map((highlight, i) => (
                     <li key={i}>{highlight}</li>
@@ -537,59 +520,73 @@ export default function SingleProductPage({
                 return (
                   <div
                     key={p.id || i}
-                    className="bg-white rounded-[16px] p-4 flex flex-col items-start w-full max-w-[340px] border border-transparent hover:border-[#f0b31e]/30 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
-                    onClick={() => router.push(`/products/${p.link || p.id}`)}
-                  >
-                    <div className="w-full flex justify-center mb-4">
-                      <div className="w-full h-[180px] bg-[#f8fafd] rounded-[18px] relative overflow-hidden flex items-center justify-center">
+                    className=" rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
+                    onClick={() => router.push(`/products/${p.link || p.id}`)}>
+                    {/* Image Area */}
+                    <div className="w-full relative">
+                      <div className="w-full h-[200px]  relative rounded flex items-center justify-center  overflow-hidden">
                         {p.imageLink ? (
                           <Image
                             src={p.imageLink}
-                            alt={p.title}
+                            alt={p.title || "Product image"}
                             fill
-                            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                            className="overflow-hidden rounded-xl h-full w-full"
+                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                           />
                         ) : (
-                          <div className="w-full h-full bg-[#f1f1f1]" />
+                          <span className="text-5xl text-gray-300">📦</span>
                         )}
                       </div>
-                    </div>
-                    {recDiscountPct > 0 ? (
-                      <span className="text-xs font-semibold text-[#34d399] bg-[#eafaf1] px-3 py-1 rounded-full mb-2">
-                        {recDiscountPct}% OFF
-                      </span>
-                    ) : (
-                      <span className="h-6 mb-2"></span>
-                    )}
-                    <h3
-                      className="text-lg font-extrabold text-[#050a30] mb-1 line-clamp-2"
-                      title={p.title}
-                    >
-                      {p.title}
-                    </h3>
-                    <p
-                      className="text-xs text-[#434343] mb-4 mt-1 line-clamp-2"
-                      style={{ minHeight: "35px" }}
-                    >
-                      {p.description}
-                    </p>
-                    <div className="flex items-end gap-2 mt-auto">
-                      <span className="text-xl font-bold text-[#f0b31e]">
-                        ₹{p.salePrice ? p.salePrice.value : p.price?.value || 0}
-                      </span>
-                      {p.salePrice && p.salePrice.value < p.price.value && (
-                        <span className="text-sm font-semibold text-[#434343] line-through">
-                          ₹{p.price.value}
+
+                      {/* Discount Badge */}
+                      {discountPct > 0 && (
+                        <span className="absolute bottom-2 left-1 font-space-grotesk text-[10px] font-bold text-green-600 bg-green-300 px-3 py-[3px] rounded-full tracking-wide uppercase z-[2]">
+                          {discountPct}% OFF
                         </span>
                       )}
                     </div>
+
+                    {/* Card Content */}
+                    <div className="pt-5 pb-[22px] flex flex-col flex-1 ">
+                      {/* Title */}
+                      <h3
+                        className="text-lg font-bold text-[#050A30] leading-tight mb-1.5 line-clamp-2"
+                        title={p.title}
+                      >
+                        {p.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p
+                        className="text-xs text-gray-400 leading-relaxed mb-3.5 line-clamp-2 min-h-[38px]"
+                        title={p.description || ""}
+                      >
+                        {p.description || "No description available."}
+                      </p>
+
+                      {/* Price */}
+                      <div className="flex items-baseline font-inter gap-2.5 mt-auto">
+                        <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
+                          <span className="text-[#F0B31E] text-[28px]">
+                            ₹{p.salePrice ? p.salePrice.value : p.price?.value || 0}
+                          </span>
+                        </span>
+                        {p.salePrice && p.salePrice.value < p.price.value && (
+                          <span className="text-[16px] font-medium text-gray-300 line-through">
+                            ₹{p.price.value}
+                          </span>
+
+                        )}
+                      </div>
+                    </div>
                   </div>
-                );
-              })}
+                )
+              }
+              )}
             </div>
           </section>
         )}
       </div>
-    </div>
+    </div >
   );
 }
