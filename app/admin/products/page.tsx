@@ -215,7 +215,7 @@ export default function ProductPage() {
                                             </TableCell>
                                             <TableCell className="text-slate-600 font-mono text-xs">{product.sku}</TableCell>
                                             <TableCell className="font-semibold text-slate-800">
-                                                {formatCurrency(product.price)}
+                                                {product.price ? formatCurrency(product.price.value) : "N/A"}
                                             </TableCell>
                                             <TableCell>
                                                 <span className={`font-semibold px-2 py-1 rounded-md text-xs ${product.stockQuantity < 5 ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-700"}`}>

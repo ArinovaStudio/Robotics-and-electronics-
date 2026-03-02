@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import prisma from "@/app/lib/db";
 import { requireAdmin } from "@/app/lib/auth";
 import { successResponse, errorResponse } from "@/app/lib/api-response";
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {

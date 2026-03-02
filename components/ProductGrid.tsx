@@ -84,7 +84,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
               <div className="flex items-baseline font-inter gap-2.5 mt-auto">
                 <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
                   <span className="text-[#F0B31E] text-[28px]">
-                    ₹{displayPrice.toLocaleString()}
+                    ₹{displayPrice}
                   </span>
                 </span>
                 {p.salePrice && p.salePrice.value < p.price.value && (

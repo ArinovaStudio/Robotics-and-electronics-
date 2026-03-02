@@ -213,7 +213,7 @@ export default function SingleProductPage({
     async function fetchData() {
       try {
         const [similarRes, faqRes] = await Promise.all([
-          fetch(`/api/products/similar-products?productId=${product.id}&limit=4`),
+          fetch(`/api/products/${product.id}/similar?productId=${product.id}&limit=4`),
           fetch(`/api/products/${product.link}/faqs`)
         ]);
         const similarData = await similarRes.json();
@@ -247,8 +247,8 @@ export default function SingleProductPage({
   }
 
   const currentPrice = product.salePrice
-    ? product.salePrice.value
-    : product.price.value;
+    ? product.salePrice
+    : product.price;
 
   return (
     <div className="bg-white min-h-screen font-sans">

@@ -18,3 +18,16 @@ export const authFetcher = async (url: string, options: RequestInit = {}) => {
 
   return data;
 };
+
+import { create } from "zustand";
+
+type AdminState = {
+  token: string | null;
+  setToken: (token: string | null) => void;
+};
+
+export const useAdminStore = create<AdminState>((set) => ({
+  token: null,
+
+  setToken: (token) => set({ token }),
+}));

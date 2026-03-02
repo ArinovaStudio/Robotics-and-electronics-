@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { authFetcher } from "@/store/adminStore"; 
+import api from "@/app/lib/axios";
 
 export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     const { data: categoriesData } = useSWR("/api/admin/categories", authFetcher);
