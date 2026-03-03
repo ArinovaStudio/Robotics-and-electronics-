@@ -28,7 +28,7 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ add
     const validation = updateAddressSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({ success: false, message: "Validation Errors", error: validation.error.issues[0].message }, { status: 400 });
+      return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
     const existingAddress = await prisma.address.findFirst({ where: { id: addressId, userId: user.id }});
@@ -68,6 +68,12 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
 
     if (!existingAddress) {
       return NextResponse.json({ success: false, message: "Address not found" }, { status: 404 });
+    }
+
+    const linkedOrdersCount = await prisma.order.count({ where: { addressId: addressId } });
+
+    if (linkedOrdersCount > 0) {
+      return NextResponse.json({ success: false,  message: "Cannot delete this address because it is linked to your past orders" }, { status: 400 });
     }
 
     await prisma.address.delete({ where: { id: addressId }});

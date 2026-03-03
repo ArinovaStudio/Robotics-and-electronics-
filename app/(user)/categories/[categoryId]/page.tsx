@@ -16,12 +16,8 @@ type Category = {
 export default function CategoryDetailPage() {
   const params = useParams();
   const router = useRouter();
-<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
   const categoryId = params.categoryId as string;
-=======
-  const categoryId = params.slug as string;
 
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,19 +28,6 @@ export default function CategoryDetailPage() {
   const [sort, setSort] = useState("newest");
   const LIMIT = 12;
 
-<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
-  // Fetch category by ID
-  useEffect(() => {
-    if (!categoryId) return;
-    async function fetchCategory() {
-      const res = await fetch(`/api/categories/${categoryId}`);
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setCategory(data.data.category);
-      } else {
-        setError("Category not found");
-        setLoading(false);
-=======
   useEffect(() => {
     if (!categoryId) return;
     async function fetchCategory() {
@@ -59,7 +42,6 @@ export default function CategoryDetailPage() {
       } catch (err) {
         console.error("Error fetching category:", err);
         setError("Something went wrong.");
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
       }
     }
     fetchCategory();
@@ -75,15 +57,6 @@ export default function CategoryDetailPage() {
     return qp.toString();
   }, []);
 
-<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
-  // Fetch products for this category
-  const fetchProducts = useCallback(async (p: number, s: string) => {
-    if (!category?.id) return;
-    setLoading(true);
-    const query = buildQuery(p, s);
-    const res = await fetch(`/api/products?categoryId=${category.id}&${query}`);
-    const data = await res.json();
-=======
   // Fetch products using the unified endpoint
   const fetchProducts = useCallback(
     async (p: number, s: string) => {
@@ -93,29 +66,10 @@ export default function CategoryDetailPage() {
         const query = buildQuery(p, s, categoryId);
         const res = await fetch(`/api/products?${query}`); 
         const data = await res.json();
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
 
-    if (data.success) {
-      setProducts(data.data.products || []);
+        if (res.ok && data.success) {
+          const items = data.data.products || [];
 
-<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
-      setTotalPages(data.data.pagination?.totalPages || 1);
-
-      // FIX HERE 🔥
-      setTotalItems(data.data.pagination?.totalItems || 0);
-    } else {
-      setError(data.message);
-    }
-    setLoading(false);
-  }, [category?.id, buildQuery]);
-
-  // Fetch on page/sort change
-  useEffect(() => {
-    if (category?.id) {
-      fetchProducts(page, sort);
-    }
-  }, [page, sort, category?.id, fetchProducts]);
-=======
           setProducts(items);
           setTotalPages(data.data.pagination?.totalPages || 1);
           setTotalItems(data.data.pagination?.totalItems || 0);
@@ -136,7 +90,6 @@ export default function CategoryDetailPage() {
   useEffect(() => {
     if (categoryId) fetchProducts(page, sort);
   }, [page, sort, categoryId, fetchProducts]);
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
 
   const handleSortChange = (s: string) => {
     setSort(s);
@@ -288,10 +241,11 @@ export default function CategoryDetailPage() {
                           <button
                             key={p}
                             onClick={() => setPage(p as number)}
-                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${page === p
-                              ? "bg-[#f0b31e] text-white shadow"
-                              : "border border-gray-200 hover:bg-gray-50"
-                              }`}
+                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
+                              page === p
+                                ? "bg-[#f0b31e] text-white shadow"
+                                : "border border-gray-200 hover:bg-gray-50"
+                            }`}
                           >
                             {p}
                           </button>

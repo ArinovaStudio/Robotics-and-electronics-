@@ -31,26 +31,6 @@ export default function OrdersPage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-<<<<<<< HEAD
-  useEffect(() => {
-    async function fetchOrders() {
-      if (!isAuthenticated) return;
-
-      try {
-        const res = await fetch(`/api/users/orders`);
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          setOrders(data.data || []);
-        } else {
-          setError(data.message || "Failed to fetch orders");
-        }
-      } catch (err: any) {
-        setError("An unexpected error occurred.");
-        console.error(err);
-      } finally {
-        setLoadingOrders(false);
-=======
   const fetchOrders = useCallback(async () => {
     if (!isAuthenticated) return;
 
@@ -63,7 +43,6 @@ export default function OrdersPage() {
         setOrders(data.data || []);
       } else {
         setError(data.message || "Failed to fetch orders");
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
       }
     } catch (err: any) {
       setError("An unexpected error occurred.");
@@ -79,11 +58,7 @@ export default function OrdersPage() {
     } else if (!isLoading) {
       setLoadingOrders(false);
     }
-<<<<<<< HEAD
-  }, [isAuthenticated]);
-=======
   }, [isAuthenticated, isLoading, fetchOrders]);
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
 
   // Global Loader
   if (isLoading || (loadingOrders && orders.length === 0) || (!isAuthenticated && !isLoading)) {
@@ -180,12 +155,6 @@ export default function OrdersPage() {
                       <p className="text-[#050a30] font-bold">₹{order.totalAmount}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 font-medium mb-1">Items</p>
-                      <p className="text-[#050a30] font-bold">
-                        {order.itemCount}
-                      </p>
-                    </div>
-                    <div>
                       <p className="text-gray-500 font-medium mb-1">Status</p>
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(order.status)}`}>
                         {order.status}
@@ -200,18 +169,8 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                {/* View Details */}
+                {/* Order Items */}
                 <div className="p-6">
-<<<<<<< HEAD
-                  <Link
-                    href={`/orders/${order.id}`}
-                    className="text-sm font-bold text-[#f0b31e] hover:text-[#e6a700] hover:underline flex items-center gap-1 transition-all"
-                  >
-                    View Order Details
-                    <ExternalLink size={14} />
-                  </Link>
-                </div>
-=======
                   {order.items.map((item: any) => (
                     <div key={item.id} className="flex gap-4 py-4 border-b border-[#f3f3f3] last:border-0 last:pb-0">
                       <div className="w-20 h-20 bg-[#f8fafd] rounded-xl flex shrink-0 items-center justify-center overflow-hidden relative">
@@ -242,7 +201,6 @@ export default function OrdersPage() {
                     View Order Details <ExternalLink size={16} />
                   </Link>
                 </div> */}
->>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
               </div>
             ))}
           </div>

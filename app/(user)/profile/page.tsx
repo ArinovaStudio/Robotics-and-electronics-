@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/contexts";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import AddressModal from "@/components/AddressModal";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -23,36 +24,39 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<any>(null);
   const [addresses, setAddresses] = useState<any[]>([]);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/login?callbackUrl=/profile");
     }
   }, [isLoading, isAuthenticated, router]);
 
-  useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const res = await fetch("/api/users/profile");
-        const json = await res.json();
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await fetch("/api/users/profile");
+      const json = await res.json();
 
-        if (json.success) {
-          setProfileData(json.data);
-          setAddresses(json.data.addresses || []);
-          
-          const nameParts = (json.data.user.name || "").split(" ");
-          setFormData({
-            firstName: nameParts[0] || "",
-            lastName: nameParts.slice(1).join(" ") || "",
-            email: json.data.user.email || "",
-            phone: json.data.user.phone || "",
-          });
-        }
-      } catch (err) {
-        console.error("Profile fetch error:", err);
+      if (json.success) {
+        setProfileData(json.data);
+        setAddresses(json.data.addresses || []);
+        
+        const nameParts = (json.data.user.name || "").split(" ");
+        setFormData({
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+          email: json.data.user.email || "",
+          phone: json.data.user.phone || "",
+        });
       }
+    } catch (err) {
+      console.error("Profile fetch error:", err);
     }
+  }, []);
+
+  useEffect(() => {
     if (isAuthenticated) fetchProfile();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchProfile]);
 
   useEffect(() => {
     if (user && !isEditing) {
@@ -88,9 +92,7 @@ export default function ProfilePage() {
       if (res.ok && data.success) {
         setSuccess("Profile updated successfully!");
         
-        const refreshRes = await fetch("/api/users/profile");
-        const refreshData = await refreshRes.json();
-        if (refreshData.success) setProfileData(refreshData.data);
+        await fetchProfile();
 
         setIsEditing(false);
         setTimeout(() => setSuccess(""), 3000);
@@ -113,7 +115,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="bg-[#f5f5f5] font-space-grotesk min-h-screen py-8 px-4">
+    <main className="bg-[#f5f5f5] font-space-grotesk min-h-screen py-8 px-4 relative">
+      <AddressModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchProfile}
+      />
+
       <div className="max-w-[1400px] mx-auto">
         <h1 className="text-3xl font-black text-black mb-8 tracking-tight">
           YOUR ACCOUNT
@@ -281,8 +289,16 @@ export default function ProfilePage() {
                     {index < Math.min(addresses.length - 1, 2) && <hr className="border-gray-200 my-4" />}
                   </div>
                 ))}
+                
+                {addresses.length === 0 && (
+                  <p className="text-sm text-gray-500 italic">No addresses saved yet.</p>
+                )}
               </div>
-              <button onClick={() => router.push("/cart/address")} className="w-full text-[#F0B31E] font-medium text-[16px] tracking-wide hover:text-[#b8873d] transition-colors">
+              
+              <button 
+                onClick={() => setIsModalOpen(true)} 
+                className="w-full text-[#F0B31E] font-medium text-[16px] tracking-wide hover:text-[#b8873d] transition-colors"
+              >
                 ADD NEW +
               </button>
             </div>
@@ -296,7 +312,7 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/orders">
-              <h3 className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors text-2xl font-black text-black tracking-tight">
+              <h3 className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors text-2xl font-black text-black tracking-tight border border-transparent hover:border-gray-200">
                 MY ORDERS
               </h3>
             </Link>

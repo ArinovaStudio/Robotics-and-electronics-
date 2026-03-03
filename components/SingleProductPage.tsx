@@ -197,7 +197,7 @@ export default function SingleProductPage({
       try {
         const [similarRes, faqRes, reviewRes] = await Promise.all([
           fetch(`/api/products/similar-products?productId=${product.id}&limit=4`),
-          fetch(`/api/products/${product.link}/faqs`),
+          fetch(`/api/products/${product.id}/faqs`),
           fetch(`/api/products/${product.id}/reviews`)
         ]);
         const similarData = await similarRes.json();

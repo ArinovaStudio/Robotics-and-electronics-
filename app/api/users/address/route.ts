@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const validation = addressSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({ success: false, message: "Validation Errors", error: validation.error.issues[0].message }, { status: 400 });
+      return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
     const addressData = validation.data;
