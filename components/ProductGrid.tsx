@@ -7,10 +7,14 @@ type APIProduct = {
   id: string;
   title: string;
   description?: string;
-  imageLink: string;
-  price: { value: number; currency: string };
-  salePrice: { value: number; currency: string } | null;
-  link: string;
+  image: string;
+  price: string;
+  salePrice: string | null; 
+  brand?: string;
+  category?: { id: string; name: string; slug: string };
+  stock: number;
+  isLowStock: boolean;
+  link?: string; 
 };
 
 type ProductGridProps = {
@@ -19,34 +23,38 @@ type ProductGridProps = {
 
 const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const router = useRouter();
+
   return (
     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
       {products.map((p, i) => {
+        
+        const regularPrice = parseFloat(p.price) || 0;
+        const salePrice = p.salePrice ? parseFloat(p.salePrice) : null;
+
         let discountPct = 0;
-        if (p.salePrice && p.price.value > p.salePrice.value) {
+        if (salePrice && regularPrice > salePrice) {
           discountPct = Math.round(
-            ((p.price.value - p.salePrice.value) / p.price.value) * 100,
+            ((regularPrice - salePrice) / regularPrice) * 100
           );
         }
 
-        const displayPrice = p.salePrice
-          ? p.salePrice
-          : p.price || 0;
+        const displayPrice = salePrice ? salePrice : regularPrice;
 
         return (
           <div
             key={p.id || i}
-            className=" rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden pr-5"
-            onClick={() => router.push(`/products/${p.link || p.id}`)}>
+            className="rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden pr-5"
+            onClick={() => router.push(`/products/${p.link || p.id}`)}
+          >
             {/* Image Area */}
             <div className="w-full relative">
-              <div className="w-full h-[200px]  relative rounded flex items-center justify-center  overflow-hidden">
-                {p.imageLink ? (
+              <div className="w-full h-[200px] relative rounded flex items-center justify-center overflow-hidden">
+                {p.image ? (
                   <Image
-                    src={p.imageLink}
+                    src={p.image}
                     alt={p.title || "Product image"}
                     fill
-                    className="overflow-hidden rounded-xl h-full w-full"
+                    className="object-contain rounded-xl h-full w-full"
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                   />
                 ) : (
@@ -60,10 +68,25 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
                   {discountPct}% OFF
                 </span>
               )}
+
+              {/* NEW: Low Stock Badge */}
+              {p.isLowStock && (
+                <span className="absolute top-2 right-1 font-space-grotesk text-[10px] font-bold text-red-600 bg-red-100 px-3 py-[3px] rounded-full tracking-wide uppercase z-[2]">
+                  Only {p.stock} Left
+                </span>
+              )}
             </div>
 
             {/* Card Content */}
-            <div className="pt-5 pb-[22px] flex flex-col flex-1 ">
+            <div className="pt-5 pb-[22px] flex flex-col flex-1">
+              
+              {/* Brand Label */}
+              {p.brand && (
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#f0b31e] mb-1">
+                  {p.brand}
+                </span>
+              )}
+
               {/* Title */}
               <h3
                 className="text-lg font-bold text-[#050A30] leading-tight mb-1.5 line-clamp-2"
@@ -84,12 +107,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
               <div className="flex items-baseline font-inter gap-2.5 mt-auto">
                 <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
                   <span className="text-[#F0B31E] text-[28px]">
-                    ₹{displayPrice}
+                    ₹{displayPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
                   </span>
                 </span>
-                {p.salePrice && p.salePrice.value < p.price.value && (
+                
+                {salePrice && salePrice < regularPrice && (
                   <span className="text-[16px] font-medium text-gray-300 line-through">
-                    ₹{p.price.value.toLocaleString()}
+                    ₹{regularPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
                   </span>
                 )}
               </div>

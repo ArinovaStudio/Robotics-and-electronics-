@@ -5,6 +5,7 @@ import { useAuth, useCart } from "@/app/contexts";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
+import Script from "next/script";
 
 type Address = {
     id: string;
@@ -21,12 +22,16 @@ type Address = {
 
 export default function AddressPage() {
     const router = useRouter();
-    const { isAuthenticated, isLoading } = useAuth();
+    const { user, isAuthenticated, isLoading } = useAuth();
     const { cart } = useCart();
+    
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedId, setSelectedId] = useState<string>("");
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    
+    const [processingPayment, setProcessingPayment] = useState(false);
+
     const [formData, setFormData] = useState({
         name: "", phone: "", addressLine1: "", addressLine2: "",
         city: "", state: "", pincode: "", type: "SHIPPING" as const
@@ -83,19 +88,11 @@ export default function AddressPage() {
         if (isAuthenticated) fetchAddresses();
     }, [isAuthenticated]);
 
-    // Calculate totals from cart items if summary is missing or incorrect
     const calculateTotals = () => {
         if (!cart?.items || cart.items.length === 0) {
-            return {
-                itemCount: 0,
-                subtotal: 0,
-                totalSavings: 0,
-                shipping: 0,
-                total: 0
-            };
+            return { itemCount: 0, subtotal: 0, totalSavings: 0, shipping: 0, total: 0 };
         }
 
-        // Check if cart.summary exists and has valid data
         if (cart.summary && typeof cart.summary.total === 'number' && cart.summary.total > 0) {
             return {
                 itemCount: cart.summary.itemCount || cart.items.length,
@@ -106,7 +103,6 @@ export default function AddressPage() {
             };
         }
 
-        // Fallback: Calculate from items
         let subtotal = 0;
         let totalSavings = 0;
 
@@ -122,27 +118,103 @@ export default function AddressPage() {
             }
         });
 
-        const shipping = subtotal > 1000 ? 0 : 50; // Free shipping over ₹1000
+        const shipping = subtotal > 1000 ? 0 : 50; 
         const total = subtotal - totalSavings + shipping;
 
-        return {
-            itemCount: cart.items.length,
-            subtotal,
-            totalSavings,
-            shipping,
-            total
-        };
+        return { itemCount: cart.items.length, subtotal, totalSavings, shipping, total };
     };
 
     const totals = calculateTotals();
 
-    // Debug: Log cart data
-    useEffect(() => {
-        if (cart) {
-            console.log('Cart data:', cart);
-            console.log('Calculated totals:', totals);
+    // Razorpay Payment Handler
+    const handlePayment = async () => {
+        if (!selectedId) {
+            alert("Please select a delivery address.");
+            return;
         }
-    }, [cart]);
+
+        // Check if the script loaded properly
+        if (!(window as any).Razorpay) {
+            alert("Razorpay SDK failed to load. Please check your connection.");
+            return;
+        }
+
+        setProcessingPayment(true);
+
+        try {
+            const checkoutRes = await fetch("/api/razorpay/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ addressId: selectedId }),
+            });
+
+            const orderData = await checkoutRes.json();
+
+            if (!orderData.success) {
+                alert(orderData.message || "Failed to create order");
+                setProcessingPayment(false);
+                return;
+            }
+
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+                amount: orderData.data.amount, 
+                currency: orderData.data.currency,
+                name: "Robotics Store",
+                description: "Secure Order Checkout",
+                order_id: orderData.data.razorpayOrderId,
+                handler: async function (response: any) {
+                    try {
+                        const verifyRes = await fetch("/api/razorpay/verify", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                orderId: orderData.data.orderId,
+                            }),
+                        });
+
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            router.push("/orders");
+                        } else {
+                            alert(`Verification failed: ${verifyData.message}`);
+                            setProcessingPayment(false);
+                        }
+                    } catch (err) {
+                        alert("An error occurred while verifying the payment.");
+                        setProcessingPayment(false);
+                    }
+                },
+                prefill: {
+                    name: user?.name || "",
+                    email: user?.email || "",
+                    contact: addresses.find(a => a.id === selectedId)?.phone || "",
+                },
+                theme: { color: "#f0b31e" },
+                modal: {
+                    ondismiss: function () {
+                        setProcessingPayment(false);
+                    }
+                }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            
+            rzp.on("payment.failed", function (response: any) {
+                alert(`Payment failed: ${response.error.description}`);
+                setProcessingPayment(false);
+            });
+
+            rzp.open();
+        } catch (error) {
+            alert("Something went wrong initializing the payment.");
+            setProcessingPayment(false);
+        }
+    };
 
     if (isLoading || loading) {
         return (
@@ -156,7 +228,10 @@ export default function AddressPage() {
     const otherAddrs = addresses.filter((a) => !a.isDefault);
 
     return (
-        <div className="max-w-[1200px] mx-auto px-6 py-10">
+        <div className="max-w-[1200px] mx-auto px-6 py-10 relative">
+            {/* Inject Razorpay SDK */}
+            <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+
             <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
                 <Link href="/" className="hover:text-gray-700">Home</Link>
                 <span>›</span>
@@ -169,7 +244,7 @@ export default function AddressPage() {
                 <div className="flex-1">
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-2xl font-bold text-gray-800">Select Delivery Address</h1>
-                        <button onClick={() => setShowAddModal(true)} className="border-2 border-gray-800 text-gray-800 px-5 py-2 rounded font-semibold hover:bg-gray-50">
+                        <button onClick={() => setShowAddModal(true)} className="border-2 border-gray-800 text-gray-800 px-5 py-2 rounded font-semibold hover:bg-gray-50 transition-colors">
                             ADD NEW ADDRESS
                         </button>
                     </div>
@@ -177,18 +252,21 @@ export default function AddressPage() {
                     {defaultAddr && (
                         <div className="mb-8">
                             <h2 className="text-sm font-bold text-gray-600 mb-3">DEFAULT ADDRESS</h2>
-                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                            <div 
+                                onClick={() => setSelectedId(defaultAddr.id)}
+                                className={`border rounded-lg p-6 cursor-pointer transition-colors ${selectedId === defaultAddr.id ? 'bg-orange-50 border-orange-200' : 'bg-white border-gray-200'}`}
+                            >
                                 <div className="flex items-start gap-3">
                                     <input
                                         type="radio"
                                         checked={selectedId === defaultAddr.id}
                                         onChange={() => setSelectedId(defaultAddr.id)}
-                                        className="mt-1 w-4 h-4"
+                                        className="mt-1 w-4 h-4 cursor-pointer"
                                     />
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="font-bold text-gray-800">{defaultAddr.name}</span>
-                                            <span className="bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full font-semibold">HOME</span>
+                                            <span className="bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full font-semibold">{defaultAddr.type}</span>
                                         </div>
                                         <p className="text-sm text-gray-600 mb-1">
                                             {defaultAddr.addressLine1}
@@ -210,13 +288,17 @@ export default function AddressPage() {
                             <h2 className="text-sm font-bold text-gray-600 mb-3">OTHER ADDRESS</h2>
                             <div className="space-y-4">
                                 {otherAddrs.map((addr) => (
-                                    <div key={addr.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                                    <div 
+                                        key={addr.id} 
+                                        onClick={() => setSelectedId(addr.id)}
+                                        className={`border rounded-lg p-6 cursor-pointer transition-colors ${selectedId === addr.id ? 'bg-orange-50 border-orange-200' : 'bg-white border-gray-200'}`}
+                                    >
                                         <div className="flex items-start gap-3">
                                             <input
                                                 type="radio"
                                                 checked={selectedId === addr.id}
                                                 onChange={() => setSelectedId(addr.id)}
-                                                className="mt-1 w-4 h-4"
+                                                className="mt-1 w-4 h-4 cursor-pointer"
                                             />
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
@@ -254,7 +336,7 @@ export default function AddressPage() {
                                 return (
                                     <div key={i} className="flex gap-3">
                                         <Image src={item.product?.imageLink || "/homeposter.png"} alt="" width={60} height={60} className="rounded object-cover" />
-                                        <p className="text-sm text-gray-700">Delivery between <span className="font-semibold">{startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - {endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></p>
+                                        {/* <p className="text-sm text-gray-700">Delivery between <span className="font-semibold">{startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - {endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></p> */}
                                     </div>
                                 );
                             })}
@@ -286,11 +368,15 @@ export default function AddressPage() {
                         </div>
 
                         <button
-                            onClick={() => router.push("/checkout")}
-                            disabled={!selectedId}
-                            className="w-full bg-[#F0B31E] cursor-pointer text-white font-bold py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handlePayment} 
+                            disabled={!selectedId || processingPayment}
+                            className="w-full bg-[#F0B31E] flex justify-center items-center gap-2 cursor-pointer text-white font-bold py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:bg-[#e0a800]"
                         >
-                            CONTINUE
+                            {processingPayment ? (
+                                <><Loader2 className="w-5 h-5 animate-spin" /> PROCESSING...</>
+                            ) : (
+                                "PAY SECURELY"
+                            )}
                         </button>
                     </div>
                 </div>

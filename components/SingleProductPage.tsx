@@ -555,7 +555,7 @@ export default function SingleProductPage({
                   <div
                     key={p.id || i}
                     className=" rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
-                    onClick={() => router.push(`/products/${p.link || p.id}`)}>
+                    onClick={() => router.push(`/products/${p.id}`)}>
                     {/* Image Area */}
                     <div className="w-full relative">
                       <div className="w-full h-[200px]  relative rounded flex items-center justify-center  overflow-hidden">

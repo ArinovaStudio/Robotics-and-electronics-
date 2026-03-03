@@ -13,8 +13,11 @@ export async function GET() {
     const existingUser = await prisma.user.findUnique({
       where: { id: user.id },
       include: {
-        orders: { select: { totalAmount: true } },
-        addresses: { orderBy: [ { isDefault: "desc" }, { createdAt: "desc" } ] }
+        orders: { 
+          where: { status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"]}},
+          select: { totalAmount: true } 
+        },
+        addresses: { orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }]}
       }
     });
 
@@ -24,20 +27,25 @@ export async function GET() {
 
     const totalOrders = existingUser.orders.length;
     const totalSpent = existingUser.orders.reduce((sum, order) => {
-      const amount = Number(order.totalAmount || 0);
-      return sum + amount;
+      return sum + Number(order.totalAmount || 0);
     }, 0);
 
     return NextResponse.json({
-        success: true,
+      success: true,
+      data: {
         user: {
-            name: existingUser.name || "",
-            email: existingUser.email,
-            phone: existingUser.phone || "",
+          id: existingUser.id,
+          name: existingUser.name || "",
+          email: existingUser.email,
+          phone: existingUser.phone || "",
+          image: existingUser.image || null,
         },
-        stats: { totalOrders, totalSpent: totalSpent.toFixed(2),
+        stats: {
+          totalOrders,
+          totalSpent: totalSpent.toFixed(2),
         },
         addresses: existingUser.addresses
+      }
     }, { status: 200 });
 
   } catch {
@@ -47,7 +55,7 @@ export async function GET() {
 
 const profileUpdateSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().optional().nullable(),
+  phone: z.string().regex(/^[0-9]{10}$/, "Invalid phone number format").optional().nullable(),
 });
 
 export async function PUT(request: NextRequest) {
@@ -68,11 +76,15 @@ export async function PUT(request: NextRequest) {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { name: name.trim(), phone: phone || null }
+      data: { 
+        name: name.trim(), 
+        phone: phone || null 
+      },
+      select: { id: true, name: true, phone: true }
     });
 
     return NextResponse.json({ success: true, message: "Profile updated successfully" }, { status: 200 });
- 
+
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }

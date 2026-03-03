@@ -5,7 +5,7 @@ import { z } from "zod";
 const verifyOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
   code: z.string().min(6, "OTP must be 6 characters"),
-  type: z.enum(["EMAIL_VERIFICATION", "PASSWORD_RESET"]),
+  type: z.enum(["EMAIL_VERIFICATION", "PASSWORD_RESET", "LOGIN_VERIFICATION"]),
 });
 
 export async function POST(request: Request) {

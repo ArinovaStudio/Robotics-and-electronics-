@@ -16,7 +16,7 @@ type Category = {
 export default function CategoryDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const categoryId = params.slug as string;
 
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -28,15 +28,14 @@ export default function CategoryDetailPage() {
   const [sort, setSort] = useState("newest");
   const LIMIT = 12;
 
-  // Fetch category info
   useEffect(() => {
-    if (!slug) return;
+    if (!categoryId) return;
     async function fetchCategory() {
       try {
-        const res = await fetch(`/api/categories/${slug}`);
+        const res = await fetch(`/api/categories/${categoryId}`); 
         const data = await res.json();
         if (res.ok && data.success) {
-          setCategory(data.data);
+          setCategory(data.data.category);
         } else if (res.status === 404) {
           setError("Category not found");
         }
@@ -46,11 +45,11 @@ export default function CategoryDetailPage() {
       }
     }
     fetchCategory();
-  }, [slug]);
+  }, [categoryId]);
 
-  // Build query
-  const buildQuery = useCallback((p: number, s: string): string => {
+  const buildQuery = useCallback((p: number, s: string, catId: string): string => {
     const qp = new URLSearchParams();
+    qp.set("categoryId", catId); 
     qp.set("page", String(p));
     qp.set("limit", String(LIMIT));
     qp.set("sort", s);
@@ -58,14 +57,14 @@ export default function CategoryDetailPage() {
     return qp.toString();
   }, []);
 
-  // Fetch products for this category
+  // Fetch products using the unified endpoint
   const fetchProducts = useCallback(
     async (p: number, s: string) => {
-      if (!slug) return;
+      if (!categoryId) return;
       setLoading(true);
       try {
-        const query = buildQuery(p, s);
-        const res = await fetch(`/api/categories/${slug}/products?${query}`);
+        const query = buildQuery(p, s, categoryId);
+        const res = await fetch(`/api/products?${query}`); 
         const data = await res.json();
 
         if (res.ok && data.success) {
@@ -84,13 +83,13 @@ export default function CategoryDetailPage() {
         setLoading(false);
       }
     },
-    [slug, buildQuery],
+    [categoryId, buildQuery],
   );
 
   // Fetch on page/sort change
   useEffect(() => {
-    if (slug) fetchProducts(page, sort);
-  }, [page, sort, slug, fetchProducts]);
+    if (categoryId) fetchProducts(page, sort);
+  }, [page, sort, categoryId, fetchProducts]);
 
   const handleSortChange = (s: string) => {
     setSort(s);

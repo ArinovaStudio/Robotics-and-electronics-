@@ -1,15 +1,17 @@
-import { NextRequest } from "next/server";
-import { requireAdmin } from "@/app/lib/auth";
-import { successResponse, errorResponse } from "@/app/lib/api-response";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+export async function GET( req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
-    await requireAdmin();
     const { productId } = await params;
-    const faqs = await prisma.productFaq.findMany({ where: { productId }, orderBy: { order: "asc" } });
-    return successResponse(faqs);
-  } catch (error) {
-    return errorResponse("Failed to fetch FAQs", 500);
+
+    const faqs = await prisma.productFaq.findMany({
+      where: { productId },
+      orderBy: { order: "asc" }
+    });
+
+    return NextResponse.json({ success: true, data: faqs }, { status: 200 });
+  } catch  {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

@@ -16,7 +16,8 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ pro
         category: { isActive: true }
       },
       include: {
-        category: { select: { id: true, name: true, slug: true }}
+        category: { select: { id: true, name: true, slug: true }},
+        reviews: { select: { rating: true } }
       }
     });
 
@@ -24,7 +25,12 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ pro
       return NextResponse.json( { success: false, message: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: { product } }, { status: 200 });
+    const reviewCount = product.reviews.length;
+    const avgRating = reviewCount > 0 
+      ? product.reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0) / reviewCount 
+      : 0;
+
+    return NextResponse.json({ success: true, data: { product: { ...product, avgRating } } }, { status: 200 });
 
   } catch {
     return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });

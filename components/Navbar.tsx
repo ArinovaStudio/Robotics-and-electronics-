@@ -17,14 +17,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, useCart } from "@/app/contexts";
+import { signOut } from "next-auth/react";
 
 type SuggestionProduct = {
   id: string;
   title: string;
-  link: string;
-  imageLink: string;
-  price: { value: number; currency: string };
-  salePrice: { value: number; currency: string } | null;
+  link?: string; 
+  image: string; 
+  price: string;
+  salePrice: string | null; 
   brand: string;
   category: { name: string; slug: string };
 };
@@ -46,8 +47,13 @@ export default function Navbar() {
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogout = async () => {
-    setShowUserMenu(false);
-    await logout();
+    try {
+        await signOut({ redirect: true, callbackUrl: '/login', });
+        setShowUserMenu(false);
+        await logout();
+    } catch (err) {
+        console.error("Logout failed", err);
+    }
   };
 
   // Debounced fetch for autocomplete
@@ -61,7 +67,7 @@ export default function Navbar() {
     setIsSearching(true);
     try {
       const res = await fetch(
-        `/api/products/search?q=${encodeURIComponent(query.trim())}&limit=6`
+        `/api/products?search=${encodeURIComponent(query.trim())}&limit=6`
       );
       const data = await res.json();
       if (data.success) {
@@ -224,8 +230,9 @@ export default function Navbar() {
                     {/* Product suggestions */}
                     <ul className="py-2">
                       {suggestions.map((product, index) => {
-                        const displayPrice =
-                          product.salePrice?.value ?? product.price?.value ?? 0;
+                        const regularPrice = parseFloat(product.price) || 0;
+                        const salePrice = product.salePrice ? parseFloat(product.salePrice) : null;
+                        const displayPrice = salePrice ? salePrice : regularPrice;
 
                         return (
                           <li
@@ -239,9 +246,9 @@ export default function Navbar() {
                           >
                             {/* Product image */}
                             <div className="w-12 h-12 bg-[#f8fafd] rounded-xl flex-shrink-0 relative overflow-hidden">
-                              {product.imageLink ? (
+                              {product.image ? (
                                 <Image
-                                  src={product.imageLink}
+                                  src={product.image}
                                   alt={product.title}
                                   fill
                                   className="object-contain p-1"
@@ -263,12 +270,11 @@ export default function Navbar() {
                                 <span className="text-sm font-bold text-[#f0b31e]">
                                   ₹{displayPrice}
                                 </span>
-                                {product.salePrice &&
-                                  product.salePrice.value < product.price.value && (
-                                    <span className="text-xs text-gray-400 line-through">
-                                      ₹{product.price.value}
-                                    </span>
-                                  )}
+                                {salePrice && salePrice < regularPrice && (
+                                  <span className="text-xs text-gray-400 line-through">
+                                    ₹{regularPrice}
+                                  </span>
+                                )}
                                 <span className="text-xs text-gray-400">
                                   · {product.category?.name || product.brand}
                                 </span>

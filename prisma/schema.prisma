@@ -15,6 +15,7 @@ enum Role {
 enum OtpType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
+  LOGIN_VERIFICATION
 }
 
 enum AddressType {

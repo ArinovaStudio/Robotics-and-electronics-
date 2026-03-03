@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth";
 import { z } from "zod";
+import { getOrderStatusUpdateTemplate } from "@/lib/templates";
+import sendEmail from "@/lib/email";
 
 export async function GET( req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   try {
@@ -80,7 +82,12 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ o
 
     const currentOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      select: { status: true, notes: true },
+      select: { 
+        status: true, 
+        notes: true, 
+        orderNumber: true,
+        user: { select: { name: true, email: true } }
+      },
     });
 
     if (!currentOrder) {
@@ -126,6 +133,18 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ o
       where: { id: orderId },
       data: updateData,
     });
+
+    if (status !== currentOrder.status && currentOrder.user?.email) {
+      const emailHtml = getOrderStatusUpdateTemplate(
+        currentOrder.user.name || "Customer",
+        currentOrder.orderNumber,
+        status,
+        trackingNumber,
+        trackingUrl
+      );
+
+      sendEmail( currentOrder.user.email, `Update on your order #${currentOrder.orderNumber}`, emailHtml );
+    }
 
     return NextResponse.json({
       success: true,
