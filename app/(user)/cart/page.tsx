@@ -176,7 +176,7 @@ function CartPageContent() {
                     </Link>
                     <StarRating rating={item.product.averageRating || 0} />
                     <div className="text-lg font-bold text-[#050a30] mt-2">
-                      ₹{price.toFixed(2)}
+                      ₹{Number(price || 0).toFixed(2)}
                     </div>
                   </div>
                 </div>
