@@ -29,12 +29,10 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        "/api/categories",
-      );
+      const response = await axios.get("/api/categories");
 
-      if (response.data?.success && response.data?.data) {
-        setCategories(response.data.data);
+      if (response.data?.success) {
+        setCategories(response.data.data || []);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);

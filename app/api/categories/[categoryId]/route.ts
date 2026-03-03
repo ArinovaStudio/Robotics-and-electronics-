@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET( req: NextRequest, { params }: { params: Promise<{ categoryId: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ categoryId: string }> }) {
   try {
     const { categoryId } = await params;
 
@@ -19,7 +19,11 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ cat
           }
         },
         _count: {
-          select: { products: { where: { isActive: true } } }
+          select: {
+            products: {
+              where: { isActive: true }
+            }
+          }
         },
         parent: {
           select: {
@@ -32,7 +36,10 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ cat
     });
 
     if (!category) {
-      return NextResponse.json( { success: false, message: "Category not found or unavailable" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Category not found or unavailable" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
@@ -40,7 +47,11 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ cat
       data: { category }
     });
 
-  } catch {
-    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

@@ -6,34 +6,29 @@ import { useAuth } from "./AuthContext";
 interface CartProduct {
   id: string;
   title: string;
-  link: string;
   imageLink: string;
-  price: { value: number; currency: string };
-  salePrice?: { value: number; currency: string } | null;
+  price: number;
+  originalPrice: number;
   availability: string;
   stockQuantity: number;
 }
 
 interface CartItem {
   id: string;
-  productId: string;
   quantity: number;
   product: CartProduct;
-  itemTotal: number;
+  lineTotal: number;
 }
 
 interface Cart {
-  id: string;
+  cartId: string;
   items: CartItem[];
   summary: {
-    totalItems: number;
-    subtotal: number;
-    discount: number;
-    shippingEstimate: number;
-    freeShippingThreshold: number;
-    eligibleForFreeShipping: boolean;
-    estimatedTotal: number;
+    subtotal: string;
+    totalSavings: string;
+    itemCount: number;
   };
+  hasInventoryChanges?: boolean;
 }
 
 interface CartContextType {

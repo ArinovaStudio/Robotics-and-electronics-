@@ -15,6 +15,7 @@ enum Role {
 enum OtpType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
+  LOGIN_VERIFICATION
 }
 
 enum AddressType {
@@ -153,7 +154,7 @@ model Product {
 
   price Decimal
   salePrice Decimal?
-  salePriceStartDate DateTime? 
+  salePriceStartDate DateTime?
   salePriceEndDate DateTime?
 
   // Availability & Stock

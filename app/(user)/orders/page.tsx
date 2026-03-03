@@ -23,18 +23,14 @@ export default function OrdersPage() {
 
   useEffect(() => {
     async function fetchOrders() {
-      if (!isAuthenticated || !token) return;
+      if (!isAuthenticated) return;
 
       try {
-        const res = await fetch("/api/orders", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(`/api/users/orders`);
         const data = await res.json();
 
         if (res.ok && data.success) {
-          setOrders(data.data.orders);
+          setOrders(data.data || []);
         } else {
           setError(data.message || "Failed to fetch orders");
         }
@@ -49,7 +45,7 @@ export default function OrdersPage() {
     if (isAuthenticated) {
       fetchOrders();
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated]);
 
   if (isLoading || loadingOrders || (!isAuthenticated && !isLoading)) {
     return (
@@ -153,6 +149,12 @@ export default function OrdersPage() {
                       </p>
                     </div>
                     <div>
+                      <p className="text-gray-500 font-medium mb-1">Items</p>
+                      <p className="text-[#050a30] font-bold">
+                        {order.itemCount}
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-gray-500 font-medium mb-1">Status</p>
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(
@@ -171,52 +173,15 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Order Items */}
+                {/* View Details */}
                 <div className="p-6">
-                  {order.items.map((item: any) => (
-                    <div
-                      key={item.id}
-                      className="flex gap-4 py-4 border-b border-[#f3f3f3] last:border-0 last:pb-0"
-                    >
-                      <div className="w-20 h-20 bg-[#f8fafd] rounded-xl flex shrink-0 items-center justify-center overflow-hidden relative">
-                        {item.product.imageLink ? (
-                          <Image
-                            src={item.product.imageLink}
-                            alt={item.product.title}
-                            fill
-                            className="object-contain p-2"
-                          />
-                        ) : (
-                          <Package className="text-gray-300" size={32} />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <Link
-                          href={`/products/${item.product.id}`}
-                          className="text-[#050a30] font-bold hover:text-[#f0b31e] transition-colors line-clamp-1 mb-1"
-                        >
-                          {item.product.title}
-                        </Link>
-                        <p className="text-gray-500 text-sm">
-                          Qty: <span className="font-semibold text-[#050a30]">{item.quantity}</span>
-                        </p>
-                      </div>
-                      <div className="text-right flex flex-col justify-center">
-                         <span className="text-[#050a30] font-bold">
-                           ₹{(item.price * item.quantity).toLocaleString()}
-                         </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Footer Controls */}
-                <div className="px-6 py-4 bg-gray-50 border-t border-[#ececec] flex justify-end">
-                    <button
-                       className="text-sm font-bold text-[#f0b31e] hover:text-[#e6a700] hover:underline flex items-center gap-1 transition-all"
-                    >
-                        View Order Details <ExternalLink size={16} />
-                    </button>
+                  <Link
+                    href={`/orders/${order.id}`}
+                    className="text-sm font-bold text-[#f0b31e] hover:text-[#e6a700] hover:underline flex items-center gap-1 transition-all"
+                  >
+                    View Order Details
+                    <ExternalLink size={14} />
+                  </Link>
                 </div>
               </div>
             ))}

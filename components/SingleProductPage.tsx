@@ -37,38 +37,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star, ShoppingCart, Loader2, Check } from "lucide-react";
 import { useCart, useAuth } from "@/app/contexts";
-
-// ─── Mock Reviews Data ────────────────────────────────────────────────────
-const reviews = [
-  {
-    name: "Samantha D.",
-    rating: 4.5,
-    verified: true,
-    text: '"I absolutely love this t-shirt! The design is unique and the fabric feels so comfortable. As a fellow designer, I appreciate the attention to detail. It\'s become my favorite go-to shirt."',
-    date: "Posted on August 14, 2023",
-  },
-  {
-    name: "Alex M.",
-    rating: 5,
-    verified: true,
-    text: '"The t-shirt exceeded my expectations! The colors are vibrant and the print quality is top-notch. Being a UI/UX designer myself, I\'m quite picky about aesthetics, and this t-shirt definitely gets a thumbs up from me."',
-    date: "Posted on August 15, 2023",
-  },
-  {
-    name: "Ethan R.",
-    rating: 4.5,
-    verified: true,
-    text: '"This t-shirt is a must-have for anyone who appreciates good design. The minimalistic yet stylish pattern caught my eye, and the fit is perfect. I can see the designer\'s touch in every aspect of this shirt."',
-    date: "Posted on August 16, 2023",
-  },
-  {
-    name: "Olivia P.",
-    rating: 5,
-    verified: true,
-    text: '"As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt not only represents those principles but also feels great to wear. It\'s evident that the designer poured their creativity into making this t-shirt stand out."',
-    date: "Posted on August 17, 2023",
-  },
-];
+import ReviewModal from "@/components/ReviewModal";
 
 type APIProduct = {
   id: string;
@@ -117,42 +86,30 @@ function StarRating({ rating, size = 20 }: { rating: number; size?: number }) {
 }
 
 // ─── Review Card ─────────────────────────────────────────────────
-function ReviewCard({ review }: { review: (typeof reviews)[0] }) {
+function ReviewCard({ review }: { review: any }) {
   return (
     <div className="bg-white border border-[#e8e8e8] rounded-2xl p-5 flex flex-col gap-3">
-      {/* Stars + dots menu */}
       <div className="flex items-center justify-between">
         <StarRating rating={review.rating} size={18} />
-        <button className="text-[#9ca3af] font-bold text-lg leading-none tracking-widest pb-1">
-          ···
-        </button>
       </div>
-
-      {/* Name + verified badge */}
       <div className="flex items-center gap-2">
         <span className="text-[#050a30] text-sm font-extrabold">
-          {review.name}
+          {review.user?.name || "Anonymous"}
         </span>
-        <span className="inline-flex items-center justify-center w-[18px] h-[18px] bg-[#22c55e] rounded-full shrink-0">
-          <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-            <path
-              d="M1 3.5L3.2 6L8 1"
-              stroke="white"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
+        {review.isVerifiedPurchase && (
+          <span className="inline-flex items-center justify-center w-[18px] h-[18px] bg-[#22c55e] rounded-full shrink-0">
+            <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+              <path d="M1 3.5L3.2 6L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        )}
       </div>
-
-      {/* Review text */}
-      <p className="text-[#434343] text-[13px] leading-relaxed">
-        {review.text}
+      {review.comment && (
+        <p className="text-[#434343] text-[13px] leading-relaxed">{review.comment}</p>
+      )}
+      <p className="text-[#9ca3af] text-xs font-semibold">
+        {new Date(review.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
-
-      {/* Date */}
-      <p className="text-[#9ca3af] text-xs font-semibold">{review.date}</p>
     </div>
   );
 }
@@ -171,6 +128,13 @@ export default function SingleProductPage({
   const [addedToCart, setAddedToCart] = useState(false);
   const [faqs, setFaqs] = useState<{id:string, question:string, answer:string}[]>([]);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [newReview, setNewReview] = useState({ rating: 5, comment: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
   const router = useRouter();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
@@ -208,25 +172,50 @@ export default function SingleProductPage({
     }
   };
 
-  // Load similar products and FAQs
+  const handleSubmitReview = async (rating: number, comment: string) => {
+    const res = await fetch("/api/users/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: product.id, rating, comment }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    
+    const reviewRes = await fetch(`/api/products/${product.id}/reviews`);
+    const reviewData = await reviewRes.json();
+    if (reviewData.success) {
+      setReviews(reviewData.data.reviews || []);
+      setAverageRating(reviewData.data.averageRating || 0);
+      setTotalReviews(reviewData.data.total || 0);
+    }
+  };
+
+  // Load similar products, FAQs, and reviews
   useEffect(() => {
     async function fetchData() {
       if (!product?.id) return;
       try {
-        const [similarRes, faqRes] = await Promise.all([
-          fetch(`/api/products/${product.id}/similar?limit=4`),
-          fetch(`/api/products/${product.id}/faqs`)
+        const [similarRes, faqRes, reviewRes] = await Promise.all([
+          fetch(`/api/products/similar-products?productId=${product.id}&limit=4`),
+          fetch(`/api/products/${product.link}/faqs`),
+          fetch(`/api/products/${product.id}/reviews`)
         ]);
         const similarData = await similarRes.json();
         const faqData = await faqRes.json();
+        const reviewData = await reviewRes.json();
         if (similarData.success) setSuggestedProducts(similarData.data.products || []);
         if (faqData.success) setFaqs(faqData.data || []);
+        if (reviewData.success) {
+          setReviews(reviewData.data.reviews || []);
+          setAverageRating(reviewData.data.averageRating || 0);
+          setTotalReviews(reviewData.data.total || 0);
+        }
       } catch (err) {
         console.error("Failed to load data", err);
       }
     }
     fetchData();
-  }, [product?.id]);
+  }, [product?.id, product?.link]);
 
   const tabs = [
     { id: "details" as const, label: "Product Details" },
@@ -314,9 +303,9 @@ export default function SingleProductPage({
             </h1>
 
             <div className="flex items-center gap-2 mb-4">
-              <StarRating rating={4.5} />
+              <StarRating rating={averageRating} />
               <span className="text-[#434343] text-sm font-semibold">
-                4.5/5
+                {averageRating.toFixed(1)}/5 ({totalReviews} reviews)
               </span>
             </div>
 
@@ -468,36 +457,43 @@ export default function SingleProductPage({
           {/* ── Rating & Reviews ── */}
           {activeTab === "reviews" && (
             <div className="mt-8">
-              {/* Header row */}
               <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:justify-between mb-8">
                 <h2 className="text-[#050a30] text-2xl font-extrabold">
                   All Reviews
-                  <span className="text-[#9ca3af] text-lg font-semibold ml-2">
-                    ({reviews.length})
-                  </span>
+                  <span className="text-[#9ca3af] text-lg font-semibold ml-2">({totalReviews})</span>
                 </h2>
-                <div className="flex items-center gap-3 w-full md:w-auto self-end">
-                  <button className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all">
-                    Write a Review
-                  </button>
-                </div>
-              </div>
-
-              {/* 2-column grid */}
-              <div className="grid md:grid-cols-2 gap-5">
-                {reviews.map((review, i) => (
-                  <ReviewCard key={i} review={review} />
-                ))}
-              </div>
-
-              {/* Load More */}
-              <div className="flex justify-center mt-10 mb-4">
-                <button className="border-2 border-[#e0e0e0] text-[#050a30] text-sm font-bold px-10 py-[12px] rounded-full hover:border-[#050a30] hover:bg-[#f8f8f8] transition-all">
-                  Load More Reviews
+                <button 
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      router.push(`/login?callbackUrl=/products/${product.link}`);
+                      return;
+                    }
+                    setShowReviewModal(true);
+                  }}
+                  className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all"
+                >
+                  Write a Review
                 </button>
               </div>
+
+              {reviews.length > 0 ? (
+                <div className="grid md:grid-cols-2 gap-5">
+                  {reviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-10">No reviews yet. Be the first to review!</p>
+              )}
             </div>
           )}
+
+          <ReviewModal 
+            isOpen={showReviewModal}
+            onClose={() => setShowReviewModal(false)}
+            onSubmit={handleSubmitReview}
+            productId={product.id}
+          />
 
           {/* ── FAQs ── */}
           {activeTab === "faqs" && (
@@ -545,9 +541,9 @@ export default function SingleProductPage({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 place-items-center">
               {suggestedProducts.map((p, i) => {
                 let recDiscountPct = 0;
-                if (p.salePrice && p.price.value > p.salePrice.value) {
+                if (p.salePrice && p.price > p.salePrice) {
                   recDiscountPct = Math.round(
-                    ((p.price.value - p.salePrice.value) / p.price.value) * 100,
+                    ((p.price - p.salePrice) / p.price) * 100,
                   );
                 }
 
@@ -602,12 +598,12 @@ export default function SingleProductPage({
                       <div className="flex items-baseline font-inter gap-2.5 mt-auto">
                         <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
                           <span className="text-[#F0B31E] text-[28px]">
-                            ₹{p.salePrice ? p.salePrice.value : p.price?.value || 0}
+                            ₹{p.salePrice ? p.salePrice : p.price || 0}
                           </span>
                         </span>
-                        {p.salePrice && p.salePrice.value < p.price.value && (
-                          <span className="text-[16px] font-medium text-gray-300 line-through">
-                            ₹{p.price.value}
+                          {p.salePrice && p.salePrice < p.price && (
+                            <span className="text-[16px] font-medium text-gray-300 line-through">
+                            ₹{p.price}
                           </span>
 
                         )}

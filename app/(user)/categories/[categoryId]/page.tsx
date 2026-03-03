@@ -16,8 +16,7 @@ type Category = {
 export default function CategoryDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
-
+  const categoryId = params.categoryId as string;
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,25 +27,21 @@ export default function CategoryDetailPage() {
   const [sort, setSort] = useState("newest");
   const LIMIT = 12;
 
-  // Fetch category info
+  // Fetch category by ID
   useEffect(() => {
-    if (!slug) return;
+    if (!categoryId) return;
     async function fetchCategory() {
-      try {
-        const res = await fetch(`/api/categories/${slug}`);
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setCategory(data.data);
-        } else if (res.status === 404) {
-          setError("Category not found");
-        }
-      } catch (err) {
-        console.error("Error fetching category:", err);
-        setError("Something went wrong.");
+      const res = await fetch(`/api/categories/${categoryId}`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCategory(data.data.category);
+      } else {
+        setError("Category not found");
+        setLoading(false);
       }
     }
     fetchCategory();
-  }, [slug]);
+  }, [categoryId]);
 
   // Build query
   const buildQuery = useCallback((p: number, s: string): string => {
@@ -59,38 +54,32 @@ export default function CategoryDetailPage() {
   }, []);
 
   // Fetch products for this category
-  const fetchProducts = useCallback(
-    async (p: number, s: string) => {
-      if (!slug) return;
-      setLoading(true);
-      try {
-        const query = buildQuery(p, s);
-        const res = await fetch(`/api/categories/${slug}/products?${query}`);
-        const data = await res.json();
+  const fetchProducts = useCallback(async (p: number, s: string) => {
+    if (!category?.id) return;
+    setLoading(true);
+    const query = buildQuery(p, s);
+    const res = await fetch(`/api/products?categoryId=${category.id}&${query}`);
+    const data = await res.json();
 
-        if (res.ok && data.success) {
-          const items = data.data.products || [];
+    if (data.success) {
+      setProducts(data.data.products || []);
 
-          setProducts(items);
-          setTotalPages(data.data.pagination?.totalPages || 1);
-          setTotalItems(data.data.pagination?.totalItems || 0);
-        } else {
-          setError(data.message || "Failed to load products");
-        }
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        setError("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [slug, buildQuery],
-  );
+      setTotalPages(data.data.pagination?.totalPages || 1);
+
+      // FIX HERE 🔥
+      setTotalItems(data.data.pagination?.totalItems || 0);
+    } else {
+      setError(data.message);
+    }
+    setLoading(false);
+  }, [category?.id, buildQuery]);
 
   // Fetch on page/sort change
   useEffect(() => {
-    if (slug) fetchProducts(page, sort);
-  }, [page, sort, slug, fetchProducts]);
+    if (category?.id) {
+      fetchProducts(page, sort);
+    }
+  }, [page, sort, category?.id, fetchProducts]);
 
   const handleSortChange = (s: string) => {
     setSort(s);
@@ -242,11 +231,10 @@ export default function CategoryDetailPage() {
                           <button
                             key={p}
                             onClick={() => setPage(p as number)}
-                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
-                              page === p
-                                ? "bg-[#f0b31e] text-white shadow"
-                                : "border border-gray-200 hover:bg-gray-50"
-                            }`}
+                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${page === p
+                              ? "bg-[#f0b31e] text-white shadow"
+                              : "border border-gray-200 hover:bg-gray-50"
+                              }`}
                           >
                             {p}
                           </button>

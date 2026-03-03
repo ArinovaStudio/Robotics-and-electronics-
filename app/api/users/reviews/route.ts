@@ -25,7 +25,12 @@ export async function POST(request: NextRequest) {
 
     const { productId, rating, comment } = validation.data;
 
-    const existingReview = await prisma.review.findUnique({ where: { userId_productId: { userId: user.id, productId } }});
+    const existingReview = await prisma.review.findFirst({ 
+      where: { 
+        userId: user.id, 
+        productId 
+      }
+    });
 
     if (existingReview) {
       return NextResponse.json({ success: false, message: "Review already exists" }, { status: 400 });
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
         productId,
         order: {
           userId: user.id,
-          status: { in: ["CONFIRMED", "SHIPPED", "DELIVERED"] }
+          status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] }
         }
       }
     });
@@ -53,7 +58,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Review created successfully" }, { status: 201 });
 
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Review creation error:", error);
+    return NextResponse.json({ success: false, message: error.message || "Internal server error" }, { status: 500 });
   }
 }

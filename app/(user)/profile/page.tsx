@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/app/contexts";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -289,9 +290,11 @@ export default function ProfilePage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <h3 className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors text-2xl font-black text-black tracking-tight">
-              MY ORDERS
-            </h3>
+            <Link href="/orders">
+              <h3 className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors text-2xl font-black text-black tracking-tight">
+                MY ORDERS
+              </h3>
+            </Link>
           </div>
         </div>
       </div>

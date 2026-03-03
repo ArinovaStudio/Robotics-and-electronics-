@@ -7,28 +7,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, useCart } from "@/app/contexts";
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          width="16"
-          height="16"
-          viewBox="0 0 20 20"
-          fill={rating >= star ? "#f0b31e" : "#e0e0e0"}
-          className="inline"
-        >
-          <polygon points="10,1 12.6,7.2 19.2,7.6 14,12.2 15.6,18.7 10,15.2 4.4,18.7 6,12.2 0.8,7.6 7.4,7.2" />
-        </svg>
-      ))}
-      <span className="ml-1 text-xs text-[#434343] font-semibold">
-        {rating}/5
-      </span>
-    </span>
-  );
-}
-
 function CartPageContent() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -87,10 +65,8 @@ function CartPageContent() {
 
   const subtotal = Number(cart?.summary?.subtotal || 0);
   const discount = Number(cart?.summary?.totalSavings || 0);
-  const delivery = Number(cart?.summary?.shipping || 0);
-  const total = Number(cart?.summary?.total || 0);
-  const freeShipping = delivery === 0; // because API doesn't send this
-  const discountPct = subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
+  const total = subtotal;
+  const discountPct = discount > 0 && subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
 
   if (authLoading || cartLoading) {
     return (
@@ -145,22 +121,20 @@ function CartPageContent() {
         <div className="flex-1 w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ececec]">
           {cart.items.map((item) => {
             const isUpdating = updatingItems.has(item.id);
-            const rawPrice = item.product?.salePrice ?? item.product?.price;
-            const price = Number(rawPrice || 0);
             if (!item.product) return null;
             return (
               <div
                 key={item.id}
                 className={`flex md:flex-row w-full justify-between flex-col items-center gap-6 py-4 border-b border-[#f3f3f3] last:border-b-0 ${isUpdating ? "opacity-50" : ""}`}
               >
-                <div className="flex flex-row justify-between gap-6 w-full">
-                  <div className="w-25 h-25 rounded bg-[#f5f5f5] flex items-center justify-center overflow-hidden relative">
+                <div className="flex flex-row gap-4 w-full">
+                  <div className="w-24 h-24 rounded-xl bg-[#f5f5f5] flex items-center justify-center overflow-hidden relative shrink-0">
                     {item.product.imageLink ? (
                       <Image
                         src={item.product.imageLink}
                         alt={item.product.title}
                         fill
-                        className="object-contain"
+                        className="object-contain p-2"
                       />
                     ) : (
                       <div className="w-full h-full bg-[#e0e0e0]" />
@@ -168,13 +142,19 @@ function CartPageContent() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <Link href={`/products/${item.product.id}`}>
-                      <h2 className="text-md md:text-lg font-bold text-[#050a30] mb-1 hover:text-[#f0b31e] transition-colors">
+                      <h2 className="text-md md:text-lg font-bold text-[#050a30] mb-2 hover:text-[#f0b31e] transition-colors line-clamp-2">
                         {item.product.title}
                       </h2>
                     </Link>
-                    <StarRating rating={4.5} />
-                    <div className="text-lg font-bold text-[#050a30] mt-2">
-                      ₹{price?.toFixed(2) || "N/A"}
+                    <div className="flex items-center gap-3">
+                      <div className="text-lg font-bold text-[#050a30]">
+                        ₹{item.product.price?.toFixed(2) || "N/A"}
+                      </div>
+                      {item.product.originalPrice > item.product.price && (
+                        <div className="text-sm text-gray-400 line-through">
+                          ₹{item.product.originalPrice?.toFixed(2)}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -222,17 +202,13 @@ function CartPageContent() {
           {discount > 0 && (
             <div className="flex justify-between text-[#22c55e] text-base mb-3">
               <span>Discount{discountPct > 0 ? ` (-${discountPct}%)` : ""}</span>
-              <span className="font-bold">-₹{discount}</span>
+              <span className="font-bold">-₹{discount.toFixed(2)}</span>
             </div>
           )}
-          <div className="flex justify-between text-[#434343] text-base mb-3">
-            <span>Delivery Fee</span>
-            <span className="font-bold">{freeShipping ? <span className="text-[#22c55e]">Free</span> : `₹${delivery}`}</span>
-          </div>
           <hr className="my-4 border-[#ececec]" />
           <div className="flex justify-between text-[#050a30] text-xl font-bold mb-6">
             <span>Total</span>
-            <span>₹{total}</span>
+            <span>₹{subtotal.toFixed(2)}</span>
           </div>
           <button
             onClick={() => router.push("/cart/address")}
