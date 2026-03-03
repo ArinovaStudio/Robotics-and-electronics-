@@ -208,16 +208,16 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="my-6 flex items-center">
-          <div className="flex-1 border-t border-gray-200"></div>
-          <span className="px-4 text-xs text-gray-400 font-medium">
-            Or continue with
-          </span>
-          <div className="flex-1 border-t border-gray-200"></div>
-        </div>
-
         {step === 1 && (
           <>
+            <div className="my-6 flex items-center">
+              <div className="flex-1 border-t border-gray-200"></div>
+              <span className="px-4 text-xs text-gray-400 font-medium">
+                Or continue with
+              </span>
+              <div className="flex-1 border-t border-gray-200"></div>
+            </div>
+            
             <Button
               type="button"
               onClick={handleGoogleSignIn}

@@ -33,9 +33,18 @@ export async function GET(request: Request) {
     }
 
     if (minPrice || maxPrice) {
-      where.price = {};
-      if (minPrice) where.price.gte = parseFloat(minPrice);
-      if (maxPrice) where.price.lte = parseFloat(maxPrice);
+      const priceFilter: any = {};
+      if (minPrice !== null) priceFilter.gte = minPrice;
+      if (maxPrice !== null) priceFilter.lte = maxPrice;
+      
+      where.AND = [
+        { OR: [ { AND: [
+                 { salePrice: { not: null } },
+                 { salePrice: priceFilter } ] },
+                { AND: [
+                 { salePrice: null },
+                 { price: priceFilter } ] }
+        ]}];
     }
 
     if (brand) {

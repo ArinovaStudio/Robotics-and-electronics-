@@ -132,7 +132,7 @@ export async function GET() {
        const yearKey = `${order.orderedAt.getFullYear()}-${order.orderedAt.getMonth()}`;
        if (yearlyMap.has(yearKey)) {
           const entry = yearlyMap.get(yearKey);
-          entry.sale += amt; entry.purchase += amt * 0.7;
+          entry.sale += amt; entry.purchase += amt * 0.7;  // assume to 70% for now
        }
     });
 
