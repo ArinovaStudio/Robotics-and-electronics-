@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]); // Added to track dynamic brands
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -22,12 +23,15 @@ export default function ProductsPage() {
     (filters: FilterState | null, p: number, s: string): string => {
       const params = new URLSearchParams();
       params.set("page", String(p));
-      params.set("limit", String(LIMIT));
+      params.set("limit", String(LIMIT)); 
       params.set("sort", s);
 
       if (filters) {
-        if (filters.categories.length === 1) {
-          params.set("category", filters.categories[0]);
+        if (filters.categoryId) {
+          params.set("categoryId", filters.categoryId);
+        }
+        if (filters.brands && filters.brands.length > 0) {
+          params.set("brand", filters.brands.join(","));
         }
         if (filters.minPrice > 0) {
           params.set("minPrice", String(filters.minPrice));
@@ -50,32 +54,11 @@ export default function ProductsPage() {
         const query = buildQuery(filters, p, s);
         const res = await fetch(`/api/products?${query}`);
         const data = await res.json();
+        
         if (data.success) {
-          let items = data.data.products || [];
-
-          // Client-side: filter by multiple categories
-          if (filters && filters.categories.length > 1) {
-            items = items.filter((prod: any) =>
-              filters.categories.includes(prod.category?.slug),
-            );
-          }
-
-          // Client-side: filter by discount ranges
-          if (filters && filters.discounts.length > 0) {
-            const buckets = filters.discounts.map((d) =>
-              parseInt(d.replace("% OFF", "")),
-            );
-            items = items.filter((prod: any) => {
-              const regular = prod.price?.value || 0;
-              const sale = prod.salePrice?.value;
-              if (!sale || regular <= sale) return false;
-              const pct = Math.round(((regular - sale) / regular) * 100);
-              const bucket = Math.floor(pct / 10) * 10;
-              return buckets.includes(bucket);
-            });
-          }
-
-          setProducts(items);
+          // No more client-side filtering needed! The API handles everything perfectly.
+          setProducts(data.data.products || []);
+          setAvailableBrands(data.data.facets?.brands || []); // Extract dynamic brands
           setTotalPages(data.data.pagination.totalPages || 1);
           setTotalItems(data.data.pagination.totalItems || 0);
         }
@@ -197,6 +180,7 @@ export default function ProductsPage() {
           >
             <FilterSidebar
               onFiltersChange={handleFiltersChange}
+              availableBrands={availableBrands} // Pass down dynamically fetched brands
               resetKey={filterResetKey}
             />
           </div>

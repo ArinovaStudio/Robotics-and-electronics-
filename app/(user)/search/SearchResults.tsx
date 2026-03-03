@@ -35,19 +35,20 @@ export default function SearchResults({ query }: { query: string }) {
 
     try {
       const params = new URLSearchParams({
-        q: query,
+        search: query, 
         page: String(page),
         limit: "12",
-        sort,
+        sort: sort === "relevance" ? "newest" : sort,
       });
 
-      const res = await fetch(`/api/products/search?${params.toString()}`);
+      // 2. Point to the consolidated unified API
+      const res = await fetch(`/api/products?${params.toString()}`);
       const data = await res.json();
 
       if (data.success) {
         setProducts(data.data.products || []);
         setPagination(data.data.pagination || null);
-        setSuggestions(data.data.suggestions || []);
+        setSuggestions(data.data.suggestions || []); 
       } else {
         setError(data.message || "Failed to search products");
       }

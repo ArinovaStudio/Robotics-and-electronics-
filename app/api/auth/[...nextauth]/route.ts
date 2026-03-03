@@ -4,6 +4,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { getOTPTemplate } from "@/lib/templates";
+import sendEmail from "@/lib/email";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -26,6 +28,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        otp: { label: "OTP", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -52,6 +55,45 @@ export const authOptions: NextAuthOptions = {
         if (!isPasswordValid) {
           throw new Error("Invalid email or password");
         }
+
+        if (!credentials.otp) {
+
+          await prisma.otpToken.deleteMany({  where: { email: credentials.email, type: "LOGIN_VERIFICATION" }});
+
+          const otp = Math.floor(100000 + Math.random() * 900000).toString();
+          await prisma.otpToken.create({
+            data: {
+              email: credentials.email,
+              code: otp,
+              type: "LOGIN_VERIFICATION",
+              expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+            },
+          });
+
+          const htmlTemplate = getOTPTemplate(otp, "LOGIN_VERIFICATION");
+          await sendEmail(credentials.email, "Secure Login Verification", htmlTemplate);
+
+          throw new Error("OTP_SENT");
+        }
+
+        const existingOtp = await prisma.otpToken.findFirst({
+          where: {
+            email: credentials.email,
+            code: credentials.otp,
+            type: "LOGIN_VERIFICATION"
+          }
+        });
+
+        if (!existingOtp) {
+          throw new Error("Invalid OTP code");
+        }
+
+        if (new Date() > existingOtp.expiresAt) {
+          await prisma.otpToken.delete({ where: { id: existingOtp.id } });
+          throw new Error("This OTP has expired");
+        }
+
+        await prisma.otpToken.delete({ where: { id: existingOtp.id } });
 
         return {
           id: user.id,

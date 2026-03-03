@@ -6,7 +6,7 @@ import { getOTPTemplate } from "@/lib/templates";
 
 const sendOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
-  type: z.enum(["EMAIL_VERIFICATION", "PASSWORD_RESET"]),
+  type: z.enum(["EMAIL_VERIFICATION", "PASSWORD_RESET", "LOGIN_VERIFICATION"]),
 });
 
 export async function POST(request: Request) {
@@ -43,7 +43,10 @@ export async function POST(request: Request) {
       },
     });
 
-    const subject = type === "EMAIL_VERIFICATION" ? "Verify Your Email" : "Reset Your Password";
+    let subject = "Verify Your Email";
+    if (type === "PASSWORD_RESET") subject = "Reset Your Password";
+    if (type === "LOGIN_VERIFICATION") subject = "Your Login Verification Code";
+    
     const htmlTemplate = getOTPTemplate(otp, type);
     
     const emailSent = await sendEmail(email, subject, htmlTemplate);

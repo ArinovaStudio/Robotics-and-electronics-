@@ -27,37 +27,37 @@ function CartPageContent() {
     }
   }, [isAuthenticated, authLoading, router]);
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return;
 
-    setUpdatingItems((prev) => new Set(prev).add(itemId));
+    setUpdatingItems((prev) => new Set(prev).add(productId));
 
     try {
-      await contextUpdateQuantity(itemId, quantity);
+      await contextUpdateQuantity(productId, quantity);
     } catch (err: any) {
       alert(err.message);
     } finally {
       setUpdatingItems((prev) => {
         const next = new Set(prev);
-        next.delete(itemId);
+        next.delete(productId);
         return next;
       });
     }
   };
 
-  const removeItem = async (itemId: string) => {
+  const removeItem = async (productId: string) => {
     if (!confirm("Remove this item from cart?")) return;
 
-    setUpdatingItems((prev) => new Set(prev).add(itemId));
+    setUpdatingItems((prev) => new Set(prev).add(productId));
 
     try {
-      await contextRemoveItem(itemId);
+      await contextRemoveItem(productId);
     } catch (err: any) {
       alert(err.message);
     } finally {
       setUpdatingItems((prev) => {
         const next = new Set(prev);
-        next.delete(itemId);
+        next.delete(productId);
         return next;
       });
     }
@@ -65,8 +65,15 @@ function CartPageContent() {
 
   const subtotal = Number(cart?.summary?.subtotal || 0);
   const discount = Number(cart?.summary?.totalSavings || 0);
+<<<<<<< HEAD
   const total = subtotal;
   const discountPct = discount > 0 && subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
+=======
+  const delivery = Number(cart?.summary?.shipping || 0);
+  const total = Number(cart?.summary?.total || 0);
+  const freeShipping = delivery === 0;
+  const discountPct = subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
 
   if (authLoading || cartLoading) {
     return (
@@ -120,8 +127,16 @@ function CartPageContent() {
         {/* Cart List */}
         <div className="flex-1 w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ececec]">
           {cart.items.map((item) => {
+<<<<<<< HEAD
             const isUpdating = updatingItems.has(item.id);
+=======
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
             if (!item.product) return null;
+            
+            const isUpdating = updatingItems.has(item.product.id);
+            
+            const price = Number(item.product.price || 0); 
+            
             return (
               <div
                 key={item.id}
@@ -146,6 +161,7 @@ function CartPageContent() {
                         {item.product.title}
                       </h2>
                     </Link>
+<<<<<<< HEAD
                     <div className="flex items-center gap-3">
                       <div className="text-lg font-bold text-[#050a30]">
                         ₹{item.product.price?.toFixed(2) || "N/A"}
@@ -155,13 +171,18 @@ function CartPageContent() {
                           ₹{item.product.originalPrice?.toFixed(2)}
                         </div>
                       )}
+=======
+                    <StarRating rating={item.product.averageRating || 0} />
+                    <div className="text-lg font-bold text-[#050a30] mt-2">
+                      ₹{price.toFixed(2)}
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
                     </div>
                   </div>
                 </div>
                 <div className="flex max-md:w-full justify-start">
                   <div className="flex items-center gap-2 bg-[#f5f5f5] rounded-full px-4 py-2">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                       disabled={isUpdating || item.quantity <= 1}
                       className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-5 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -171,7 +192,7 @@ function CartPageContent() {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                       disabled={isUpdating}
                       className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-5 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -179,7 +200,7 @@ function CartPageContent() {
                     </button>
                   </div>
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(item.product.id)}
                     disabled={isUpdating}
                     className="ml-4 text-[#ff4d4d] hover:text-[#d90429] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -197,7 +218,7 @@ function CartPageContent() {
           </h2>
           <div className="flex justify-between text-[#434343] text-base mb-3">
             <span>Subtotal</span>
-            <span className="font-bold">₹{subtotal}</span>
+            <span className="font-bold">₹{subtotal.toFixed(2)}</span>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-[#22c55e] text-base mb-3">
@@ -205,10 +226,21 @@ function CartPageContent() {
               <span className="font-bold">-₹{discount.toFixed(2)}</span>
             </div>
           )}
+<<<<<<< HEAD
           <hr className="my-4 border-[#ececec]" />
           <div className="flex justify-between text-[#050a30] text-xl font-bold mb-6">
             <span>Total</span>
             <span>₹{subtotal.toFixed(2)}</span>
+=======
+          <div className="flex justify-between text-[#434343] text-base mb-3">
+            <span>Delivery Fee</span>
+            <span className="font-bold">{freeShipping ? <span className="text-[#22c55e]">Free</span> : `₹${delivery.toFixed(2)}`}</span>
+          </div>
+          <hr className="my-4 border-[#ececec]" />
+          <div className="flex justify-between text-[#050a30] text-xl font-bold mb-6">
+            <span>Total</span>
+            <span>₹{total.toFixed(2)}</span>
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
           </div>
           <button
             onClick={() => router.push("/cart/address")}

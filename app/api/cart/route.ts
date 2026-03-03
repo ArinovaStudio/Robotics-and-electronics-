@@ -24,7 +24,8 @@ export async function GET() {
                 stockQuantity: true,
                 availability: true,
                 isActive: true,
-                category: { select: { isActive: true } }
+                category: { select: { isActive: true } },
+                reviews: { select: { rating: true } }
               },
             }
           }
@@ -71,7 +72,7 @@ export async function GET() {
       await prisma.cartItem.deleteMany({ where: { id: { in: itemsToRemove } } });
     }
 
-    let subtotal = 0;
+    let rawSubtotal = 0; 
     let totalItems = 0;
     let totalSavings = 0;
 
@@ -81,6 +82,7 @@ export async function GET() {
       const activePrice = p.salePrice ? Number(p.salePrice) : originalPrice;
       const lineTotal = activePrice * item.quantity;
 
+<<<<<<< HEAD
       subtotal += lineTotal;
       totalItems += item.quantity;
       if (p.salePrice) {
@@ -98,10 +100,40 @@ export async function GET() {
           originalPrice: originalPrice,
           stockQuantity: p.stockQuantity,
           availability: p.availability
+=======
+      const avgRating = p.reviews && p.reviews.length > 0 
+        ? p.reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0) / p.reviews.length 
+        : 0;
+
+      rawSubtotal += originalPrice * item.quantity; 
+      totalItems += item.quantity;
+      
+      if (p.salePrice) {
+        totalSavings += (originalPrice - activePrice) * item.quantity;
+      }
+
+      return {
+        id: item.id,
+        quantity: item.quantity,
+        product: {
+          id: p.id,
+          title: p.title,
+          imageLink: p.imageLink,
+          price: activePrice, 
+          originalPrice: originalPrice,
+          stockQuantity: p.stockQuantity,
+          availability: p.availability,
+          averageRating: Number(avgRating.toFixed(1))
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
         },
         lineTotal: lineTotal
       };
     });
+<<<<<<< HEAD
+=======
+
+    const finalTotal = rawSubtotal - totalSavings;
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f
 
     return NextResponse.json({
       success: true,
@@ -109,8 +141,9 @@ export async function GET() {
         cartId: cart.id,
         items: formattedItems,
         summary: {
-          subtotal: subtotal.toFixed(2),
+          subtotal: rawSubtotal.toFixed(2),
           totalSavings: totalSavings.toFixed(2),
+          total: finalTotal.toFixed(2), 
           itemCount: totalItems
         },
         hasInventoryChanges: wasAdjusted

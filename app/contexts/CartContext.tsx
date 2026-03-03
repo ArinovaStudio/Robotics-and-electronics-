@@ -6,11 +6,13 @@ import { useAuth } from "./AuthContext";
 interface CartProduct {
   id: string;
   title: string;
+  link?: string;
   imageLink: string;
-  price: number;
+  price: number; 
   originalPrice: number;
   availability: string;
   stockQuantity: number;
+  averageRating?: number;
 }
 
 interface CartItem {
@@ -24,9 +26,11 @@ interface Cart {
   cartId: string;
   items: CartItem[];
   summary: {
+    itemCount: number;
     subtotal: string;
     totalSavings: string;
-    itemCount: number;
+    total: string;
+    shipping?: number;
   };
   hasInventoryChanges?: boolean;
 }
@@ -39,8 +43,8 @@ interface CartContextType {
   // Actions
   fetchCart: () => Promise<void>;
   addToCart: (productId: string, quantity: number) => Promise<void>;
-  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
-  removeItem: (itemId: string) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   
   // Computed
@@ -83,7 +87,6 @@ export function CartProvider({ children }: CartProviderProps) {
         credentials: 'include',
       });
 
-      // 401 = not logged in — just clear cart, don't show error
       if (res.status === 401) {
         setCart(null);
         return;
@@ -104,7 +107,6 @@ export function CartProvider({ children }: CartProviderProps) {
     }
   }, [isAuthenticated, getHeaders]);
 
-  // Fetch cart when user is authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart();
@@ -119,7 +121,7 @@ export function CartProvider({ children }: CartProviderProps) {
     }
 
     try {
-      const res = await fetch("/api/cart", {
+      const res = await fetch("/api/cart/items", {
         method: "POST",
         headers: getHeaders(),
         credentials: 'include',
@@ -132,7 +134,6 @@ export function CartProvider({ children }: CartProviderProps) {
         throw new Error(data.message || "Failed to add to cart");
       }
 
-      // Refresh cart
       await fetchCart();
     } catch (err: any) {
       console.error("Failed to add to cart:", err);
@@ -140,15 +141,15 @@ export function CartProvider({ children }: CartProviderProps) {
     }
   };
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return;
 
     try {
-      const res = await fetch(`/api/cart/items/${itemId}`, {
-        method: "PATCH",
+      const res = await fetch(`/api/cart/items`, {
+        method: "POST",
         headers: getHeaders(),
         credentials: 'include',
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ productId, quantity }),
       });
 
       const data = await res.json();
@@ -157,18 +158,16 @@ export function CartProvider({ children }: CartProviderProps) {
         throw new Error(data.message || "Failed to update quantity");
       }
 
-      // Update local state
       setCart((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
           items: prev.items.map((item) =>
-            item.id === itemId ? { ...item, quantity } : item
+            item.product.id === productId ? { ...item, quantity } : item
           ),
         };
       });
 
-      // Refresh cart to get updated totals
       await fetchCart();
     } catch (err: any) {
       console.error("Failed to update quantity:", err);
@@ -176,12 +175,13 @@ export function CartProvider({ children }: CartProviderProps) {
     }
   };
 
-  const removeItem = async (itemId: string) => {
+  const removeItem = async (productId: string) => {
     try {
-      const res = await fetch(`/api/cart/items/${itemId}`, {
+      const res = await fetch(`/api/cart/items`, {
         method: "DELETE",
         headers: getHeaders(),
         credentials: 'include',
+        body: JSON.stringify({ productId }),
       });
 
       const data = await res.json();
@@ -190,16 +190,15 @@ export function CartProvider({ children }: CartProviderProps) {
         throw new Error(data.message || "Failed to remove item");
       }
 
-      // Update local state
+      // Optimistic local state update using product.id
       setCart((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          items: prev.items.filter((item) => item.id !== itemId),
+          items: prev.items.filter((item) => item.product.id !== productId),
         };
       });
 
-      // Refresh cart to get updated totals
       await fetchCart();
     } catch (err: any) {
       console.error("Failed to remove item:", err);
@@ -228,7 +227,7 @@ export function CartProvider({ children }: CartProviderProps) {
     }
   };
 
-  const cartItemCount = cart?.items?.length || 0;
+  const cartItemCount = cart?.summary?.itemCount || 0;
 
   const value: CartContextType = {
     cart,

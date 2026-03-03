@@ -32,21 +32,23 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const [profileRes, addressRes] = await Promise.all([
-          fetch("/api/users/profile"),
-          fetch("/api/users/address")
-        ]);
-        const profileData = await profileRes.json();
-        const addressData = await addressRes.json();
+        const res = await fetch("/api/users/profile");
+        const json = await res.json();
 
-        if (profileData.success) {
-          setProfileData(profileData);
-        }
-        if (addressData.success) {
-          setAddresses(addressData.data || []);
+        if (json.success) {
+          setProfileData(json.data);
+          setAddresses(json.data.addresses || []);
+          
+          const nameParts = (json.data.user.name || "").split(" ");
+          setFormData({
+            firstName: nameParts[0] || "",
+            lastName: nameParts.slice(1).join(" ") || "",
+            email: json.data.user.email || "",
+            phone: json.data.user.phone || "",
+          });
         }
       } catch (err) {
-        console.error(err);
+        console.error("Profile fetch error:", err);
       }
     }
     if (isAuthenticated) fetchProfile();
@@ -62,7 +64,7 @@ export default function ProfilePage() {
         firstName,
         lastName,
         email: user.email || "",
-        phone: user.phone || "",
+        phone: user?.phone || "",
       });
     }
   }, [user, isEditing]);
@@ -85,7 +87,11 @@ export default function ProfilePage() {
 
       if (res.ok && data.success) {
         setSuccess("Profile updated successfully!");
-        await fetchUser();
+        
+        const refreshRes = await fetch("/api/users/profile");
+        const refreshData = await refreshRes.json();
+        if (refreshData.success) setProfileData(refreshData.data);
+
         setIsEditing(false);
         setTimeout(() => setSuccess(""), 3000);
       } else {
@@ -93,7 +99,6 @@ export default function ProfilePage() {
       }
     } catch (err: any) {
       setError("An unexpected error occurred.");
-      console.error(err);
     } finally {
       setSaving(false);
     }

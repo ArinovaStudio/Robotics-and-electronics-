@@ -10,20 +10,25 @@ import Link from "next/link";
 export default function RoboticsPartsSection(): JSX.Element {
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]); 
   const [loading, setLoading] = useState(true);
+  
   const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
   // Debounce filter state to avoid rapid fetches
   const debouncedFilters = useDebounce(activeFilters, 350);
   const [filterResetKey, setFilterResetKey] = useState(0);
 
-  // Build query string from filter state
+  // Build query string from the updated filter state
   const buildQuery = useCallback((filters: FilterState | null): string => {
     const params = new URLSearchParams();
     params.set("limit", "50");
 
     if (filters) {
-      if (filters.categories.length === 1) {
-        params.set("category", filters.categories[0]);
+      if (filters.categoryId) {
+        params.set("categoryId", filters.categoryId);
+      }
+      if (filters.brands && filters.brands.length > 0) {
+        params.set("brand", filters.brands.join(","));
       }
       if (filters.minPrice > 0) {
         params.set("minPrice", String(filters.minPrice));
@@ -36,7 +41,7 @@ export default function RoboticsPartsSection(): JSX.Element {
     return params.toString();
   }, []);
 
-  // Fetch products (with optional filters)
+  // Fetch products cleanly using the powerful new API
   const fetchProducts = useCallback(
     async (filters: FilterState | null) => {
       setLoading(true);
@@ -44,33 +49,11 @@ export default function RoboticsPartsSection(): JSX.Element {
         const query = buildQuery(filters);
         const res = await fetch(`/api/products?${query}`);
         const data = await res.json();
+        
         if (data.success) {
-          let items = data.data.products || [];
-
-          // Client-side: filter by multiple categories
-          if (filters && filters.categories.length > 1) {
-            items = items.filter((p: any) =>
-              filters.categories.includes(p.category?.slug),
-            );
-          }
-
-          // Client-side: filter by discount ranges
-          if (filters && filters.discounts.length > 0) {
-            const minDiscounts = filters.discounts.map((d) =>
-              parseInt(d.replace("% OFF", "")),
-            );
-            items = items.filter((p: any) => {
-              const regular = p.price?.value || 0;
-              const sale = p.salePrice?.value;
-              if (!sale || regular <= sale) return false;
-              const pct = Math.round(((regular - sale) / regular) * 100);
-              const bucket = Math.floor(pct / 10) * 10;
-              return minDiscounts.includes(bucket);
-            });
-          }
-
-          // Show all products
-          setProducts(items);
+          // No more client-side filtering needed!
+          setProducts(data.data.products || []);
+          setAvailableBrands(data.data.facets?.brands || []); // Pass facets to sidebar
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -93,7 +76,9 @@ export default function RoboticsPartsSection(): JSX.Element {
 
   // Fetch products when debounced filters change
   useEffect(() => {
-    fetchProducts(debouncedFilters ?? null);
+    if (debouncedFilters !== undefined) {
+      fetchProducts(debouncedFilters);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedFilters]);
 
@@ -107,7 +92,7 @@ export default function RoboticsPartsSection(): JSX.Element {
   return (
     <section className="w-full gap-8 mt-12 mb-12 relative ">
       {/* Header */}
-      <div className="flex  px-5  items-center justify-between mb-10">
+      <div className="flex px-5 items-center justify-between mb-10">
         <h2 className="text-2xl md:text-3xl font-bold text-[#050A30] tracking-wide uppercase">
           TOP SELLING{" "}
           <span className="relative inline-block">
@@ -129,7 +114,7 @@ export default function RoboticsPartsSection(): JSX.Element {
       </div>
 
       {/* Mobile Filter Button */}
-      <div className="md:hidden mb-6">
+      <div className="md:hidden mb-6 px-5">
         <Button
           size={"icon"}
           onClick={() => setIsFilterOpen(true)}
@@ -147,7 +132,7 @@ export default function RoboticsPartsSection(): JSX.Element {
         />
       )}
 
-      <div className="flex gap-12 relative">
+      <div className="flex gap-12 relative px-5">
         {/* Responsive Sidebar Wrapper */}
         <div
           className={`
@@ -159,6 +144,7 @@ export default function RoboticsPartsSection(): JSX.Element {
         >
           <FilterSidebar
             onFiltersChange={handleFiltersChange}
+            availableBrands={availableBrands} // Connect dynamic brands here
             resetKey={filterResetKey}
           />
         </div>
@@ -188,7 +174,9 @@ export default function RoboticsPartsSection(): JSX.Element {
             </button>
           </div>
         ) : (
-          <ProductGrid products={products} />
+          <div className="flex-1">
+            <ProductGrid products={products} />
+          </div>
         )}
       </div>
     </section>

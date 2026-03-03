@@ -16,7 +16,12 @@ type Category = {
 export default function CategoryDetailPage() {
   const params = useParams();
   const router = useRouter();
+<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
   const categoryId = params.categoryId as string;
+=======
+  const categoryId = params.slug as string;
+
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +32,7 @@ export default function CategoryDetailPage() {
   const [sort, setSort] = useState("newest");
   const LIMIT = 12;
 
+<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
   // Fetch category by ID
   useEffect(() => {
     if (!categoryId) return;
@@ -38,14 +44,30 @@ export default function CategoryDetailPage() {
       } else {
         setError("Category not found");
         setLoading(false);
+=======
+  useEffect(() => {
+    if (!categoryId) return;
+    async function fetchCategory() {
+      try {
+        const res = await fetch(`/api/categories/${categoryId}`); 
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setCategory(data.data.category);
+        } else if (res.status === 404) {
+          setError("Category not found");
+        }
+      } catch (err) {
+        console.error("Error fetching category:", err);
+        setError("Something went wrong.");
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
       }
     }
     fetchCategory();
   }, [categoryId]);
 
-  // Build query
-  const buildQuery = useCallback((p: number, s: string): string => {
+  const buildQuery = useCallback((p: number, s: string, catId: string): string => {
     const qp = new URLSearchParams();
+    qp.set("categoryId", catId); 
     qp.set("page", String(p));
     qp.set("limit", String(LIMIT));
     qp.set("sort", s);
@@ -53,6 +75,7 @@ export default function CategoryDetailPage() {
     return qp.toString();
   }, []);
 
+<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
   // Fetch products for this category
   const fetchProducts = useCallback(async (p: number, s: string) => {
     if (!category?.id) return;
@@ -60,10 +83,22 @@ export default function CategoryDetailPage() {
     const query = buildQuery(p, s);
     const res = await fetch(`/api/products?categoryId=${category.id}&${query}`);
     const data = await res.json();
+=======
+  // Fetch products using the unified endpoint
+  const fetchProducts = useCallback(
+    async (p: number, s: string) => {
+      if (!categoryId) return;
+      setLoading(true);
+      try {
+        const query = buildQuery(p, s, categoryId);
+        const res = await fetch(`/api/products?${query}`); 
+        const data = await res.json();
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
 
     if (data.success) {
       setProducts(data.data.products || []);
 
+<<<<<<< HEAD:app/(user)/categories/[categoryId]/page.tsx
       setTotalPages(data.data.pagination?.totalPages || 1);
 
       // FIX HERE 🔥
@@ -80,6 +115,28 @@ export default function CategoryDetailPage() {
       fetchProducts(page, sort);
     }
   }, [page, sort, category?.id, fetchProducts]);
+=======
+          setProducts(items);
+          setTotalPages(data.data.pagination?.totalPages || 1);
+          setTotalItems(data.data.pagination?.totalItems || 0);
+        } else {
+          setError(data.message || "Failed to load products");
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [categoryId, buildQuery],
+  );
+
+  // Fetch on page/sort change
+  useEffect(() => {
+    if (categoryId) fetchProducts(page, sort);
+  }, [page, sort, categoryId, fetchProducts]);
+>>>>>>> 7c8d82970746956901a98d7f02e3e3fc5155170f:app/(user)/categories/[slug]/page.tsx
 
   const handleSortChange = (s: string) => {
     setSort(s);
