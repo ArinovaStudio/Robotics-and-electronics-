@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, useCart } from "@/app/contexts";
 import Link from "next/link";
 import Image from "next/image";
+import { Loader2 } from "lucide-react";
 
 type Address = {
     id: string;
@@ -25,6 +26,12 @@ export default function AddressPage() {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedId, setSelectedId] = useState<string>("");
     const [loading, setLoading] = useState(true);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [formData, setFormData] = useState({
+        name: "", phone: "", addressLine1: "", addressLine2: "",
+        city: "", state: "", pincode: "", type: "SHIPPING" as const
+    });
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -32,27 +39,117 @@ export default function AddressPage() {
         }
     }, [isAuthenticated, isLoading, router]);
 
-    useEffect(() => {
-        async function fetchAddresses() {
-            try {
-                const res = await fetch("/api/users/addresses");
-                const data = await res.json();
-                if (data.success) {
-                    setAddresses(data.data || []);
-                    const def = data.data?.find((a: Address) => a.isDefault);
-                    if (def) setSelectedId(def.id);
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
+    const fetchAddresses = async () => {
+        try {
+            const res = await fetch("/api/users/address");
+            const data = await res.json();
+            if (data.success) {
+                setAddresses(data.data || []);
+                const def = data.data?.find((a: Address) => a.isDefault);
+                if (def) setSelectedId(def.id);
             }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const handleAddAddress = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const res = await fetch("/api/users/address", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setShowAddModal(false);
+                setFormData({ name: "", phone: "", addressLine1: "", addressLine2: "", city: "", state: "", pincode: "", type: "SHIPPING" });
+                await fetchAddresses();
+            } else {
+                alert(data.message || "Failed to add address");
+            }
+        } catch (err) {
+            alert("Error adding address");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    useEffect(() => {
         if (isAuthenticated) fetchAddresses();
     }, [isAuthenticated]);
 
+    // Calculate totals from cart items if summary is missing or incorrect
+    const calculateTotals = () => {
+        if (!cart?.items || cart.items.length === 0) {
+            return {
+                itemCount: 0,
+                subtotal: 0,
+                totalSavings: 0,
+                shipping: 0,
+                total: 0
+            };
+        }
+
+        // Check if cart.summary exists and has valid data
+        if (cart.summary && typeof cart.summary.total === 'number' && cart.summary.total > 0) {
+            return {
+                itemCount: cart.summary.itemCount || cart.items.length,
+                subtotal: cart.summary.subtotal || 0,
+                totalSavings: cart.summary.totalSavings || 0,
+                shipping: cart.summary.shipping || 0,
+                total: cart.summary.total
+            };
+        }
+
+        // Fallback: Calculate from items
+        let subtotal = 0;
+        let totalSavings = 0;
+
+        cart.items.forEach((item: any) => {
+            const price = Number(item.product?.price || item.price || 0);
+            const originalPrice = Number(item.product?.originalPrice || item.originalPrice || price);
+            const quantity = Number(item.quantity || 1);
+
+            subtotal += originalPrice * quantity;
+            const savings = (originalPrice - price) * quantity;
+            if (savings > 0) {
+                totalSavings += savings;
+            }
+        });
+
+        const shipping = subtotal > 1000 ? 0 : 50; // Free shipping over ₹1000
+        const total = subtotal - totalSavings + shipping;
+
+        return {
+            itemCount: cart.items.length,
+            subtotal,
+            totalSavings,
+            shipping,
+            total
+        };
+    };
+
+    const totals = calculateTotals();
+
+    // Debug: Log cart data
+    useEffect(() => {
+        if (cart) {
+            console.log('Cart data:', cart);
+            console.log('Calculated totals:', totals);
+        }
+    }, [cart]);
+
     if (isLoading || loading) {
-        return <div className="max-w-[1200px] mx-auto px-6 py-10">Loading...</div>;
+        return (
+            <div className="flex justify-center items-center py-40">
+                <Loader2 className="w-12 h-12 border-4 border-[#f0b31e] border-t-transparent rounded-full animate-spin text-[#f0b31e]" />
+            </div>
+        );
     }
 
     const defaultAddr = addresses.find((a) => a.isDefault);
@@ -72,7 +169,7 @@ export default function AddressPage() {
                 <div className="flex-1">
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-2xl font-bold text-gray-800">Select Delivery Address</h1>
-                        <button className="border-2 border-gray-800 text-gray-800 px-5 py-2 rounded font-semibold hover:bg-gray-50">
+                        <button onClick={() => setShowAddModal(true)} className="border-2 border-gray-800 text-gray-800 px-5 py-2 rounded font-semibold hover:bg-gray-50">
                             ADD NEW ADDRESS
                         </button>
                     </div>
@@ -80,13 +177,13 @@ export default function AddressPage() {
                     {defaultAddr && (
                         <div className="mb-8">
                             <h2 className="text-sm font-bold text-gray-600 mb-3">DEFAULT ADDRESS</h2>
-                            <div className="bg-pink-50 border border-pink-200 rounded-lg p-6">
-                                <div className="flex items-start gap-3 mb-4">
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                                <div className="flex items-start gap-3">
                                     <input
                                         type="radio"
                                         checked={selectedId === defaultAddr.id}
                                         onChange={() => setSelectedId(defaultAddr.id)}
-                                        className="mt-1 w-4 h-4 accent-pink-500"
+                                        className="mt-1 w-4 h-4"
                                     />
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
@@ -102,10 +199,6 @@ export default function AddressPage() {
                                         </p>
                                         <p className="text-sm text-gray-600 mb-3">Mobile: <span className="font-semibold">{defaultAddr.phone}</span></p>
                                         <p className="text-sm text-gray-600 mb-4">• Pay on Delivery available</p>
-                                        <div className="flex gap-3">
-                                            <button className="border border-gray-300 text-gray-700 px-4 py-1.5 rounded text-sm font-semibold hover:bg-gray-50">REMOVE</button>
-                                            <button className="border border-gray-300 text-gray-700 px-4 py-1.5 rounded text-sm font-semibold hover:bg-gray-50">EDIT</button>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -123,7 +216,7 @@ export default function AddressPage() {
                                                 type="radio"
                                                 checked={selectedId === addr.id}
                                                 onChange={() => setSelectedId(addr.id)}
-                                                className="mt-1 w-4 h-4 accent-pink-500"
+                                                className="mt-1 w-4 h-4"
                                             />
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
@@ -167,43 +260,62 @@ export default function AddressPage() {
                             })}
                         </div>
 
-                        <h3 className="text-sm font-bold text-gray-700 mb-3">PRICE DETAILS ({cart?.summary?.totalItems || 0} Items)</h3>
+                        <h3 className="text-sm font-bold text-gray-700 mb-3">PRICE DETAILS ({totals.itemCount} Items)</h3>
                         <div className="space-y-2 text-sm mb-4">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Total MRP</span>
-                                <span className="text-gray-800">₹{Number(cart?.summary?.subtotal || 0).toFixed(2)}</span>
+                                <span className="text-gray-800">₹{totals.subtotal.toFixed(2)}</span>
                             </div>
-                            {Number(cart?.summary?.totalSavings || 0) > 0 && (
+                            {totals.totalSavings > 0 && (
                                 <div className="flex justify-between text-green-600">
                                     <span>Discount on MRP</span>
-                                    <span>-₹{Number(cart?.summary?.totalSavings).toFixed(2)}</span>
+                                    <span>-₹{totals.totalSavings.toFixed(2)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Shipping Fee</span>
-                                <span className="text-gray-800">{Number(cart?.summary?.shipping || 0) > 0 ? `₹${Number(cart?.summary?.shipping).toFixed(2)}` : 'FREE'}</span>
+                                <span className="text-gray-800">{totals.shipping > 0 ? `₹${totals.shipping.toFixed(2)}` : 'FREE'}</span>
                             </div>
                         </div>
 
                         <div className="border-t pt-4 mb-6">
                             <div className="flex justify-between text-base font-bold">
                                 <span className="text-gray-800">Total Amount</span>
-                                <span className="text-gray-800">₹{Number(cart?.summary?.total || 0).toFixed(2)}</span>
+                                <span className="text-gray-800">₹{totals.total.toFixed(2)}</span>
                             </div>
                         </div>
-                        <span className="text-gray-800">Total Amount</span>
-                        <span className="text-gray-800">₹{cart?.summary?.total || 0}</span>
-                    </div>
-                <button
-                    onClick={() => router.push("/checkout")}
-                    disabled={!selectedId}
-                    className="w-full mt-4  bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    CONTINUE
-                </button>
-                </div>
 
+                        <button
+                            onClick={() => router.push("/checkout")}
+                            disabled={!selectedId}
+                            className="w-full bg-[#F0B31E] cursor-pointer text-white font-bold py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            CONTINUE
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-xl font-bold mb-4">Add New Address</h2>
+                        <form onSubmit={handleAddAddress} className="space-y-4">
+                            <input required placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <input required placeholder="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <input required placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <input placeholder="Address Line 2" value={formData.addressLine2} onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <input required placeholder="City" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <input required placeholder="State" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <input required placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value })} className="w-full border rounded px-3 py-2" />
+                            <div className="flex gap-3">
+                                <button type="submit" disabled={saving} className="flex-1 bg-gray-800 text-white py-2 rounded font-semibold hover:bg-gray-700 disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+                                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 border border-gray-300 py-2 rounded font-semibold hover:bg-gray-50">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

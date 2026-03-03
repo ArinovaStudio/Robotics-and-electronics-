@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, isLoading, fetchUser } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -19,23 +19,37 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  // Mock data for order summary and addresses
-  const [orderSummary] = useState({
-    totalSpent: 14000,
-    totalOrders: 132,
-  });
-
-  const [addresses] = useState([
-    "20 Soojian Dr, Leicester MA 1524",
-    "121 Worcester Rd, Framingham MA 1701",
-  ]);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [addresses, setAddresses] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/login?callbackUrl=/profile");
     }
   }, [isLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const [profileRes, addressRes] = await Promise.all([
+          fetch("/api/users/profile"),
+          fetch("/api/users/address")
+        ]);
+        const profileData = await profileRes.json();
+        const addressData = await addressRes.json();
+
+        if (profileData.success) {
+          setProfileData(profileData);
+        }
+        if (addressData.success) {
+          setAddresses(addressData.data || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    if (isAuthenticated) fetchProfile();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (user && !isEditing) {
@@ -47,7 +61,7 @@ export default function ProfilePage() {
         firstName,
         lastName,
         email: user.email || "",
-        phone: user.phone || "", // <-- FIXED: use phone
+        phone: user.phone || "",
       });
     }
   }, [user, isEditing]);
@@ -60,10 +74,10 @@ export default function ProfilePage() {
 
     try {
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-      const res = await fetch("/api/auth/profile", {
-        method: "PATCH",
+      const res = await fetch("/api/users/profile", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: fullName }),
+        body: JSON.stringify({ name: fullName, phone: formData.phone }),
       });
 
       const data = await res.json();
@@ -72,6 +86,7 @@ export default function ProfilePage() {
         setSuccess("Profile updated successfully!");
         await fetchUser();
         setIsEditing(false);
+        setTimeout(() => setSuccess(""), 3000);
       } else {
         setError(data.message || "Failed to update profile.");
       }
@@ -92,16 +107,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="bg-[#f5f5f5]  font-space-grotesk  min-h-screen py-8 px-4">
+    <main className="bg-[#f5f5f5] font-space-grotesk min-h-screen py-8 px-4">
       <div className="max-w-[1400px] mx-auto">
-        {/* Page Title */}
         <h1 className="text-3xl font-black text-black mb-8 tracking-tight">
           YOUR ACCOUNT
         </h1>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Personal Information Card */}
           <div className="lg:col-span-2 bg-white rounded-lg pt-4 px-8 pb-8">
             <h2 className="text-right text-[20px] text-[#F0B31E] font-medium tracking-wider mb-8">
               PERSONAL INFORMATION
@@ -121,7 +133,6 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* First Name */}
                 <div>
                   <label className="block text-xs font-bold text-black mb-2 tracking-wide">
                     FIRST NAME
@@ -138,7 +149,6 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                {/* Last Name */}
                 <div>
                   <label className="block text-xs font-bold text-black mb-2 tracking-wide">
                     LAST NAME
@@ -157,7 +167,6 @@ export default function ProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Email Address */}
                 <div>
                   <label className="block text-xs font-bold text-black mb-2 tracking-wide">
                     EMAIL ADDRESS
@@ -170,7 +179,6 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                {/* Phone Number */}
                 <div>
                   <label className="block text-xs font-bold text-black mb-2 tracking-wide">
                     PHONE NUMBER
@@ -187,7 +195,6 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Edit/Save Button */}
               <div className="flex justify-end">
                 {isEditing ? (
                   <div className="flex gap-3">
@@ -200,7 +207,7 @@ export default function ProfilePage() {
                           firstName: nameParts[0] || "",
                           lastName: nameParts.slice(1).join(" ") || "",
                           email: user?.email || "",
-                          phone: "",
+                          phone: user?.phone || "",
                         });
                       }}
                       className="px-8 py-2.5 bg-gray-200 hover:bg-gray-300 text-black rounded-lg font-bold text-sm tracking-wide transition-colors"
@@ -219,7 +226,8 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className=" w-[120px] h-[42px] cursor-pointer hover:bg-[#FFDFB9] rounded-[8px] opacity-100 border border-[#FADAB9] bg-[#FFEFD6] shadow-[0_0_0_1px_#FFDFB9,0_0_0_3px_#FFF,0_0_0_5px_#FFDFB9]" >
+                    className="w-[120px] h-[42px] cursor-pointer hover:bg-[#FFDFB9] rounded-[8px] opacity-100 border border-[#FADAB9] bg-[#FFEFD6] shadow-[0_0_0_1px_#FFDFB9,0_0_0_3px_#FFF,0_0_0_5px_#FFDFB9]"
+                  >
                     EDIT
                   </button>
                 )}
@@ -227,10 +235,8 @@ export default function ProfilePage() {
             </form>
           </div>
 
-          {/* Order Summary Card */}
           <div>
-
-            <div className="bg-white rounded-[20px]  pt-4 px-8 pb-8">
+            <div className="bg-white rounded-[20px] pt-4 px-8 pb-8">
               <h2 className="text-right text-[#F0B31E] font-medium text-[20px] tracking-wider mb-8">
                 ORDER SUMMARY
               </h2>
@@ -241,7 +247,7 @@ export default function ProfilePage() {
                     TOTAL SPENT
                   </p>
                   <p className="text-3xl font-black text-black">
-                    ₹ {orderSummary.totalSpent.toLocaleString()}
+                    ₹ {Number(profileData?.stats?.totalSpent || 0).toLocaleString()}
                   </p>
                 </div>
 
@@ -250,52 +256,42 @@ export default function ProfilePage() {
                     TOTAL ORDERS
                   </p>
                   <p className="text-3xl font-black text-black">
-                    {orderSummary.totalOrders}
+                    {profileData?.stats?.totalOrders || 0}
                   </p>
                 </div>
               </div>
             </div>
-            {/* Address Section */}
+
             <div className="bg-white rounded-[20px] mt-4 pt-4 px-8 pb-8">
               <h3 className="text-right text-[#F0B31E] font-medium text-[20px] tracking-wider mb-6">
                 ADDRESS
               </h3>
               <div className="space-y-4 font-inter mb-4">
-                {addresses.map((address, index) => (
-                  <p key={index} className="text-sm text-black font-medium">
-                    {address}
-                    <hr className="border-gray-200 my-4" />
-                  </p>
+                {addresses.slice(0, 3).map((addr, index) => (
+                  <div key={addr.id}>
+                    <p className="text-sm text-black font-medium">
+                      {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
+                    </p>
+                    {index < Math.min(addresses.length - 1, 2) && <hr className="border-gray-200 my-4" />}
+                  </div>
                 ))}
               </div>
-              <button className="w-full text-[#F0B31E] font-medium text-[16px] tracking-wide hover:text-[#b8873d] transition-colors">
+              <button onClick={() => router.push("/cart/address")} className="w-full text-[#F0B31E] font-medium text-[16px] tracking-wide hover:text-[#b8873d] transition-colors">
                 ADD NEW +
               </button>
             </div>
           </div>
-
         </div>
 
-        {/* Menu Section */}
         <div>
           <h2 className="text-3xl font-black text-black mb-6 tracking-tight">
-            MENU
+            My Orders
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* My Orders Card */}
-            <button className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors">
-              <h3 className="text-2xl font-black text-black tracking-tight">
-                MY ORDERS
-              </h3>
-            </button>
-
-            {/* Wishlist Card */}
-            <button className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors">
-              <h3 className="text-2xl font-black text-black tracking-tight">
-                WISHLIST
-              </h3>
-            </button>
+            <h3 className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors text-2xl font-black text-black tracking-tight">
+              MY ORDERS
+            </h3>
           </div>
         </div>
       </div>
