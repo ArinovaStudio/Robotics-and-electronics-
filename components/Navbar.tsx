@@ -408,17 +408,17 @@ export default function Navbar() {
             <div className="w-10 h-10" />
           ) : (
             <div className="flex items-center gap-3">
-              <Link
+              {/* <Link
                 href="/login"
                 className="text-sm font-medium text-[#434343] hover:text-[#f0b31e] transition-colors"
               >
                 Login
-              </Link>
+              </Link> */}
               <Link
-                href="/register"
+                href="/login"
                 className="text-sm font-semibold bg-[#f0b31e] hover:bg-[#e6a700] text-white px-4 py-2 rounded-full transition-colors"
               >
-                Sign Up
+                Login
               </Link>
             </div>
           )}
