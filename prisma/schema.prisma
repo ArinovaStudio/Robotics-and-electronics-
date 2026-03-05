@@ -336,6 +336,7 @@ model Review {
   id String @id @default(cuid())
   rating Int
   comment String? @db.Text
+  images String[] @default([])
   isVerifiedPurchase Boolean @default(false)
   userId String
   productId String
@@ -345,7 +346,6 @@ model Review {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, productId])
   @@index([productId])
   @@index([userId])
 }

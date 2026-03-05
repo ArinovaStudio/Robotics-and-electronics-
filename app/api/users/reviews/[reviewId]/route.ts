@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
-import { z } from "zod";
+import { deleteFile, uploadMultipleFiles } from "@/lib/upload";
 
 export async function GET( req: NextRequest, { params }: { params: Promise<{ reviewId: string }> }) {
   try {
@@ -29,11 +29,6 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ rev
   }
 }
 
-const updateReviewSchema = z.object({
-  rating: z.number().min(1).max(5).optional(),
-  comment: z.string().max(1000).optional(),
-});
-
 export async function PUT( req: NextRequest, { params }: { params: Promise<{ reviewId: string }> }) {
   try {
     const user = await getUser();
@@ -42,14 +37,12 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ rev
     }
 
     const { reviewId } = await params;
-    const body = await req.json();
-    
-    const validation = updateReviewSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
-    }
+    const formData = await req.formData();
 
-    const { rating, comment } = validation.data;
+    const ratingStr = formData.get("rating") as string | null;
+    const comment = formData.get("comment") as string | null;
+    const existingImages = formData.getAll("existingImages") as string[]; 
+    const newImageFiles = formData.getAll("newImages") as File[];
 
     const existingReview = await prisma.review.findFirst({ where: { id: reviewId, userId: user.id }});
 
@@ -57,11 +50,29 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ rev
       return NextResponse.json({ success: false, message: "Review not found or unauthorized" }, { status: 404 });
     }
 
+    const imagesToDelete = existingReview.images.filter(imgUrl => !existingImages.includes(imgUrl));
+
+    for (const url of imagesToDelete) {
+      await deleteFile(url);
+    }
+
+    let newImageUrls: string[] = [];
+    if (newImageFiles && newImageFiles.length > 0) {
+      const validFiles = newImageFiles.filter(file => file.size > 0);
+      if (validFiles.length > 0) {
+        const uploadedFiles = await uploadMultipleFiles(validFiles, "reviews");
+        newImageUrls = uploadedFiles.map(file => file.path);
+      }
+    }
+
+    const finalImages = [...existingImages, ...newImageUrls];
+
     await prisma.review.update({
       where: { id: reviewId },
       data: {
-        rating: rating !== undefined ? rating : existingReview.rating,
-        comment: comment !== undefined ? comment : existingReview.comment,
+        rating: ratingStr ? parseInt(ratingStr) : existingReview.rating,
+        comment: comment !== null ? comment : existingReview.comment,
+        images: finalImages,
       }
     });
 
@@ -85,6 +96,12 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
 
     if (!existingReview) {
       return NextResponse.json({ success: false, message: "Review not found or unauthorized" }, { status: 404 });
+    }
+
+    if (existingReview.images && existingReview.images.length > 0) {
+      for (const url of existingReview.images) {
+        await deleteFile(url);
+      }
     }
 
     await prisma.review.delete({ where: { id: reviewId } });

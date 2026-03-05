@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
-import { z } from "zod";
-
-const createReviewSchema = z.object({
-  productId: z.string().min(1, "Product ID is required"),
-  rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating cannot exceed 5"),
-  comment: z.string().max(1000, "Comment is too long").optional(),
-});
+import { uploadMultipleFiles } from "@/lib/upload";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,24 +10,24 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const validation = createReviewSchema.safeParse(body);
-    
-    if (!validation.success) {
-      return NextResponse.json({ success: false, message: "Validation Errors", error: validation.error.issues[0].message }, { status: 400 });
+    const formData = await request.formData();
+    const productId = formData.get("productId") as string;
+    const ratingStr = formData.get("rating") as string;
+    const comment = formData.get("comment") as string | null;
+    const imageFiles = formData.getAll("images") as File[];
+
+    if (!productId || !ratingStr) {
+      return NextResponse.json({ success: false, message: "Product ID and rating are required" }, { status: 400 });
     }
 
-    const { productId, rating, comment } = validation.data;
+    const rating = parseInt(ratingStr, 10);
+    if (isNaN(rating) || rating < 1 || rating > 5) {
+      return NextResponse.json({ success: false, message: "Rating must be a number between 1 and 5" }, { status: 400 });
+    }
 
-    const existingReview = await prisma.review.findFirst({ 
-      where: { 
-        userId: user.id, 
-        productId 
-      }
-    });
-
-    if (existingReview) {
-      return NextResponse.json({ success: false, message: "Review already exists" }, { status: 400 });
+    const userReviewCount = await prisma.review.count({ where: { userId: user.id, productId } });
+    if (userReviewCount >= 3) {
+      return NextResponse.json({ success: false, message: "You have reached the maximum limit of 3 reviews" }, { status: 400 });
     }
 
     const hasBought = await prisma.orderItem.findFirst({
@@ -46,10 +40,25 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    let imageUrls: string[] = [];
+    if (imageFiles && imageFiles.length > 0) {
+      try {
+        const validFiles = imageFiles.filter((file: any) => file.size > 0);
+        
+        if (validFiles.length > 0) {
+          const uploadedFiles = await uploadMultipleFiles(validFiles, "reviews");
+          imageUrls = uploadedFiles.map((file: any) => file.path);
+        }
+      } catch {
+        return NextResponse.json({ success: false, message: "Failed to upload images" }, { status: 400 });
+      }
+    }
+
     await prisma.review.create({
       data: {
         rating,
         comment,
+        images: imageUrls,
         isVerifiedPurchase: !!hasBought,
         userId: user.id,
         productId,
@@ -58,8 +67,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Review created successfully" }, { status: 201 });
 
-  } catch (error: any) {
-    console.error("Review creation error:", error);
-    return NextResponse.json({ success: false, message: error.message || "Internal server error" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

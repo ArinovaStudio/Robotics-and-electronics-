@@ -37,6 +37,7 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ pro
         rating: r.rating,
         comment: r.comment,
         isVerifiedPurchase: r.isVerifiedPurchase,
+        images: r.images,
         createdAt: r.createdAt,
         user: { name: r.user?.name, image: r.user?.image }
       };
