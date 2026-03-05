@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Loader2, CheckCircle2  } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export default function VerifyOTPPage() {
+function VerifyOTPForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -207,5 +207,17 @@ export default function VerifyOTPPage() {
         &copy; {new Date().getFullYear()} Electronics Store
       </p>
     </div>
+  );
+}
+
+export default function VerifyOTPPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex justify-center items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#f0b31e]" />
+      </div>
+    }>
+      <VerifyOTPForm />
+    </Suspense>
   );
 }

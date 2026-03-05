@@ -26,8 +26,8 @@ export default function ReviewModal({
       setRating(5);
       setComment("");
       onClose();
-    } catch (error) {
-      alert("Failed to submit review");
+    } catch (error: any) {
+      alert(error?.message || "Failed to submit review");
     } finally {
       setSubmitting(false);
     }

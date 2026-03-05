@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -235,5 +235,17 @@ export default function ResetPasswordPage() {
         &copy; {new Date().getFullYear()} Electronics Store
       </p>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex justify-center items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#f0b31e]" />
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSession, signIn } from "next-auth/react";
@@ -252,6 +252,12 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex justify-center items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#f0b31e]" />
+      </div>
+    }>
       <LoginForm />
+    </Suspense>
   );
 }

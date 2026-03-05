@@ -15,6 +15,7 @@ interface User {
   email: string;
   role?: string;
   image?: string;
+  phone?: string;
 }
 
 interface AuthContextType {
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user");
       document.cookie = "auth_token=; path=/; max-age=0";
-      window.location.href = "/";
+      window.location.href = "/login";
     } else if (authMethod === "nextauth") {
       // NextAuth logout
       await nextAuthSignOut({ callbackUrl: "/" });

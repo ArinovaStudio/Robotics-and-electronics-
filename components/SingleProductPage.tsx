@@ -45,8 +45,8 @@ type APIProduct = {
   description: string;
   imageLink: string;
   additionalImageLinks: string[];
-  price: { value: number; currency: string };
-  salePrice: { value: number; currency: string } | null;
+  price: number;
+  salePrice: number | null;
   link: string;
   productHighlights: string[];
   availability: string;
@@ -229,16 +229,13 @@ export default function SingleProductPage({
   ].filter(Boolean);
 
   let discountPct = 0;
-  if (product.salePrice && product.price.value > product.salePrice.value) {
+  if (product.salePrice && product.price > product.salePrice) {
     discountPct = Math.round(
-      ((product.price.value - product.salePrice.value) / product.price.value) *
-      100,
+      ((product.price - product.salePrice) / product.price) * 100,
     );
   }
 
-  const currentPrice = product.salePrice
-    ? product.salePrice
-    : product.price;
+  const currentPrice = product.salePrice ? product.salePrice : product.price;
 
   return (
     <div className="bg-white min-h-screen font-sans">
@@ -315,7 +312,7 @@ export default function SingleProductPage({
               </span>
               {discountPct > 0 && (
                 <span className="text-[#9ca3af] text-xl font-bold line-through">
-                  ₹{product.price.value}
+                  ₹{product.price}
                 </span>
               )}
               {discountPct > 0 && (

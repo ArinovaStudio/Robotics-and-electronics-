@@ -1,4 +1,4 @@
-import prisma from "@/app/lib/db";
+import prisma from "@/lib/prisma";
 import { Role, OrderStatus, PaymentStatus } from "@prisma/client";
 import { hash } from "bcryptjs";
 
@@ -16,8 +16,6 @@ async function main() {
     create: {
       name: "Admin User",
       email: "admin@gmail.com",
-      name: 'Admin User',
-      email: 'admin@gmail.com',
       password: hashedPassword,
       role: Role.ADMIN,
       emailVerified: new Date(),
@@ -26,7 +24,6 @@ async function main() {
   });
   console.log(`Admin user created: ${admin.email}`);
 
-  console.log("\nCreating customer users...");
   const users = [];
   
   for (let i = 1; i <= 55; i++) {
@@ -61,10 +58,6 @@ async function main() {
   // Get all products
   const products = await prisma.product.findMany({ where: { isActive: true } });
   if (products.length === 0) {
-    console.log("No products found. Skipping order creation.");
-    console.log(`Email: admin@gmail.com`);
-    console.log(`Password: password123 (for all users)`);
-    console.log("\nSeeding completed successfully!");
     return;
   }
 

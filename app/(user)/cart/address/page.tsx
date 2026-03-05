@@ -357,12 +357,12 @@ export default function AddressPage() {
                         <div className="space-y-2 text-sm mb-4">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Total MRP</span>
-                                <span className="text-gray-800">₹{totals.subtotal.toFixed(2)}</span>
+                                <span className="text-gray-800">₹{Number(totals.subtotal).toFixed(2)}</span>
                             </div>
-                            {totals.totalSavings > 0 && (
+                            {Number(totals.totalSavings) > 0 && (
                                 <div className="flex justify-between text-green-600">
                                     <span>Discount on MRP</span>
-                                    <span>-₹{totals.totalSavings.toFixed(2)}</span>
+                                    <span>-₹{Number(totals.totalSavings).toFixed(2)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between">
