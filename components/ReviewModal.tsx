@@ -162,9 +162,9 @@ export default function ReviewModal({
 
           {/* Image Upload Section */}
           <div>
-            <label className="block text-sm font-bold text-gray-800 mb-2">
+            {/* <label className="block text-sm font-bold text-gray-800 mb-2">
               Add Photos <span className="text-gray-400 font-medium text-xs">(Optional, Max 5)</span>
-            </label>
+            </label> */}
             
             <div className="flex flex-wrap gap-3">
               {/* Existing Images (for edit mode) */}

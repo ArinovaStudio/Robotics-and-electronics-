@@ -1,9 +1,21 @@
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"; 
 import StarRating from "./StarRating";
 
-export default function ReviewCard({ review }: { review: any }) {
+interface ReviewCardProps {
+  review: any; 
+  isOwnReview?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}
+
+export default function ReviewCard({ 
+  review,
+  isOwnReview, 
+  onEdit, 
+  onDelete
+ }: ReviewCardProps) {
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
   const hasImages = review.images && review.images.length > 0;
@@ -20,7 +32,20 @@ export default function ReviewCard({ review }: { review: any }) {
   };
 
   return (
-    <div className="bg-white border border-[#e8e8e8] rounded-2xl p-5 flex flex-col gap-3">
+    <div className="bg-white border border-[#e8e8e8] rounded-2xl p-5 flex flex-col gap-3 relative group">
+      
+      {/* Edit & Delete Action Buttons */}
+      {isOwnReview && (
+        <div className="absolute top-4 right-4 flex gap-2">
+          <button onClick={onEdit} className="p-1.5 bg-gray-100 hover:bg-[#f0b31e] hover:text-white rounded-md text-gray-600 transition-colors">
+            <Pencil size={14} />
+          </button>
+          <button onClick={onDelete} className="p-1.5 bg-gray-100 hover:bg-red-500 hover:text-white rounded-md text-gray-600 transition-colors">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Star Rating */}
       <div className="flex items-center justify-between">
         <StarRating rating={review.rating} size={18} />

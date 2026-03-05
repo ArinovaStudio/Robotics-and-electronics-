@@ -101,17 +101,20 @@ export default function SingleProductPage({
   const [faqs, setFaqs] = useState<{id:string, question:string, answer:string}[]>([]);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [newReview, setNewReview] = useState({ rating: 5, comment: "" });
-  const [submittingReview, setSubmittingReview] = useState(false);
   const router = useRouter();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
-  const [userReview, setUserReview] = useState<any | null>(null);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  
+  const [userReviews, setUserReviews] = useState<any[]>([]);
+  const [showMyReviews, setShowMyReviews] = useState(false);
+  const [editingReview, setEditingReview] = useState<any>(null);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -158,12 +161,65 @@ export default function SingleProductPage({
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
     
-    const reviewRes = await fetch(`/api/products/${product.id}/reviews`);
+    const [reviewRes, userRevRes] = await Promise.all([
+      fetch(`/api/products/${product.id}/reviews?page=1&limit=6`),
+      fetch(`/api/users/reviews?productId=${product.id}`)
+    ]);
+
     const reviewData = await reviewRes.json();
+    const userRevData = await userRevRes.json();
+
     if (reviewData.success) {
       setReviews(reviewData.data.reviews || []);
       setAverageRating(reviewData.data.averageRating || 0);
       setTotalReviews(reviewData.data.total || 0);
+    }
+
+    if (userRevData.success) {
+      const reviewsWithUserAttached = (userRevData.data.reviews || []).map((r: any) => ({
+        ...r,
+        user: { name: user?.name || "Me" }
+      }));
+      setUserReviews(reviewsWithUserAttached);
+    }
+  };
+
+  const loadMoreReviews = async () => {
+    if (reviewsLoading) return;
+    setReviewsLoading(true);
+    const nextPage = reviewPage + 1;
+    
+    try {
+      const res = await fetch(`/api/products/${product.id}/reviews?page=${nextPage}&limit=6`);
+      const data = await res.json();
+      if (data.success) {
+        setReviews((prev) => [...prev, ...data.data.reviews]);
+        setReviewPage(nextPage);
+        setHasMoreReviews(data.data.hasMore);
+        setHasMoreReviews(data.data.page < data.data.totalPages);
+      }
+    } catch (err) {
+      console.error("Failed to load more", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+    try {
+      const res = await fetch(`/api/users/reviews/${reviewId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setUserReviews((prev) => prev.filter(r => r.id !== reviewId));
+        setReviews((prev) => prev.filter(r => r.id !== reviewId));
+        setTotalReviews((prev) => prev - 1);
+        if (userReviews.length === 1) setShowMyReviews(false); 
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert("Failed to delete review");
     }
   };
 
@@ -175,7 +231,7 @@ export default function SingleProductPage({
         const [similarRes, faqRes, reviewRes] = await Promise.all([
           fetch(`/api/products/${product.id}/similar?limit=4`),
           fetch(`/api/products/${product.id}/faqs`),
-          fetch(`/api/products/${product.id}/reviews`)
+          fetch(`/api/products/${product.id}/reviews?page=1&limit=6`)
         ]);
         const similarData = await similarRes.json();
         const faqData = await faqRes.json();
@@ -186,7 +242,22 @@ export default function SingleProductPage({
           setReviews(reviewData.data.reviews || []);
           setAverageRating(reviewData.data.averageRating || 0);
           setTotalReviews(reviewData.data.total || 0);
+          setHasMoreReviews(reviewData.data.hasMore || false);
+          setHasMoreReviews(reviewData.data.page < reviewData.data.totalPages);
         }
+
+        if (isAuthenticated) {
+          const userRevRes = await fetch(`/api/users/reviews?productId=${product.id}`);
+          const userRevData = await userRevRes.json();
+          if (userRevData.success) {
+            const reviewsWithUserAttached = (userRevData.data.reviews || []).map((r: any) => ({
+              ...r,
+              user: { name: user?.name || "Me" }
+            }));
+            setUserReviews(reviewsWithUserAttached);
+          }
+        }
+
       } catch (err) {
         console.error("Failed to load data", err);
       }
@@ -431,42 +502,86 @@ export default function SingleProductPage({
           {/* ── Rating & Reviews ── */}
           {activeTab === "reviews" && (
             <div className="mt-8">
+              
+              {/* Header & Buttons */}
               <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:justify-between mb-8">
                 <h2 className="text-[#050a30] text-2xl font-extrabold">
-                  All Reviews
-                  <span className="text-[#9ca3af] text-lg font-semibold ml-2">({totalReviews})</span>
+                  {showMyReviews ? "My Reviews" : "All Reviews"}
+                  <span className="text-[#9ca3af] text-lg font-semibold ml-2">
+                    ({showMyReviews ? userReviews.length : totalReviews})
+                  </span>
                 </h2>
-                <button 
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      router.push(`/login?callbackUrl=/products/${product.link}`);
-                      return;
-                    }
-                    setShowReviewModal(true);
-                  }}
-                  className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all"
-                >
-                  Write a Review
-                </button>
+                
+                <div className="flex gap-3 w-full md:w-auto">
+                  {/* Toggle My Reviews Button */}
+                  {userReviews.length > 0 && (
+                    <button 
+                      onClick={() => setShowMyReviews(!showMyReviews)}
+                      className="flex-1 md:flex-none justify-center bg-white border-2 border-[#050a30] text-[#050a30] text-sm font-bold px-6 py-[10px] rounded-full hover:bg-gray-50 transition-all"
+                    >
+                      {showMyReviews ? "Show All Reviews" : "My Reviews"}
+                    </button>
+                  )}
+                  
+                  {/* Write a Review Button */}
+                  <button 
+                    onClick={() => {
+                      if (!isAuthenticated) return router.push(`/login?callbackUrl=/products/${product.link}`);
+                      setEditingReview(null); // Ensure modal opens fresh
+                      setShowReviewModal(true);
+                    }}
+                    className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all"
+                  >
+                    Write a Review
+                  </button>
+                </div>
               </div>
 
-              {reviews.length > 0 ? (
-                <div className="grid md:grid-cols-2 gap-5">
-                  {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
-                  ))}
-                </div>
-              ) : (
+              {/* Render the Reviews Grid */}
+              <div className="grid md:grid-cols-2 gap-5">
+                {(showMyReviews ? userReviews : reviews).map((review) => (
+                  <ReviewCard 
+                    key={review.id} 
+                    review={review} 
+                    isOwnReview={showMyReviews || review.userId === user?.id} // Add this check!
+                    onEdit={() => {
+                      setEditingReview(review);
+                      setShowReviewModal(true);
+                    }}
+                    onDelete={() => handleDeleteReview(review.id)}
+                  />
+                ))}
+              </div>
+
+              {(!reviews.length && !showMyReviews) && (
                 <p className="text-center text-gray-500 py-10">No reviews yet. Be the first to review!</p>
+              )}
+
+              {/* Load More Button */}
+              {!showMyReviews && hasMoreReviews && (
+                <div className="mt-8 flex justify-center">
+                  <button 
+                    onClick={loadMoreReviews} 
+                    disabled={reviewsLoading}
+                    className="px-8 py-3 border-2 border-gray-200 rounded-full text-sm font-bold text-[#050a30] hover:border-[#050a30] transition-all disabled:opacity-50"
+                  >
+                    {reviewsLoading ? <Loader2 className="animate-spin inline mr-2" size={16}/> : null}
+                    {reviewsLoading ? "Loading..." : "Load More Reviews"}
+                  </button>
+                </div>
               )}
             </div>
           )}
 
           <ReviewModal 
             isOpen={showReviewModal}
-            onClose={() => setShowReviewModal(false)}
+            onClose={() => {
+              setShowReviewModal(false);
+              setEditingReview(null); 
+            }}
             onSubmit={handleSubmitReview}
             productId={product.id}
+            initialData={editingReview} 
           />
 
           {/* ── FAQs ── */}

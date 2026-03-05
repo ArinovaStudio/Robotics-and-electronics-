@@ -3,6 +3,33 @@ import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
 import { uploadMultipleFiles } from "@/lib/upload";
 
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getUser();
+    if (!user){
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const productId = request.nextUrl.searchParams.get("productId");
+
+    const reviews = await prisma.review.findMany({
+      where: { 
+        userId: user.id,
+        ...(productId ? { productId } : {}) 
+      },
+      orderBy: { createdAt: "desc" },
+      include: { 
+        product: { select: { id: true, title: true, imageLink: true } },
+        user: { select: { name: true } }
+       }
+    });
+
+    return NextResponse.json({ success: true, data: { reviews } }, { status: 200 });
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
