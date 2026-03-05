@@ -308,16 +308,16 @@ export default function SingleProductPage({
 
             <div className="flex items-center gap-3 mb-4">
               <span className="text-[#050a30] text-[28px] font-extrabold">
-                ₹{currentPrice}
+                ₹{Number(currentPrice).toFixed(2)}
               </span>
               {discountPct > 0 && (
                 <span className="text-[#9ca3af] text-xl font-bold line-through">
-                  ₹{product.price}
+                  ₹{Number(product.price).toFixed(2)}
                 </span>
               )}
               {discountPct > 0 && (
                 <span className="bg-[#ffe5e5] text-[#ff4d4d] text-sm font-bold px-3 py-[5px] rounded-md">
-                  -{discountPct}% OFF
+                  -{Number(discountPct).toFixed(0)}% OFF
                 </span>
               )}
             </div>
@@ -595,12 +595,12 @@ export default function SingleProductPage({
                       <div className="flex items-baseline font-inter gap-2.5 mt-auto">
                         <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
                           <span className="text-[#F0B31E] text-[28px]">
-                            ₹{p.salePrice ? p.salePrice : p.price || 0}
+                            ₹{Number(p.salePrice ? p.salePrice : p.price || 0).toFixed(2)}
                           </span>
                         </span>
                           {p.salePrice && p.salePrice < p.price && (
                             <span className="text-[16px] font-medium text-gray-300 line-through">
-                            ₹{p.price}
+                            ₹{Number(p.price).toFixed(2)}
                           </span>
 
                         )}
