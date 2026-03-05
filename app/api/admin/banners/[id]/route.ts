@@ -31,9 +31,10 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const {id} = await params;
     const admin = await getAdminUser();
     if (!admin) {
       return NextResponse.json(
@@ -41,14 +42,28 @@ export async function PUT(
         { status: 401 }
       );
     }
-    const body = await req.json();
-
+    const body = await req.formData();
+    const title = body.get("title") as string;
+    const image = body.get("image") as any;
+    if (!image) {
+      throw Error("Image is Required");
+    }
+    if (!id) {
+      throw Error("Id is Required");
+    }
+    const data: any = {};
+    let Image = null;
+    if(title){
+      data.title=title;
+    }
+    if(image instanceof File){
+      data.image = await uploadFile(image);
+    }
     const banner = await prisma.banner.update({
-      where: { id: params.id },
-      data: {
-        title: body.title,
-        image: body.image,
-      },
+      where:{
+        id
+      },  
+      data: data
     });
 
     return NextResponse.json({
@@ -56,7 +71,8 @@ export async function PUT(
       message: "Banner updated successfully",
       data: banner,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     return NextResponse.json(
       {
         success: false,
@@ -70,9 +86,10 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const admin = await getAdminUser();
     if (!admin) {
       return NextResponse.json(
@@ -81,7 +98,7 @@ export async function DELETE(
       );
     }
     await prisma.banner.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({

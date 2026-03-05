@@ -22,11 +22,31 @@ export default function BannerPage() {
       const url = `/api/admin/banners${mode === "edit" ? `/${data.id}` : ""}`;
       const method = mode === "create" ? "POST" : "PUT";
       const formData = new FormData();
-      formData.append("title",data.title);
-      formData.append("image",data.image);
+      formData.append("title", data.title);
+      formData.append("image", data.image);
       const request = await fetch(url, {
         method: method,
         body: formData,
+      });
+      const response = await request.json();
+      if (!response.success) {
+        throw Error(response.message);
+      }
+      mutate();
+    } catch (error: any) {
+      console.log(error.message);
+    } finally {
+      setPending(false);
+    }
+  };
+  const deleteItem = async (id: string) => {
+    try {
+      // console.log(data);
+      setPending(true);
+      const url = `/api/admin/banners/${id}`;
+      const method = "DELETE";
+      const request = await fetch(url, {
+        method: method,
       });
       const response = await request.json();
       if (!response.success) {
@@ -60,7 +80,13 @@ export default function BannerPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {banners.map((banner: any) => (
-            <BannerCard banner={banner} />
+            <BannerCard
+              onDelete={deleteItem}
+              pending={pending}
+              onSubmit={upsertItem}
+              key={banner.id}
+              banner={banner}
+            />
           ))}
         </div>
       )}

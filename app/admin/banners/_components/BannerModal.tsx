@@ -69,7 +69,6 @@ export default function BannerModal({ loading, banner, children ,onSubmit,mode}:
           <div className="space-y-2">
             <Label>Select Image</Label>
             <Input
-              placeholder="https://example.com/banner.jpg"
               type="file"
               onChange={(e) =>{
                 const file = e?.target?.files?.[0]!;
@@ -80,13 +79,13 @@ export default function BannerModal({ loading, banner, children ,onSubmit,mode}:
             />
           </div>
 
-          {image && (
+          {/* {image && (
             <img
               src={image}
               alt="preview"
               className="rounded-md h-40 w-full object-cover"
             />
-          )}
+          )} */}
 
         </div>
 
@@ -99,8 +98,9 @@ export default function BannerModal({ loading, banner, children ,onSubmit,mode}:
           </Button>
 
           <Button
-            onClick={()=>{
-              onSubmit({title,image},mode);
+            onClick={async ()=>{
+              await onSubmit({...(banner ?? {}),title,image},mode);
+              setOpen(false);
             }}
             disabled={loading}
           >
