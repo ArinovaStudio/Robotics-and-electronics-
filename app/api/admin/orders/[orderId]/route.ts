@@ -36,20 +36,7 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ ord
       return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
     }
 
-    const formattedOrder = {
-      ...order,
-      subtotal: order.subtotal.toString(),
-      shippingCost: order.shippingCost.toString(),
-      taxAmount: order.taxAmount.toString(),
-      discount: order.discount.toString(),
-      totalAmount: order.totalAmount.toString(),
-      items: order.items.map((item) => ({
-        ...item,
-        priceAtPurchase: item.priceAtPurchase.toString(),
-      })),
-    };
-
-    return NextResponse.json({ success: true, data: formattedOrder });
+    return NextResponse.json({ success: true, data: order }, { status: 200 });
 
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });

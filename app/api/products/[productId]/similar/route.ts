@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     });
 
     if (!product) {
-      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
+      return NextResponse.json({ success: false, message: "Product not found--" }, { status: 404 });
     }
 
     const priceValue = (product.price as any)?.value || 0;

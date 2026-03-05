@@ -38,6 +38,7 @@ import Link from "next/link";
 import { Star, ShoppingCart, Loader2, Check } from "lucide-react";
 import { useCart, useAuth } from "@/app/contexts";
 import ReviewModal from "@/components/ReviewModal";
+import ReviewCard from "./ReviewCard";
 
 type APIProduct = {
   id: string;
@@ -85,35 +86,6 @@ function StarRating({ rating, size = 20 }: { rating: number; size?: number }) {
   );
 }
 
-// ─── Review Card ─────────────────────────────────────────────────
-function ReviewCard({ review }: { review: any }) {
-  return (
-    <div className="bg-white border border-[#e8e8e8] rounded-2xl p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <StarRating rating={review.rating} size={18} />
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-[#050a30] text-sm font-extrabold">
-          {review.user?.name || "Anonymous"}
-        </span>
-        {review.isVerifiedPurchase && (
-          <span className="inline-flex items-center justify-center w-[18px] h-[18px] bg-[#22c55e] rounded-full shrink-0">
-            <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-              <path d="M1 3.5L3.2 6L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        )}
-      </div>
-      {review.comment && (
-        <p className="text-[#434343] text-[13px] leading-relaxed">{review.comment}</p>
-      )}
-      <p className="text-[#9ca3af] text-xs font-semibold">
-        {new Date(review.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-      </p>
-    </div>
-  );
-}
-
 // ─── Main Component ───────────────────────────────────────────────
 export default function SingleProductPage({
   product,
@@ -138,6 +110,8 @@ export default function SingleProductPage({
   const router = useRouter();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+
+  const [userReview, setUserReview] = useState<any | null>(null);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -172,12 +146,15 @@ export default function SingleProductPage({
     }
   };
 
-  const handleSubmitReview = async (rating: number, comment: string) => {
-    const res = await fetch("/api/users/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId: product.id, rating, comment }),
+  const handleSubmitReview = async (formData: FormData, reviewId?: string) => {
+    const url = reviewId ? `/api/users/reviews/${reviewId}` : "/api/users/reviews";
+    const method = reviewId ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      body: formData, 
     });
+    
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
     
@@ -196,7 +173,7 @@ export default function SingleProductPage({
       if (!product?.id) return;
       try {
         const [similarRes, faqRes, reviewRes] = await Promise.all([
-          fetch(`/api/products/similar-products?productId=${product.id}&limit=4`),
+          fetch(`/api/products/${product.id}/similar?limit=4`),
           fetch(`/api/products/${product.id}/faqs`),
           fetch(`/api/products/${product.id}/reviews`)
         ]);
