@@ -1,6 +1,7 @@
 "use client";
 import { FaTwitter, FaFacebookF, FaInstagram, FaGithub } from "react-icons/fa";
 import Image from "next/image";
+import { SITE_NAME, YEAR } from "@/lib/constants";
 
 export default function Footer() {
   return (
@@ -9,8 +10,8 @@ export default function Footer() {
         {/* Left: Logo and Social */}
         <div className="flex-[1.2] flex flex-col gap-6 pr-10">
           <div>
-            <div className="text-5xl font-semibold tracking-tight text-[#111] mb-4">
-              LOGO
+            <div className="text-5xl uppercase font-semibold tracking-tight text-[#111] mb-4">
+             {SITE_NAME}
             </div>
             <p className="text-sm text-[#555] max-w-[260px] leading-relaxed">
               We have parts that suits your electronics and which you're proud
@@ -101,8 +102,8 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="max-w-[1400px] mx-auto mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-[#666]">
-          Shop.co © 2000-2023, All Rights Reserved
+        <div className="text-sm uppercase text-[#666]">
+          {SITE_NAME} © {YEAR}, All Rights Reserved
         </div>
         <div>
           <Image

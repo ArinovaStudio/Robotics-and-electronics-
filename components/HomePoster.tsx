@@ -5,7 +5,7 @@ import { Dot, Ellipsis } from "lucide-react";
 export default function HomePoster() {
   return (
     <section className="w-full flex justify-center items-center mt-8">
-      <div className="w-[95vw] h-[380px] bg-[#eaf4ff] rounded-4xl flex items-center justify-center overflow-hidden">
+      <div className="w-[95vw] relative h-[380px] bg-[#eaf4ff] rounded-4xl flex items-center justify-center overflow-hidden">
         <Image
           src="/homeposter.png"
           alt="Electronics Store Poster"
@@ -17,7 +17,8 @@ export default function HomePoster() {
         <div
           className="
     absolute
-    bottom-50 right-20
+    bottom-2
+    
     flex items-center gap-3
     px-4 py-2
     rounded-full

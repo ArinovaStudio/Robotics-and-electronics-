@@ -349,3 +349,9 @@ model Review {
   @@index([productId])
   @@index([userId])
 }
+
+model Banner{
+  id String @unique @default(uuid())
+  title String
+  image String
+}

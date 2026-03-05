@@ -7,7 +7,8 @@ import {
     LogOutIcon,
     Box,
     FolderTree,
-    X
+    X,
+    Images
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
@@ -19,6 +20,7 @@ const navItems = [
     { name: "Products", icon: Box, href: "/admin/products" },
     { name: "Categories", icon: FolderTree, href: "/admin/categories" },
     { name: "Customers", icon: Users, href: "/admin/users" },
+    { name: "Banners", icon: Images, href: "/admin/banners" },
 ];
 
 interface NavbarProps {

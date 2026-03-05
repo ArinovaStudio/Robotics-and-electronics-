@@ -22,10 +22,10 @@ import { signOut } from "next-auth/react";
 type SuggestionProduct = {
   id: string;
   title: string;
-  link?: string; 
-  image: string; 
+  link?: string;
+  image: string;
   price: string;
-  salePrice: string | null; 
+  salePrice: string | null;
   brand: string;
   category: { name: string; slug: string };
 };
@@ -48,11 +48,11 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-        await signOut({ redirect: true, callbackUrl: '/login', });
-        setShowUserMenu(false);
-        await logout();
+      await signOut({ redirect: true, callbackUrl: "/login" });
+      setShowUserMenu(false);
+      await logout();
     } catch (err) {
-        console.error("Logout failed", err);
+      console.error("Logout failed", err);
     }
   };
 
@@ -116,9 +116,7 @@ export default function Navbar() {
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActiveIndex((prev) =>
-        prev < suggestions.length ? prev + 1 : prev
-      );
+      setActiveIndex((prev) => (prev < suggestions.length ? prev + 1 : prev));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIndex((prev) => (prev > -1 ? prev - 1 : -1));
@@ -160,15 +158,19 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="bg-black w-full py-1 text-sm flex items-center justify-between gap-10 relative mb-1 px-4">
-        <p className="text-white font-space-grotesk">GET 50% OFF BLACK FRIDAY SALE</p>
-        <p className="text-[#FFFFFF] text-center">Sign up and get 20% off to your first order.
-          <Link
-            href="/register" className="text-[#FFFFFF] font-semibold underline">
-            <span className="text-[#FFFFFF]">Sign Up Now</span>
+      <div className="bg-black w-full py-2 text-sm flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 px-4 relative mb-1">
+        <p className="text-white font-space-grotesk font-semibold text-center md:text-left">
+          GET 50% OFF BLACK FRIDAY SALE
+        </p>
+
+        <p className="text-white text-center">
+          Sign up and get 20% off to your first order.
+          <Link href="/register" className="ml-1 font-semibold underline">
+            Sign Up Now
           </Link>
         </p>
-        <X className="text-white" />
+
+        <X className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70" />
       </div>
       <nav className="w-full bg-white flex items-center h-16 px-8 relative z-50">
         {/* Logo */}
@@ -195,7 +197,10 @@ export default function Navbar() {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={() => {
-                  if (suggestions.length > 0 && searchQuery.trim().length >= 2) {
+                  if (
+                    suggestions.length > 0 &&
+                    searchQuery.trim().length >= 2
+                  ) {
                     setShowDropdown(true);
                   }
                 }}
@@ -231,18 +236,23 @@ export default function Navbar() {
                     <ul className="py-2">
                       {suggestions.map((product, index) => {
                         const regularPrice = parseFloat(product.price) || 0;
-                        const salePrice = product.salePrice ? parseFloat(product.salePrice) : null;
-                        const displayPrice = salePrice ? salePrice : regularPrice;
+                        const salePrice = product.salePrice
+                          ? parseFloat(product.salePrice)
+                          : null;
+                        const displayPrice = salePrice
+                          ? salePrice
+                          : regularPrice;
 
                         return (
                           <li
                             key={product.id}
                             onClick={() => handleSelectProduct(product)}
                             onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex items-center gap-4 px-5 py-3 cursor-pointer transition-colors ${activeIndex === index
-                              ? "bg-[#fdf6e3]"
-                              : "hover:bg-gray-50"
-                              }`}
+                            className={`flex items-center gap-4 px-5 py-3 cursor-pointer transition-colors ${
+                              activeIndex === index
+                                ? "bg-[#fdf6e3]"
+                                : "hover:bg-gray-50"
+                            }`}
                           >
                             {/* Product image */}
                             <div className="w-12 h-12 bg-[#f8fafd] rounded-xl flex-shrink-0 relative overflow-hidden">
@@ -296,14 +306,17 @@ export default function Navbar() {
                         onClick={() => {
                           setShowDropdown(false);
                           router.push(
-                            `/search?q=${encodeURIComponent(searchQuery.trim())}`
+                            `/search?q=${encodeURIComponent(
+                              searchQuery.trim()
+                            )}`
                           );
                         }}
                         onMouseEnter={() => setActiveIndex(suggestions.length)}
-                        className={`w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold transition-colors ${activeIndex === suggestions.length
-                          ? "bg-[#fdf6e3] text-[#050a30]"
-                          : "text-[#f0b31e] hover:bg-gray-50"
-                          }`}
+                        className={`w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold transition-colors ${
+                          activeIndex === suggestions.length
+                            ? "bg-[#fdf6e3] text-[#050a30]"
+                            : "text-[#f0b31e] hover:bg-gray-50"
+                        }`}
                       >
                         <TrendingUp size={16} />
                         View all results for &quot;{searchQuery.trim()}&quot;
