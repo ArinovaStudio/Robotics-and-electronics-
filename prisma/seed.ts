@@ -1,19 +1,15 @@
 import prisma from "@/lib/prisma";
-import { Role, OrderStatus, PaymentStatus } from "@prisma/client";
+import { Role, OrderStatus, PaymentStatus, ProductAvailability, ProductCondition } from "@prisma/client";
 import { hash } from "bcryptjs";
-
-const firstNames = ["Aarav", "Vivaan", "Aditya", "Vihaan", "Arjun", "Sai", "Arnav", "Ayaan", "Krishna", "Ishaan", "Shaurya", "Atharv", "Advait", "Pranav", "Dhruv", "Ananya", "Diya", "Aadhya", "Saanvi", "Anvi", "Pari", "Navya", "Angel", "Aarohi", "Kiara", "Priya", "Riya", "Sneha", "Pooja", "Neha", "Rahul", "Rohan", "Amit", "Raj", "Vikram", "Karan", "Nikhil", "Varun", "Harsh", "Yash", "Kavya", "Ishita", "Tanvi", "Shreya", "Aisha", "Meera", "Sanya", "Tara", "Zara", "Myra"];
-const lastNames = ["Sharma", "Verma", "Patel", "Kumar", "Singh", "Gupta", "Reddy", "Joshi", "Mehta", "Nair", "Iyer", "Rao", "Desai", "Kulkarni", "Agarwal", "Bansal", "Malhotra", "Kapoor", "Chopra", "Bhatia", "Saxena", "Jain", "Arora", "Sinha", "Pandey", "Mishra", "Tiwari", "Dubey", "Yadav", "Chauhan"];
 
 async function main() {
   console.log("Starting database seeding...");
 
   const hashedPassword = await hash("password123", 10);
 
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@gmail.com" },
-    update: {},
-    create: {
+  console.log("Creating Admin...");
+  await prisma.user.create({
+    data: {
       name: "Admin User",
       email: "admin@gmail.com",
       password: hashedPassword,
@@ -22,130 +18,137 @@ async function main() {
       phone: "9876543210",
     },
   });
-  console.log(`Admin user created: ${admin.email}`);
 
-  const users = [];
-  
-  for (let i = 1; i <= 55; i++) {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const name = `${firstName} ${lastName}`;
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`;
-    const phone = `${9000000000 + Math.floor(Math.random() * 999999999)}`;
-    const isVerified = Math.random() > 0.3;
-    
-    try {
-      const user = await prisma.user.create({
+  console.log("Creating 3 Customers...");
+  const users = await Promise.all([
+    prisma.user.create({ data: { name: "Rahul Sharma", email: "rahul@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000001" } }),
+    prisma.user.create({ data: { name: "Priya Patel", email: "priya@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000002" } }),
+    prisma.user.create({ data: { name: "Amit Kumar", email: "amit@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000003" } }),
+  ]);
+
+  console.log("Creating 4 Categories...");
+  const categoriesData = [
+    { name: "Microcontrollers", slug: "microcontrollers", description: "Arduino, Raspberry Pi, and more." },
+    { name: "Sensors", slug: "sensors", description: "Distance, temperature, and motion sensors." },
+    { name: "Motors & Drivers", slug: "motors", description: "DC motors, servos, and motor drivers." },
+    { name: "Power Supply", slug: "power", description: "Batteries, adapters, and power modules." },
+  ];
+  const categories = await Promise.all(
+    categoriesData.map(c => prisma.category.create({ data: c }))
+  );
+
+  console.log("Creating 10 Products...");
+  const productsData = [
+    { catIdx: 0, title: "Arduino Uno R3", sku: "MCU-001", price: 1200, salePrice: 999 },
+    { catIdx: 0, title: "Raspberry Pi 4 Model B", sku: "MCU-002", price: 4500, salePrice: null },
+    { catIdx: 0, title: "ESP32 NodeMCU", sku: "MCU-003", price: 450, salePrice: 399 },
+    { catIdx: 1, title: "Ultrasonic Sensor HC-SR04", sku: "SEN-001", price: 150, salePrice: 99 },
+    { catIdx: 1, title: "PIR Motion Sensor", sku: "SEN-002", price: 180, salePrice: null },
+    { catIdx: 1, title: "DHT11 Temperature Sensor", sku: "SEN-003", price: 120, salePrice: 110 },
+    { catIdx: 2, title: "L298N Motor Driver", sku: "MOT-001", price: 250, salePrice: 199 },
+    { catIdx: 2, title: "BO Motor (150 RPM)", sku: "MOT-002", price: 80, salePrice: null },
+    { catIdx: 2, title: "SG90 Micro Servo Motor", sku: "MOT-003", price: 130, salePrice: null },
+    { catIdx: 3, title: "12V 2A Power Adapter", sku: "POW-001", price: 350, salePrice: 299 },
+  ];
+
+  const products = await Promise.all(
+    productsData.map(p => {
+      const categoryId = categories[p.catIdx].id;
+      return prisma.product.create({
         data: {
-          name,
-          email,
-          password: hashedPassword,
-          role: Role.CUSTOMER,
-          emailVerified: isVerified ? new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) : null,
-          phone,
-          createdAt: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000),
-        },
+          title: p.title,
+          description: `High quality ${p.title} for your electronics projects.`,
+          link: p.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+          imageLink: `https://via.placeholder.com/400x400.png?text=${p.sku}`,
+          additionalImageLinks: [],
+          price: p.price,
+          salePrice: p.salePrice,
+          sku: p.sku,
+          brand: "Generic",
+          condition: ProductCondition.NEW,
+          categoryId: categoryId,
+          availability: ProductAvailability.IN_STOCK,
+          stockQuantity: Math.floor(Math.random() * 50) + 10,
+          productHighlights: ["Easy to use", "Durable", "Perfect for DIY"],
+          productDetails: [],
+        }
       });
-      users.push(user);
-      if (i % 10 === 0) console.log(`   Created ${i} users...`);
-    } catch (error) {
-      console.log(`   Skipped duplicate: ${email}`);
-    }
-  }
+    })
+  );
 
-  console.log(`\Created ${users.length} customer users`);
-
-  // Get all products
-  const products = await prisma.product.findMany({ where: { isActive: true } });
-  if (products.length === 0) {
-    return;
-  }
-
-  // Create orders
-  console.log("\nCreating orders...");
-  const statuses = [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.CANCELLED];
-  const cities = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad"];
-  const states = ["Maharashtra", "Delhi", "Karnataka", "Telangana", "Tamil Nadu", "West Bengal", "Maharashtra", "Gujarat"];
-  let orderCount = 0;
-
-  for (let i = 0; i < 75; i++) {
+  console.log("Creating 5 Orders...");
+  const cities = ["Mumbai", "Delhi", "Bangalore"];
+  const states = ["Maharashtra", "Delhi", "Karnataka"];
+  
+  for (let i = 0; i < 5; i++) {
     const user = users[Math.floor(Math.random() * users.length)];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const itemCount = Math.floor(Math.random() * 3) + 1;
-    const orderProducts = [];
+    
+    const address = await prisma.address.create({
+      data: {
+        userId: user.id,
+        name: user.name,
+        phone: user.phone || "9000000000",
+        addressLine1: `${Math.floor(Math.random() * 100) + 1}, Tech Park`,
+        city: cities[Math.floor(Math.random() * cities.length)],
+        state: states[Math.floor(Math.random() * states.length)],
+        pincode: `40000${i}`,
+        isDefault: true,
+      },
+    });
+
+    const orderProducts = [
+      products[Math.floor(Math.random() * products.length)],
+      products[Math.floor(Math.random() * products.length)]
+    ];
+
     let subtotal = 0;
-
-    for (let j = 0; j < itemCount; j++) {
-      const product = products[Math.floor(Math.random() * products.length)];
-      const quantity = Math.floor(Math.random() * 3) + 1;
-      const price = typeof product.price === 'object' && product.price !== null ? (product.price as any).value : 1000;
-      orderProducts.push({ product, quantity, price });
+    const itemsData = orderProducts.map(prod => {
+      const quantity = Math.floor(Math.random() * 2) + 1;
+      const price = Number(prod.salePrice || prod.price);
       subtotal += price * quantity;
-    }
+      
+      return {
+        productId: prod.id,
+        quantity: quantity,
+        priceAtPurchase: price,
+        productSnapshot: { title: prod.title, sku: prod.sku, image: prod.imageLink },
+      };
+    });
 
-    const shippingCost = subtotal > 5000 ? 0 : 100;
+    const shippingCost = subtotal > 1000 ? 0 : 50;
     const taxAmount = subtotal * 0.18;
     const totalAmount = subtotal + shippingCost + taxAmount;
-    const createdAt = new Date(Date.now() - Math.random() * 120 * 24 * 60 * 60 * 1000);
-
-    try {
-      const address = await prisma.address.create({
-        data: {
-          userId: user.id,
-          name: user.name,
-          phone: user.phone || "9000000000",
-          addressLine1: `${Math.floor(Math.random() * 999) + 1}, Street ${Math.floor(Math.random() * 50) + 1}`,
-          city: cities[Math.floor(Math.random() * cities.length)],
-          state: states[Math.floor(Math.random() * states.length)],
-          pincode: `${400000 + Math.floor(Math.random() * 99999)}`,
-          isDefault: true,
+    
+    await prisma.order.create({
+      data: {
+        orderNumber: `ORD${Date.now()}${i}`,
+        userId: user.id,
+        addressId: address.id,
+        status: OrderStatus.CONFIRMED,
+        subtotal: subtotal,
+        shippingCost: shippingCost,
+        taxAmount: taxAmount,
+        totalAmount: totalAmount,
+        confirmedAt: new Date(),
+        items: {
+          create: itemsData,
         },
-      });
-
-      const order = await prisma.order.create({
-        data: {
-          orderNumber: `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`,
-          userId: user.id,
-          addressId: address.id,
-          status,
-          subtotal,
-          shippingCost,
-          taxAmount,
-          totalAmount,
-          createdAt,
-          orderedAt: createdAt,
-          confirmedAt: status !== OrderStatus.PENDING ? new Date(createdAt.getTime() + 3600000) : null,
-          deliveredAt: status === OrderStatus.DELIVERED ? new Date(createdAt.getTime() + 7 * 24 * 3600000) : null,
-          items: {
-            create: orderProducts.map(op => ({
-              productId: op.product.id,
-              quantity: op.quantity,
-              priceAtPurchase: op.price,
-              productSnapshot: op.product,
-            })),
-          },
-          payment: {
-            create: {
-              razorpayOrderId: `order_${Date.now()}${Math.floor(Math.random() * 10000)}`,
-              razorpayPaymentId: status !== OrderStatus.PENDING ? `pay_${Date.now()}${Math.floor(Math.random() * 10000)}` : null,
-              amount: totalAmount,
-              status: status === OrderStatus.CANCELLED ? PaymentStatus.FAILED : status === OrderStatus.PENDING ? PaymentStatus.PENDING : PaymentStatus.SUCCESS,
-              paymentMethod: ["card", "upi", "netbanking"][Math.floor(Math.random() * 3)],
-            },
+        payment: {
+          create: {
+            razorpayOrderId: `order_${Date.now()}${i}`,
+            razorpayPaymentId: `pay_${Date.now()}${i}`,
+            amount: totalAmount,
+            status: PaymentStatus.SUCCESS,
+            paymentMethod: "card",
           },
         },
-      });
-      orderCount++;
-      if (orderCount % 15 === 0) console.log(`   Created ${orderCount} orders...`);
-    } catch (error) {
-      console.log(`   Failed to create order for ${user.email}`);
-    }
+      },
+    });
   }
 
-  console.log(`\nCreated ${orderCount} orders`);
-  console.log(`Email: admin@gmail.com`);
-  console.log(`Password: password123 (for all users)`);
   console.log("\nSeeding completed successfully!");
+  console.log(`Admin Email: admin@gmail.com`);
+  console.log(`Password: password123 (for all users)`);
 }
 
 main()
