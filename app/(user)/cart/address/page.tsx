@@ -100,15 +100,15 @@ export default function AddressPage() {
             return { itemCount: 0, subtotal: 0, totalSavings: 0, shipping: 0, total: 0 };
         }
 
-        if (cart.summary && typeof cart.summary.total === 'number' && cart.summary.total > 0) {
-            return {
-                itemCount: cart.summary.itemCount || cart.items.length,
-                subtotal: cart.summary.subtotal || 0,
-                totalSavings: cart.summary.totalSavings || 0,
-                shipping: cart.summary.shipping || 0,
-                total: cart.summary.total
-            };
-        }
+       if (cart.summary && cart.summary.total) {
+    return {
+        itemCount: Number(cart.summary.itemCount || cart.items.length),
+        subtotal: Number(cart.summary.subtotal || 0),
+        totalSavings: Number(cart.summary.totalSavings || 0),
+        shipping: Number(cart.summary.shipping || 0),
+        total: Number(cart.summary.total || 0)
+    };
+}
 
         let subtotal = 0;
         let totalSavings = 0;
