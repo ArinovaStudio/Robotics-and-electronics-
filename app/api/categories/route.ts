@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const parentId = searchParams.get("parentId");
 
-    const where: any = { isActive: true };  // user should see only active categories
+    const where: any = { isActive: true }; // user should see only active categories
 
     if (search) {
       where.OR = [
@@ -30,7 +30,14 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, data: categories }, { status: 200 });
 
+    return NextResponse.json(
+      { success: true, data: categories },
+      { status: 200 }
+    );
   } catch {
-    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

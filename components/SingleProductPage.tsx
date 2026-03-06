@@ -520,7 +520,7 @@ export default function SingleProductPage({
 
           {/* ── Product Details ── */}
           {activeTab === "details" && (
-            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed md:max-w-4xl space-y-6">
+            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed space-y-6">
               {/* Features & Specifications */}
               <div>
                 <h3 className="text-xl border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
