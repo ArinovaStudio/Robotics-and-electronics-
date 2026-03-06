@@ -55,6 +55,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
                     alt={p.title || "Product image"}
                     fill
                     className="object-cover rounded-xl h-full w-full"
+                    unoptimized
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                   />
                 ) : (

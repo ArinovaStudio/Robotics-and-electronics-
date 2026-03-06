@@ -181,6 +181,7 @@ export default function Navbar() {
               alt="Robotics and Electronics Logo"
               width={60}
               height={60}
+              unoptimized
               className="object-contain"
             />
           </div>
@@ -262,6 +263,7 @@ export default function Navbar() {
                                   alt={product.title}
                                   fill
                                   className="object-contain p-1"
+                                  unoptimized
                                   sizes="48px"
                                 />
                               ) : (

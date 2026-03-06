@@ -320,6 +320,7 @@ export default function SingleProductPage({
                       src={img}
                       alt={`Thumb ${idx}`}
                       fill
+                      unoptimized
                       className="object-contain p-2"
                     />
                   </button>
@@ -334,6 +335,7 @@ export default function SingleProductPage({
                       src={allImages[selectedImage]}
                       alt={product.title}
                       fill
+                      unoptimized
                       className="object-contain p-6"
                     />
                   )}
@@ -649,6 +651,7 @@ export default function SingleProductPage({
                             src={p.imageLink}
                             alt={p.title || "Product image"}
                             fill
+                            unoptimized
                             className="overflow-hidden rounded-xl h-full w-full"
                             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                           />

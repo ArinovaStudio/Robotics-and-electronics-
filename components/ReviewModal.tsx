@@ -170,7 +170,7 @@ export default function ReviewModal({
               {/* Existing Images (for edit mode) */}
               {existingImages.map((imgUrl, idx) => (
                 <div key={`existing-${idx}`} className="relative w-16 h-16 rounded-lg border border-gray-200 overflow-hidden group">
-                  <Image src={imgUrl} alt="review image" fill className="object-cover" />
+                  <Image src={imgUrl} alt="review image" fill className="object-cover" unoptimized />
                   <button type="button" onClick={() => removeExistingImage(idx)} className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 rounded-full text-white p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <X size={12} strokeWidth={3} />
                   </button>
@@ -180,7 +180,7 @@ export default function ReviewModal({
               {/* Newly Selected Images */}
               {newFilePreviews.map((previewUrl, idx) => (
                 <div key={`new-${idx}`} className="relative w-16 h-16 rounded-lg border border-gray-200 overflow-hidden group">
-                  <Image src={previewUrl} alt="new review image" fill className="object-cover" />
+                  <Image src={previewUrl} alt="new review image" fill className="object-cover" unoptimized />
                   <button type="button" onClick={() => removeNewFile(idx)} className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 rounded-full text-white p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <X size={12} strokeWidth={3} />
                   </button>

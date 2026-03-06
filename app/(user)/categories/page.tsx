@@ -94,7 +94,7 @@ export default function CategoriesPage() {
               >
                 <div className="w-full aspect-square bg-[#f8fafd] rounded-2xl flex items-center justify-center overflow-hidden mb-4 border-4 border-transparent group-hover:border-[#f0b31e] transition-all relative">
                   {category.image ? (
-                    <Image
+                    <
                       src={category.image}
                       alt={category.name}
                       fill
