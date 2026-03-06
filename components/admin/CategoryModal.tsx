@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Loader2, Image as ImageIcon } from "lucide-react";
 import { authFetcher } from "@/store/adminStore";
 
@@ -19,7 +20,9 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
     const [description, setDescription] = useState("");
     const [parentId, setParentId] = useState("");
     const [isActive, setIsActive] = useState(true);
-    const [sortOrder, setSortOrder] = useState("0");
+    
+    const [hasSortOrder, setHasSortOrder] = useState(false);
+    const [sortOrder, setSortOrder] = useState("1");
     
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [existingImage, setExistingImage] = useState<string | null>(null);
@@ -30,13 +33,22 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
             setDescription(category.description || "");
             setParentId(category.parentId || "");
             setIsActive(category.isActive ?? true);
-            setSortOrder(category.sortOrder?.toString() || "0");
+            
+            // If category has a sortOrder, enable the toggle and set the value
+            if (category.sortOrder !== null && category.sortOrder !== undefined) {
+                setHasSortOrder(true);
+                setSortOrder(category.sortOrder.toString());
+            } else {
+                setHasSortOrder(false);
+                setSortOrder("1");
+            }
+
             setExistingImage(category.image || null);
             setImageFile(null);
             setError("");
         } else if (isOpen) {
             setName(""); setDescription(""); setParentId(""); 
-            setIsActive(true); setSortOrder("0");
+            setIsActive(true); setHasSortOrder(false); setSortOrder("1");
             setExistingImage(null); setImageFile(null); setError("");
         }
     }, [category, isOpen]);
@@ -52,12 +64,12 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
             formData.append("description", description);
             if (parentId) formData.append("parentId", parentId);
             formData.append("isActive", isActive.toString());
-            formData.append("sortOrder", sortOrder);
+            
+            formData.append("sortOrder", hasSortOrder ? sortOrder : "null");
             
             if (imageFile) formData.append("image", imageFile);
 
             const url = category ? `/api/admin/categories/${category.id}` : "/api/admin/categories";
-
             const method = category ? "put" : "post";
 
             const res = await fetch(url, {
@@ -74,8 +86,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
             if (onSuccess) onSuccess();
             onClose();
         } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || "An unexpected error occurred.";
-            setError(errorMessage);
+            setError(err.message || "An unexpected error occurred.");
         } finally {
             setIsLoading(false);
         }
@@ -110,12 +121,38 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
 
                             <div><label className="text-sm font-medium text-slate-700">Description</label><textarea value={description} onChange={e=>setDescription(e.target.value)} className="w-full border rounded-md p-3 text-sm min-h-[100px] border-slate-200 focus:ring-2 focus:ring-[#4a439a]/20 outline-none"/></div>
                             
-                            <div className="flex gap-6">
-                                <div className="flex-1"><label className="text-sm font-medium text-slate-700">Sort Order</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(e.target.value)} placeholder="0" /></div>
-                                <div className="flex flex-col justify-center pt-5">
-                                    <label className="flex items-center gap-2 text-sm cursor-pointer font-medium text-slate-700">
-                                        <input type="checkbox" checked={isActive} onChange={e=>setIsActive(e.target.checked)} className="w-4 h-4 rounded text-[#4a439a]"/> Active
+                            <div className="flex flex-col md:flex-row gap-6 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-semibold text-slate-700">Custom Priority Order</label>
+                                        <Switch 
+                                            checked={hasSortOrder} 
+                                            onCheckedChange={setHasSortOrder} 
+                                        />
+                                    </div>
+                                    <p className="text-xs text-slate-500">Enable to manually position this category. Categories without an order are sorted alphabetically.</p>
+                                    
+                                    {hasSortOrder && (
+                                        <div className="pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                            <Input 
+                                                type="number" 
+                                                min="1"
+                                                value={sortOrder} 
+                                                onChange={e=>setSortOrder(e.target.value)} 
+                                                placeholder="Enter priority (1, 2, 3...)" 
+                                                className="bg-white"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="w-px bg-slate-200 hidden md:block" />
+
+                                <div className="flex flex-col justify-center min-w-[100px]">
+                                    <label className="flex items-center gap-2 text-sm cursor-pointer font-semibold text-slate-700">
+                                        <input type="checkbox" checked={isActive} onChange={e=>setIsActive(e.target.checked)} className="w-4 h-4 rounded text-[#4a439a]"/> Visible
                                     </label>
+                                    <p className="text-xs text-slate-500 mt-1">Show in store</p>
                                 </div>
                             </div>
                         </div>
@@ -128,7 +165,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
                                         <img src={imageFile ? URL.createObjectURL(imageFile) : existingImage!} className="w-full h-full object-cover" alt="Category" />
                                     </div>
                                 ) : (
-                                    <div className="w-20 h-20 rounded-xl md:bg-slate-100 md:border border-slate-200 flex items-center justify-center"><ImageIcon className="text-slate-400"/></div>
+                                    <div className="w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center"><ImageIcon className="text-slate-400"/></div>
                                 )}
                                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ebe9f1] file:text-[#5c4da5]" />
                             </div>

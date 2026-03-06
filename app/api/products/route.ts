@@ -20,7 +20,21 @@ export async function GET(request: Request) {
     const where: any = { isActive: true, category: { isActive: true } };
 
     if (categoryId && categoryId !== "null") {
-      where.categoryId = categoryId;
+      async function getAllChildIds(id: string): Promise<string[]> {
+        const children = await prisma.category.findMany({
+          where: { parentId: id, isActive: true },
+          select: { id: true },
+        });
+
+        const childIds = children.map((c) => c.id);
+        const nestedIds = await Promise.all(childIds.map((cid) => getAllChildIds(cid)));
+
+        return [id, ...childIds, ...nestedIds.flat()];
+      }
+
+      const allTargetIds = await getAllChildIds(categoryId);
+
+      where.categoryId = { in: allTargetIds };
     }
 
     if (search) {
