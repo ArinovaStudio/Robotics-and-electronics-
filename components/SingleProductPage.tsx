@@ -1,7 +1,12 @@
 "use client";
 // ─── Breadcrumbs Component ────────────────────────────────────────────────
 type BreadcrumbItem = { label: string; href?: string };
-
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav
@@ -50,6 +55,7 @@ type APIProduct = {
   salePrice: number | null;
   link: string;
   productHighlights: string[];
+  productDetails: any;
   availability: string;
 };
 
@@ -94,11 +100,15 @@ export default function SingleProductPage({
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">(
+    "details"
+  );
   const [suggestedProducts, setSuggestedProducts] = useState<APIProduct[]>([]);
   const [addingToCart, setAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
-  const [faqs, setFaqs] = useState<{id:string, question:string, answer:string}[]>([]);
+  const [faqs, setFaqs] = useState<
+    { id: string; question: string; answer: string }[]
+  >([]);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [averageRating, setAverageRating] = useState(0);
@@ -107,15 +117,30 @@ export default function SingleProductPage({
   const router = useRouter();
   const { addToCart } = useCart();
   const { isAuthenticated, user } = useAuth();
-
+  const [productDetails, setProductDetails] = useState<any>({});
   const [reviewPage, setReviewPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [reviewsLoading, setReviewsLoading] = useState(false);
-  
+
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [showMyReviews, setShowMyReviews] = useState(false);
   const [editingReview, setEditingReview] = useState<any>(null);
-
+  useEffect(() => {
+    if (product) {
+      const groupedDetails: any = {};
+      for (let item of product.productDetails) {
+        const sectionName = (item?.sectionName as string).toLowerCase();
+        const attributeName = (item?.attributeName as string).toLowerCase();
+        const attributeValue = (item?.attributeValue as string).toLowerCase();
+        if (Object.keys(groupedDetails).includes(sectionName)) {
+          groupedDetails[sectionName].push({ attributeName, attributeValue });
+        } else {
+          groupedDetails[sectionName] = [{ attributeName, attributeValue }];
+        }
+      }
+      setProductDetails(groupedDetails);
+    }
+  }, []);
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       router.push(`/login?callbackUrl=/products/${product.link}`);
@@ -150,20 +175,22 @@ export default function SingleProductPage({
   };
 
   const handleSubmitReview = async (formData: FormData, reviewId?: string) => {
-    const url = reviewId ? `/api/users/reviews/${reviewId}` : "/api/users/reviews";
+    const url = reviewId
+      ? `/api/users/reviews/${reviewId}`
+      : "/api/users/reviews";
     const method = reviewId ? "PUT" : "POST";
 
     const res = await fetch(url, {
       method,
-      body: formData, 
+      body: formData,
     });
-    
+
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
-    
+
     const [reviewRes, userRevRes] = await Promise.all([
       fetch(`/api/products/${product.id}/reviews?page=1&limit=6`),
-      fetch(`/api/users/reviews?productId=${product.id}`)
+      fetch(`/api/users/reviews?productId=${product.id}`),
     ]);
 
     const reviewData = await reviewRes.json();
@@ -176,10 +203,12 @@ export default function SingleProductPage({
     }
 
     if (userRevData.success) {
-      const reviewsWithUserAttached = (userRevData.data.reviews || []).map((r: any) => ({
-        ...r,
-        user: { name: user?.name || "Me" }
-      }));
+      const reviewsWithUserAttached = (userRevData.data.reviews || []).map(
+        (r: any) => ({
+          ...r,
+          user: { name: user?.name || "Me" },
+        })
+      );
       setUserReviews(reviewsWithUserAttached);
     }
   };
@@ -188,9 +217,11 @@ export default function SingleProductPage({
     if (reviewsLoading) return;
     setReviewsLoading(true);
     const nextPage = reviewPage + 1;
-    
+
     try {
-      const res = await fetch(`/api/products/${product.id}/reviews?page=${nextPage}&limit=6`);
+      const res = await fetch(
+        `/api/products/${product.id}/reviews?page=${nextPage}&limit=6`
+      );
       const data = await res.json();
       if (data.success) {
         setReviews((prev) => [...prev, ...data.data.reviews]);
@@ -208,13 +239,15 @@ export default function SingleProductPage({
   const handleDeleteReview = async (reviewId: string) => {
     if (!confirm("Are you sure you want to delete this review?")) return;
     try {
-      const res = await fetch(`/api/users/reviews/${reviewId}`, { method: "DELETE" });
+      const res = await fetch(`/api/users/reviews/${reviewId}`, {
+        method: "DELETE",
+      });
       const data = await res.json();
       if (data.success) {
-        setUserReviews((prev) => prev.filter(r => r.id !== reviewId));
-        setReviews((prev) => prev.filter(r => r.id !== reviewId));
+        setUserReviews((prev) => prev.filter((r) => r.id !== reviewId));
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId));
         setTotalReviews((prev) => prev - 1);
-        if (userReviews.length === 1) setShowMyReviews(false); 
+        if (userReviews.length === 1) setShowMyReviews(false);
       } else {
         alert(data.message);
       }
@@ -231,12 +264,13 @@ export default function SingleProductPage({
         const [similarRes, faqRes, reviewRes] = await Promise.all([
           fetch(`/api/products/${product.id}/similar?limit=4`),
           fetch(`/api/products/${product.id}/faqs`),
-          fetch(`/api/products/${product.id}/reviews?page=1&limit=6`)
+          fetch(`/api/products/${product.id}/reviews?page=1&limit=6`),
         ]);
         const similarData = await similarRes.json();
         const faqData = await faqRes.json();
         const reviewData = await reviewRes.json();
-        if (similarData.success) setSuggestedProducts(similarData.data.products || []);
+        if (similarData.success)
+          setSuggestedProducts(similarData.data.products || []);
         if (faqData.success) setFaqs(faqData.data || []);
         if (reviewData.success) {
           setReviews(reviewData.data.reviews || []);
@@ -247,17 +281,20 @@ export default function SingleProductPage({
         }
 
         if (isAuthenticated) {
-          const userRevRes = await fetch(`/api/users/reviews?productId=${product.id}`);
+          const userRevRes = await fetch(
+            `/api/users/reviews?productId=${product.id}`
+          );
           const userRevData = await userRevRes.json();
           if (userRevData.success) {
-            const reviewsWithUserAttached = (userRevData.data.reviews || []).map((r: any) => ({
+            const reviewsWithUserAttached = (
+              userRevData.data.reviews || []
+            ).map((r: any) => ({
               ...r,
-              user: { name: user?.name || "Me" }
+              user: { name: user?.name || "Me" },
             }));
             setUserReviews(reviewsWithUserAttached);
           }
         }
-
       } catch (err) {
         console.error("Failed to load data", err);
       }
@@ -279,12 +316,11 @@ export default function SingleProductPage({
   let discountPct = 0;
   if (product.salePrice && product.price > product.salePrice) {
     discountPct = Math.round(
-      ((product.price - product.salePrice) / product.price) * 100,
+      ((product.price - product.salePrice) / product.price) * 100
     );
   }
 
   const currentPrice = product.salePrice ? product.salePrice : product.price;
-
   return (
     <div className="bg-white min-h-screen font-sans">
       {/* ── PAGE BODY ── */}
@@ -311,9 +347,10 @@ export default function SingleProductPage({
                     onClick={() => setSelectedImage(idx)}
                     className={`flex-shrink-0 w-[70px] h-[70px] sm:w-[100px] sm:h-[95px] lg:w-[120px] lg:h-[110px] 
                       rounded-xl border-2 overflow-hidden bg-gray-100 transition-all relative
-                      ${selectedImage === idx
-                        ? "border-[#f0b31e]"
-                        : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
+                      ${
+                        selectedImage === idx
+                          ? "border-[#f0b31e]"
+                          : "border-[#e8e8e8] hover:border-[#f0b31e]/50"
                       }`}
                   >
                     <Image
@@ -420,7 +457,8 @@ export default function SingleProductPage({
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart || product.availability !== "IN_STOCK"}
-                  className="w-[170px] text-[#f0b31e] font-bold text-sm px-5 py-[15px] rounded-full border-2 border-[#f0b31e] hover:bg-[#fffbe6] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="w-[170px] text-[#f0b31e] font-bold text-sm px-5 py-[15px] rounded-full border-2 border-[#f0b31e] hover:bg-[#fffbe6] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {addingToCart ? (
                     <Loader2 size={18} className="animate-spin" />
                   ) : addedToCart ? (
@@ -466,9 +504,10 @@ export default function SingleProductPage({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 text-center pb-4 text-sm md:text-base transition-all relative
-                  ${activeTab === tab.id
-                    ? "text-[#050a30] font-bold"
-                    : "text-[#9ca3af] font-semibold hover:text-[#050a30]"
+                  ${
+                    activeTab === tab.id
+                      ? "text-[#050a30] font-bold"
+                      : "text-[#9ca3af] font-semibold hover:text-[#050a30]"
                   }`}
               >
                 {tab.label}
@@ -481,30 +520,77 @@ export default function SingleProductPage({
 
           {/* ── Product Details ── */}
           {activeTab === "details" && (
-            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed md:max-w-4xl space-y-4">
-              <h3 className="text-xl font-bold text-[#050a30] mb-4">
-                Features & Specifications
-              </h3>
-              {product.productHighlights &&
+            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed md:max-w-4xl space-y-6">
+              {/* Features & Specifications */}
+              <div>
+                <h3 className="text-xl border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
+                  Features & Specifications
+                </h3>
+
+                {product.productHighlights &&
                 product.productHighlights.length > 0 ? (
-                <ul className="list-disc pl-5 space-y-2">
-                  {product.productHighlights.map((highlight, i) => (
-                    <li key={i}>{highlight}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>
-                  No extra specifications strictly defined for this product
-                  right now.
-                </p>
-              )}
+                  <ul className="space-y-2">
+                    {product.productHighlights.map((highlight, i) => (
+                      <li
+                        key={i}
+                        className="border-b-2 pl-2 text-md font-[600] border-b pb-3"
+                      >
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    No extra specifications strictly defined for this product
+                    right now.
+                  </p>
+                )}
+              </div>
+
+              {/* Dynamic Sections */}
+              {Object.keys(productDetails).map((section: string) => {
+                return (
+                  <div key={section}>
+                    <h3 className="text-xl capitalize border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
+                      {section}
+                    </h3>
+
+                    {productDetails && productDetails[section]?.length > 0 ? (
+                      <ul className="space-y-4">
+                        {productDetails[section]?.map(
+                          (
+                            { attributeName, attributeValue }: any,
+                            i: number
+                          ) => (
+                            <li
+                              key={i}
+                              className="border-b-2 grid grid-cols-2 md:pl-2 px-2 max-md:w-full text-md font-[600] border-b pb-3"
+                            >
+                              <div className="font-[500] capitalize max-md:text-left">
+                                {attributeName}
+                              </div>
+                              <div className="font-[500] capitalize max-md:text-right">
+                                {attributeValue}
+                              </div>
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    ) : (
+                      <p>
+                        No extra specifications strictly defined for this
+                        product right now.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* ── Rating & Reviews ── */}
           {activeTab === "reviews" && (
             <div className="mt-8">
-              
               {/* Header & Buttons */}
               <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:justify-between mb-8">
                 <h2 className="text-[#050a30] text-2xl font-extrabold">
@@ -513,23 +599,26 @@ export default function SingleProductPage({
                     ({showMyReviews ? userReviews.length : totalReviews})
                   </span>
                 </h2>
-                
+
                 <div className="flex gap-3 w-full md:w-auto">
                   {/* Toggle My Reviews Button */}
                   {userReviews.length > 0 && (
-                    <button 
+                    <button
                       onClick={() => setShowMyReviews(!showMyReviews)}
                       className="flex-1 md:flex-none justify-center bg-white border-2 border-[#050a30] text-[#050a30] text-sm font-bold px-6 py-[10px] rounded-full hover:bg-gray-50 transition-all"
                     >
                       {showMyReviews ? "Show All Reviews" : "My Reviews"}
                     </button>
                   )}
-                  
+
                   {/* Write a Review Button */}
-                  <button 
+                  <button
                     onClick={() => {
-                      if (!isAuthenticated) return router.push(`/login?callbackUrl=/products/${product.link}`);
-                      setEditingReview(null);
+                      if (!isAuthenticated)
+                        return router.push(
+                          `/login?callbackUrl=/products/${product.link}`
+                        );
+                      setEditingReview(null); // Ensure modal opens fresh
                       setShowReviewModal(true);
                     }}
                     className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all"
@@ -542,9 +631,9 @@ export default function SingleProductPage({
               {/* Render the Reviews Grid */}
               <div className="grid md:grid-cols-2 gap-5">
                 {(showMyReviews ? userReviews : reviews).map((review) => (
-                  <ReviewCard 
-                    key={review.id} 
-                    review={review} 
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
                     isOwnReview={showMyReviews || (!!user?.id && review.userId === user.id)}
                     onEdit={() => {
                       setEditingReview(review);
@@ -555,19 +644,23 @@ export default function SingleProductPage({
                 ))}
               </div>
 
-              {(!reviews.length && !showMyReviews) && (
-                <p className="text-center text-gray-500 py-10">No reviews yet. Be the first to review!</p>
+              {!reviews.length && !showMyReviews && (
+                <p className="text-center text-gray-500 py-10">
+                  No reviews yet. Be the first to review!
+                </p>
               )}
 
               {/* Load More Button */}
               {!showMyReviews && hasMoreReviews && (
                 <div className="mt-8 flex justify-center">
-                  <button 
-                    onClick={loadMoreReviews} 
+                  <button
+                    onClick={loadMoreReviews}
                     disabled={reviewsLoading}
                     className="px-8 py-3 border-2 border-gray-200 rounded-full text-sm font-bold text-[#050a30] hover:border-[#050a30] transition-all disabled:opacity-50"
                   >
-                    {reviewsLoading ? <Loader2 className="animate-spin inline mr-2" size={16}/> : null}
+                    {reviewsLoading ? (
+                      <Loader2 className="animate-spin inline mr-2" size={16} />
+                    ) : null}
                     {reviewsLoading ? "Loading..." : "Load More Reviews"}
                   </button>
                 </div>
@@ -575,31 +668,46 @@ export default function SingleProductPage({
             </div>
           )}
 
-          <ReviewModal 
+          <ReviewModal
             isOpen={showReviewModal}
             onClose={() => {
               setShowReviewModal(false);
-              setEditingReview(null); 
+              setEditingReview(null);
             }}
             onSubmit={handleSubmitReview}
             productId={product.id}
-            initialData={editingReview} 
+            initialData={editingReview}
           />
 
           {/* ── FAQs ── */}
           {activeTab === "faqs" && (
             <div className="mt-8 md:max-w-4xl">
-              <h3 className="text-xl font-bold text-[#050a30] mb-6">Frequently Asked Questions</h3>
+              <h3 className="text-xl font-bold text-[#050a30] mb-6">
+                Frequently Asked Questions
+              </h3>
               {faqs.length > 0 ? (
                 <div className="space-y-3">
                   {faqs.map((faq, index) => (
-                    <div key={faq.id} className="border border-[#e8e8e8] rounded-xl overflow-hidden bg-white">
+                    <div
+                      key={faq.id}
+                      className="border border-[#e8e8e8] rounded-xl overflow-hidden bg-white"
+                    >
                       <button
-                        onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                        onClick={() =>
+                          setOpenFaqIndex(openFaqIndex === index ? null : index)
+                        }
                         className="w-full flex justify-between items-center p-4 text-left hover:bg-[#f8fafd] transition-colors"
                       >
-                        <span className="font-semibold text-[#050a30] pr-4">{faq.question}</span>
-                        <span className={`text-[#9ca3af] text-xl transition-transform ${openFaqIndex === index ? "rotate-180" : ""}`}>▼</span>
+                        <span className="font-semibold text-[#050a30] pr-4">
+                          {faq.question}
+                        </span>
+                        <span
+                          className={`text-[#9ca3af] text-xl transition-transform ${
+                            openFaqIndex === index ? "rotate-180" : ""
+                          }`}
+                        >
+                          ▼
+                        </span>
                       </button>
                       {openFaqIndex === index && (
                         <div className="px-4 pb-4 text-[#434343] text-sm border-t border-[#e8e8e8] pt-3 leading-relaxed">
@@ -610,7 +718,9 @@ export default function SingleProductPage({
                   ))}
                 </div>
               ) : (
-                <p className="text-[#9ca3af] text-sm">No FAQs available for this product yet.</p>
+                <p className="text-[#9ca3af] text-sm">
+                  No FAQs available for this product yet.
+                </p>
               )}
             </div>
           )}
@@ -634,7 +744,7 @@ export default function SingleProductPage({
                 let recDiscountPct = 0;
                 if (p.salePrice && p.price > p.salePrice) {
                   recDiscountPct = Math.round(
-                    ((p.price - p.salePrice) / p.price) * 100,
+                    ((p.price - p.salePrice) / p.price) * 100
                   );
                 }
 
@@ -642,7 +752,8 @@ export default function SingleProductPage({
                   <div
                     key={p.id || i}
                     className=" rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
-                    onClick={() => router.push(`/products/${p.id}`)}>
+                    onClick={() => router.push(`/products/${p.id}`)}
+                  >
                     {/* Image Area */}
                     <div className="w-full relative">
                       <div className="w-full h-[200px]  relative rounded flex items-center justify-center  overflow-hidden">
@@ -690,25 +801,26 @@ export default function SingleProductPage({
                       <div className="flex items-baseline font-inter gap-2.5 mt-auto">
                         <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
                           <span className="text-[#F0B31E] text-[28px]">
-                            ₹{Number(p.salePrice ? p.salePrice : p.price || 0).toFixed(2)}
+                            ₹
+                            {Number(
+                              p.salePrice ? p.salePrice : p.price || 0
+                            ).toFixed(2)}
                           </span>
                         </span>
-                          {p.salePrice && p.salePrice < p.price && (
-                            <span className="text-[16px] font-medium text-gray-300 line-through">
+                        {p.salePrice && p.salePrice < p.price && (
+                          <span className="text-[16px] font-medium text-gray-300 line-through">
                             ₹{Number(p.price).toFixed(2)}
                           </span>
-
                         )}
                       </div>
                     </div>
                   </div>
-                )
-              }
-              )}
+                );
+              })}
             </div>
           </section>
         )}
       </div>
-    </div >
+    </div>
   );
 }

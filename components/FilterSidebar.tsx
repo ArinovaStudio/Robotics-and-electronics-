@@ -176,7 +176,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, availabl
   }
 
   return (
-    <aside className="w-[260px] bg-[#f8f8f8] rounded-xl p-5 shadow-sm flex flex-col gap-0 border border-gray-100">
+    <aside className="w-[260px] bg-[#f8f8f8] md:rounded-xl p-5 shadow-sm flex flex-col gap-0 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <span className="text-lg font-space-grotesk font-bold text-[#050a30]">FILTERS</span>
         <Funnel size={18} className="text-[#434343]" />
@@ -216,27 +216,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, availabl
         </span>
         <PriceRangeSlider min={0} max={50000} value={selectedPriceRange} onChange={setSelectedPriceRange} />
       </div>
-
-      {/* <Divider /> */}
-
-      {/* {availableBrands.length > 0 && (
-        <div className="mb-2">
-          <span className="text-xs font-bold text-[#f0b31e] mb-3 block tracking-widest uppercase">
-            Brands
-          </span>
-          <div className="flex flex-col gap-3">
-            {availableBrands.map((brand) => (
-              <label key={brand} className="flex items-center gap-3 text-sm text-gray-800 font-medium cursor-pointer select-none hover:text-[#f0b31e] transition-colors">
-                <CustomCheckbox
-                  checked={selectedBrands.includes(brand)}
-                  onChange={() => toggleBrand(brand)}
-                />
-                <span className="truncate">{brand}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )} */}
     </aside>
   );
 };
