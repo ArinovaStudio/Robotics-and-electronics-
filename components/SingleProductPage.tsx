@@ -520,80 +520,69 @@ export default function SingleProductPage({
 
           {/* ── Product Details ── */}
           {activeTab === "details" && (
-            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed">
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="features">
-                  <AccordionTrigger className="text-xl rounded-none border-b-2 hover:no-underline hover:bg-gray-100 px-[5px] font-bold text-[#050a30]">
-                    Features & Specifications
-                  </AccordionTrigger>
+            <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed md:max-w-4xl space-y-6">
+              {/* Features & Specifications */}
+              <div>
+                <h3 className="text-xl border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
+                  Features & Specifications
+                </h3>
 
-                  <AccordionContent>
-                    {product.productHighlights &&
-                    product.productHighlights.length > 0 ? (
-                      <ul className="space-y-2 mt-4">
-                        {product.productHighlights.map((highlight, i) => (
-                          <li
-                            key={i}
-                            className="border-b-2 pl-2 text-md font-[600] border-b pb-3"
-                          >
-                            {highlight}
-                          </li>
-                        ))}
+                {product.productHighlights &&
+                product.productHighlights.length > 0 ? (
+                  <ul className="space-y-2">
+                    {product.productHighlights.map((highlight, i) => (
+                      <li
+                        key={i}
+                        className="border-b-2 pl-2 text-md font-[600] border-b pb-3"
+                      >
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    No extra specifications strictly defined for this product
+                    right now.
+                  </p>
+                )}
+              </div>
+
+              {/* Dynamic Sections */}
+              {Object.keys(productDetails).map((section: string) => {
+                return (
+                  <div key={section}>
+                    <h3 className="text-xl capitalize border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
+                      {section}
+                    </h3>
+
+                    {productDetails && productDetails[section]?.length > 0 ? (
+                      <ul className="space-y-4">
+                        {productDetails[section]?.map(
+                          (
+                            { attributeName, attributeValue }: any,
+                            i: number
+                          ) => (
+                            <li
+                              key={i}
+                              className="border-b-2 grid grid-cols-2 md:pl-2 px-2 max-md:w-full text-md font-[600] border-b pb-3"
+                            >
+                              <div className="font-[500] capitalize max-md:text-left">
+                                {attributeName}
+                              </div>
+                              <div className="font-[500] capitalize max-md:text-right">
+                                {attributeValue}
+                              </div>
+                            </li>
+                          )
+                        )}
                       </ul>
                     ) : (
-                      <p className="mt-4">
+                      <p>
                         No extra specifications strictly defined for this
                         product right now.
                       </p>
                     )}
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-              {Object.keys(productDetails).map((section: string) => {
-                return (
-                  <Accordion
-                    key={section}
-                    type="single"
-                    collapsible
-                    className="w-full"
-                  >
-                    <AccordionItem value="features">
-                      <AccordionTrigger className="text-xl capitalize rounded-none border-b-2 hover:no-underline hover:bg-gray-100 px-[5px] font-bold text-[#050a30]">
-                        {section}
-                      </AccordionTrigger>
-
-                      <AccordionContent>
-                        {productDetails &&
-                        productDetails[section]?.length > 0 ? (
-                          <ul className="space-y-4 mt-4">
-                            {productDetails[section]?.map(
-                              (
-                                { attributeName, attributeValue }: any,
-                                i: number
-                              ) => (
-                                <li
-                                  key={i}
-                                  className="border-b-2 grid grid-cols-2 md:pl-2 px-2 max-md:w-full text-md font-[600] border-b pb-3"
-                                >
-                                  <div className="font-[500] capitalize max-md:text-left">
-                                    {attributeName}
-                                  </div>
-                                  <div className="font-[500] capitalize max-md:text-right">
-                                    {attributeValue}
-                                  </div>
-                                </li>
-                              )
-                            )}
-                          </ul>
-                        ) : (
-                          <p className="mt-4">
-                            No extra specifications strictly defined for this
-                            product right now.
-                          </p>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                  </div>
                 );
               })}
             </div>
