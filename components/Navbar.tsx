@@ -36,7 +36,7 @@ export default function Navbar() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-
+  const [hidden,setHidden] = useState(false);
   // Autocomplete state
   const [suggestions, setSuggestions] = useState<SuggestionProduct[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -158,7 +158,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="bg-black w-full py-2 text-sm flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 px-4 relative mb-1">
+      <div className={`${hidden && "hidden"} bg-black w-full py-2 text-sm flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 px-4 relative mb-1`}>
         <p className="text-white font-space-grotesk font-semibold text-center md:text-left">
           GET 50% OFF BLACK FRIDAY SALE
         </p>
@@ -170,9 +170,9 @@ export default function Navbar() {
           </Link>
         </p>
 
-        <X className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70" />
+        <X onClick={()=>setHidden(true)} className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70" />
       </div>
-      <nav className="w-full bg-white flex items-center h-16 px-8 relative z-50">
+      <nav className="w-full bg-white mt-2 flex items-center h-16 px-8 relative z-50">
         {/* Logo */}
         <Link href="/" aria-label="Home">
           <div className="font-bold text-2xl text-[#050a30] tracking-wide cursor-pointer">
