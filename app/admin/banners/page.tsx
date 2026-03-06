@@ -17,7 +17,6 @@ export default function BannerPage() {
   const banners = data?.data ?? [];
   const upsertItem = async (data: any, mode: "create" | "edit") => {
     try {
-      console.log(data);
       setPending(true);
       const url = `/api/admin/banners${mode === "edit" ? `/${data.id}` : ""}`;
       const method = mode === "create" ? "POST" : "PUT";

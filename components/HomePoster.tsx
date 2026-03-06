@@ -1,41 +1,48 @@
+"use client";
 import React from "react";
 import Image from "next/image";
 import { Dot, Ellipsis } from "lucide-react";
+import CustomSwiper from "./Swiper";
+import useSWR from "swr";
+import { Skeleton } from "./ui/skeleton";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function HomePoster() {
+  const { data, isLoading: loading } = useSWR("/api/admin/banners", fetcher, {
+    revalidateOnFocus: false,
+  });
+  const banners = data?.data ?? [];
   return (
     <section className="w-full flex justify-center items-center mt-8">
-      <div className="w-[95vw] relative h-[380px] bg-[#eaf4ff] rounded-4xl flex items-center justify-center overflow-hidden">
-        <Image
-          src="/homeposter.png"
-          alt="Electronics Store Poster"
-          width={1200}
-          height={340}
-          className="object-cover w-full h-full rounded-4xl"
-          priority
-        />
-        <div
-          className="
-    absolute
-    bottom-2
-    
-    flex items-center gap-3
-    px-4 py-2
-    rounded-full
-    bg-white/20
-    shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]
-    shadow-[0_4px_8px_rgba(0,0,0,0.25)]
-    backdrop-blur-sm
-  "
-        >
-          <span className="w-2 h-2 rounded-full bg-white" />
-          <span className="w-2 h-2 rounded-full bg-white/60" />
-          <span className="w-2 h-2 rounded-full bg-white/50" />
-          <span className="w-2 h-2 rounded-full bg-white/40" />
-          <span className="w-2 h-2 rounded-full bg-white/30" />
-          <span className="w-2 h-2 rounded-full bg-white/20" />
+      {loading ? (
+        <div className="w-[95vw] relative h-[350px] md:h-[480px] rounded-4xl overflow-hidden">
+          <Skeleton className="w-full h-full rounded-4xl" />
         </div>
-      </div>
+      ) : (
+        <div className="w-[95vw] relative h-[350px] md:h-[480px] bg-[#eaf4ff] rounded-4xl flex items-center justify-center overflow-hidden">
+          <CustomSwiper>
+            {banners.map(
+              (
+                { image, title }: { image: string; title: string },
+                index: number
+              ) => {
+                console.log(image,title);
+                return (
+                  <Image
+                    key={index}
+                    src={image}
+                    alt={title}
+                    fill
+                    className="object-cover w-full h-full rounded-4xl"
+                    priority
+                  />
+                );
+              }
+            )}
+          </CustomSwiper>
+        </div>
+      )}
+     
     </section>
   );
 }
