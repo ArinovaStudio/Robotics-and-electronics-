@@ -50,14 +50,18 @@ function LoginForm() {
       const session = await getSession();
       const userRole = session?.user?.role;
 
-      if (userRole === "ADMIN") {
-        router.push("/admin");
-      } else {
-        const callbackUrl = searchParams.get("callbackUrl") || "/";
-        router.push(callbackUrl);
+      let callbackUrl = searchParams.get("callbackUrl") || "/";
+      if (callbackUrl.includes("/login")) {
+        callbackUrl = "/";
       }
 
       router.refresh(); 
+
+      if (userRole === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push(callbackUrl);
+      }
     }
   } catch (err: any) {
     setError(err.message);
@@ -70,7 +74,10 @@ function LoginForm() {
     setIsLoading(true);
     setError("");
     try {
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
+      let callbackUrl = searchParams.get("callbackUrl") || "/";
+      if (callbackUrl.includes("/login")) {
+        callbackUrl = "/";
+      }
       await signIn("google", { callbackUrl });
     } catch (err: any) {
       setError(err.message || "Failed to sign in with Google");

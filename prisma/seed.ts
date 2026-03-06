@@ -102,10 +102,12 @@ async function main() {
     ];
 
     let subtotal = 0;
+    let discount = 0;
     const itemsData = orderProducts.map(prod => {
       const quantity = Math.floor(Math.random() * 2) + 1;
       const price = Number(prod.salePrice || prod.price);
       subtotal += price * quantity;
+      discount += Number(prod.price) - Number(prod.salePrice || prod.price) * quantity;
       
       return {
         productId: prod.id,
@@ -114,10 +116,8 @@ async function main() {
         productSnapshot: { title: prod.title, sku: prod.sku, image: prod.imageLink },
       };
     });
-
-    const shippingCost = subtotal > 1000 ? 0 : 50;
-    const taxAmount = subtotal * 0.18;
-    const totalAmount = subtotal + shippingCost + taxAmount;
+    
+    const totalAmount = subtotal - discount;
     
     await prisma.order.create({
       data: {
@@ -126,8 +126,6 @@ async function main() {
         addressId: address.id,
         status: OrderStatus.CONFIRMED,
         subtotal: subtotal,
-        shippingCost: shippingCost,
-        taxAmount: taxAmount,
         totalAmount: totalAmount,
         confirmedAt: new Date(),
         items: {

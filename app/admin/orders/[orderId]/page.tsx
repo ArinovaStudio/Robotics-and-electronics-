@@ -177,30 +177,30 @@ export default function OrderDetailsPage() {
                         </CardHeader>
                         <CardContent className="p-4 sm:p-6">
                             <div className="space-y-3 text-sm sm:text-base">
+                                
+                                {/* Only Subtotal remains */}
                                 <div className="flex justify-between text-slate-600 font-medium">
                                     <span>Subtotal</span>
                                     <span>{formatCurrency(order.subtotal)}</span>
                                 </div>
-                                <div className="flex justify-between text-slate-600 font-medium">
-                                    <span>Shipping Fee</span>
-                                    <span>{formatCurrency(order.shippingCost)}</span>
+                                
+                                {/* Discount */}
+                                <div className="flex justify-between text-emerald-600 font-medium">
+                                    <span>Discount</span>
+                                    <span>-{formatCurrency(order.discount)}</span>
                                 </div>
-                                <div className="flex justify-between text-slate-600 font-medium">
-                                    <span>Tax</span>
-                                    <span>{formatCurrency(order.taxAmount)}</span>
-                                </div>
-                                {Number(order.discount) > 0 && (
-                                    <div className="flex justify-between text-emerald-600 font-medium">
-                                        <span>Discount</span>
-                                        <span>-{formatCurrency(order.discount)}</span>
-                                    </div>
-                                )}
+                                
                                 <hr className="border-slate-100 my-3 sm:my-2" />
+                                
+                                {/* Total Amount */}
                                 <div className="flex flex-wrap gap-2 justify-between items-center">
                                     <span className="text-base sm:text-lg font-bold text-slate-800">Total</span>
-                                    <span className="text-xl sm:text-2xl font-bold text-[#4a439a]">{formatCurrency(order.totalAmount)}</span>
+                                    <span className="text-xl sm:text-2xl font-bold text-[#4a439a]">
+                                        {formatCurrency(order.totalAmount)}
+                                    </span>
                                 </div>
-                            </div>
+                                
+                            </div> 
                         </CardContent>
                     </Card>
                 </div>
