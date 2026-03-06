@@ -529,7 +529,7 @@ export default function SingleProductPage({
                   <button 
                     onClick={() => {
                       if (!isAuthenticated) return router.push(`/login?callbackUrl=/products/${product.link}`);
-                      setEditingReview(null); // Ensure modal opens fresh
+                      setEditingReview(null);
                       setShowReviewModal(true);
                     }}
                     className="flex-1 md:flex-none justify-center bg-[#050a30] text-white text-sm font-bold px-6 py-[12px] rounded-full hover:bg-[#0a1560] shadow-md transition-all"
@@ -545,7 +545,7 @@ export default function SingleProductPage({
                   <ReviewCard 
                     key={review.id} 
                     review={review} 
-                    isOwnReview={showMyReviews || review.userId === user?.id} // Add this check!
+                    isOwnReview={showMyReviews || (!!user?.id && review.userId === user.id)}
                     onEdit={() => {
                       setEditingReview(review);
                       setShowReviewModal(true);

@@ -1,13 +1,39 @@
-import prisma from "@/lib/prisma";
 import { Role, OrderStatus, PaymentStatus, ProductAvailability, ProductCondition } from "@prisma/client";
 import { hash } from "bcryptjs";
+import developmentBoards from "./data/boards";
+import sensorsCategory from "./data/sensors";
+import motorsCategory from "./data/motors";
+import powerSupplyCategory from "./data/power";
+import diyKitsCategory from "./data/kits";
+import basicCategory from "./data/basics";
+import prisma from "@/lib/prisma";
+
+function generateSlug(text: string) {
+  return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+}
 
 async function main() {
-  console.log("Starting database seeding...");
+  console.log("Starting database cleanup...");
+
+  await prisma.review.deleteMany();
+  await prisma.payment.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.productFaq.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.address.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.otpToken.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log("Database cleared successfully. Starting seeding...");
 
   const hashedPassword = await hash("password123", 10);
 
-  console.log("Creating Admin...");
+  console.log("Creating Admin & Customers...");
   await prisma.user.create({
     data: {
       name: "Admin User",
@@ -19,66 +45,74 @@ async function main() {
     },
   });
 
-  console.log("Creating 3 Customers...");
   const users = await Promise.all([
-    prisma.user.create({ data: { name: "Rahul Sharma", email: "rahul@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000001" } }),
-    prisma.user.create({ data: { name: "Priya Patel", email: "priya@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000002" } }),
-    prisma.user.create({ data: { name: "Amit Kumar", email: "amit@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000003" } }),
+    prisma.user.create({ data: { name: "Rahul Sharma", email: "rahul@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000001", emailVerified: new Date() } }),
+    prisma.user.create({ data: { name: "Priya Patel", email: "priya@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000002", emailVerified: new Date() } }),
+    prisma.user.create({ data: { name: "Amit Kumar", email: "amit@example.com", password: hashedPassword, role: Role.CUSTOMER, phone: "9000000003", emailVerified: new Date() } }),
   ]);
 
-  console.log("Creating 4 Categories...");
-  const categoriesData = [
-    { name: "Microcontrollers", slug: "microcontrollers", description: "Arduino, Raspberry Pi, and more." },
-    { name: "Sensors", slug: "sensors", description: "Distance, temperature, and motion sensors." },
-    { name: "Motors & Drivers", slug: "motors", description: "DC motors, servos, and motor drivers." },
-    { name: "Power Supply", slug: "power", description: "Batteries, adapters, and power modules." },
-  ];
-  const categories = await Promise.all(
-    categoriesData.map(c => prisma.category.create({ data: c }))
-  );
+  console.log("Creating Categories, Subcategories, and Products...");
 
-  console.log("Creating 10 Products...");
-  const productsData = [
-    { catIdx: 0, title: "Arduino Uno R3", sku: "MCU-001", price: 1200, salePrice: 999 },
-    { catIdx: 0, title: "Raspberry Pi 4 Model B", sku: "MCU-002", price: 4500, salePrice: null },
-    { catIdx: 0, title: "ESP32 NodeMCU", sku: "MCU-003", price: 450, salePrice: 399 },
-    { catIdx: 1, title: "Ultrasonic Sensor HC-SR04", sku: "SEN-001", price: 150, salePrice: 99 },
-    { catIdx: 1, title: "PIR Motion Sensor", sku: "SEN-002", price: 180, salePrice: null },
-    { catIdx: 1, title: "DHT11 Temperature Sensor", sku: "SEN-003", price: 120, salePrice: 110 },
-    { catIdx: 2, title: "L298N Motor Driver", sku: "MOT-001", price: 250, salePrice: 199 },
-    { catIdx: 2, title: "BO Motor (150 RPM)", sku: "MOT-002", price: 80, salePrice: null },
-    { catIdx: 2, title: "SG90 Micro Servo Motor", sku: "MOT-003", price: 130, salePrice: null },
-    { catIdx: 3, title: "12V 2A Power Adapter", sku: "POW-001", price: 350, salePrice: 299 },
+  const catalogData = [
+    developmentBoards,
+    sensorsCategory,
+    motorsCategory,
+    powerSupplyCategory,
+    diyKitsCategory,
+    basicCategory
   ];
 
-  const products = await Promise.all(
-    productsData.map(p => {
-      const categoryId = categories[p.catIdx].id;
-      return prisma.product.create({
+  const createdProducts = [];
+
+  for (const catalog of catalogData) {
+    // Create Parent Category
+    const parentCategory = await prisma.category.create({
+      data: {
+        name: catalog.parent.name,
+        slug: generateSlug(catalog.parent.name),
+        description: catalog.parent.description,
+      }
+    });
+
+    for (const sub of catalog.subcategories) {
+      // Create Subcategory linked to Parent
+      const subCategory = await prisma.category.create({
         data: {
-          title: p.title,
-          description: `High quality ${p.title} for your electronics projects.`,
-          link: p.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
-          imageLink: `https://via.placeholder.com/400x400.png?text=${p.sku}`,
-          additionalImageLinks: [],
-          price: p.price,
-          salePrice: p.salePrice,
-          sku: p.sku,
-          brand: "Generic",
-          condition: ProductCondition.NEW,
-          categoryId: categoryId,
-          availability: ProductAvailability.IN_STOCK,
-          stockQuantity: Math.floor(Math.random() * 50) + 10,
-          productHighlights: ["Easy to use", "Durable", "Perfect for DIY"],
-          productDetails: [],
+          name: sub.name,
+          slug: generateSlug(sub.name),
+          parentId: parentCategory.id,
         }
       });
-    })
-  );
 
-  console.log("Creating 5 Orders...");
-  const cities = ["Mumbai", "Delhi", "Bangalore"];
-  const states = ["Maharashtra", "Delhi", "Karnataka"];
+      // Create Products linked to Subcategory
+      for (const prod of sub.products) {
+        const product = await prisma.product.create({
+          data: {
+            title: prod.title,
+            description: `High quality ${prod.title}. Perfect for your DIY electronics and robotics projects.`,
+            link: `${generateSlug(prod.title)}-${generateSlug(prod.sku)}`,
+            imageLink: `https://dummyimage.com/400x400/cccccc/000000&text=${encodeURIComponent(prod.sku)}`,
+            additionalImageLinks: [],
+            price: prod.price,
+            salePrice: prod.salePrice,
+            sku: prod.sku,
+            brand: "Generic",
+            condition: ProductCondition.NEW,
+            categoryId: subCategory.id, 
+            availability: ProductAvailability.IN_STOCK,
+            stockQuantity: Math.floor(Math.random() * 50) + 10,
+            productHighlights: ["Easy to use", "Durable", "Perfect for DIY"],
+            productDetails: [],
+          }
+        });
+        createdProducts.push(product);
+      }
+    }
+  }
+
+  console.log("Creating 5 Orders for random users...");
+  const cities = ["Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad"];
+  const states = ["Maharashtra", "Delhi", "Karnataka", "Maharashtra", "Telangana"];
   
   for (let i = 0; i < 5; i++) {
     const user = users[Math.floor(Math.random() * users.length)];
@@ -89,30 +123,34 @@ async function main() {
         name: user.name,
         phone: user.phone || "9000000000",
         addressLine1: `${Math.floor(Math.random() * 100) + 1}, Tech Park`,
-        city: cities[Math.floor(Math.random() * cities.length)],
-        state: states[Math.floor(Math.random() * states.length)],
+        city: cities[i],
+        state: states[i],
         pincode: `40000${i}`,
         isDefault: true,
       },
     });
 
+    // Pick 2 random products for the order
     const orderProducts = [
-      products[Math.floor(Math.random() * products.length)],
-      products[Math.floor(Math.random() * products.length)]
+      createdProducts[Math.floor(Math.random() * createdProducts.length)],
+      createdProducts[Math.floor(Math.random() * createdProducts.length)]
     ];
 
     let subtotal = 0;
     let discount = 0;
+
     const itemsData = orderProducts.map(prod => {
       const quantity = Math.floor(Math.random() * 2) + 1;
-      const price = Number(prod.salePrice || prod.price);
-      subtotal += price * quantity;
-      discount += Number(prod.price) - Number(prod.salePrice || prod.price) * quantity;
+      const originalPrice = Number(prod.price);
+      const salePrice = Number(prod.salePrice || prod.price);
+      
+      subtotal += originalPrice * quantity;
+      discount += (originalPrice - salePrice) * quantity;
       
       return {
         productId: prod.id,
         quantity: quantity,
-        priceAtPurchase: price,
+        priceAtPurchase: salePrice,
         productSnapshot: { title: prod.title, sku: prod.sku, image: prod.imageLink },
       };
     });
@@ -124,20 +162,21 @@ async function main() {
         orderNumber: `ORD${Date.now()}${i}`,
         userId: user.id,
         addressId: address.id,
-        status: OrderStatus.CONFIRMED,
+        status: OrderStatus.DELIVERED,
         subtotal: subtotal,
         totalAmount: totalAmount,
-        confirmedAt: new Date(),
-        items: {
-          create: itemsData,
-        },
+        discount: discount,
+        confirmedAt: new Date(Date.now() - 86400000 * 3), // 3 days ago
+        shippedAt: new Date(Date.now() - 86400000 * 2),   // 2 days ago
+        deliveredAt: new Date(),
+        items: { create: itemsData },
         payment: {
           create: {
             razorpayOrderId: `order_${Date.now()}${i}`,
             razorpayPaymentId: `pay_${Date.now()}${i}`,
             amount: totalAmount,
             status: PaymentStatus.SUCCESS,
-            paymentMethod: "card",
+            paymentMethod: "upi",
           },
         },
       },
@@ -145,8 +184,6 @@ async function main() {
   }
 
   console.log("\nSeeding completed successfully!");
-  console.log(`Admin Email: admin@gmail.com`);
-  console.log(`Password: password123 (for all users)`);
 }
 
 main()
