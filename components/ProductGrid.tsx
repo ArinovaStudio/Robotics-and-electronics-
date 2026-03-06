@@ -25,7 +25,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const router = useRouter();
 
   return (
-    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 gap-x-10! sm:gap-7">
       {products.map((p, i) => {
         
         const regularPrice = parseFloat(p.price) || 0;
@@ -43,7 +43,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
         return (
           <div
             key={p.id || i}
-            className="rounded-lg md:max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden pr-5"
+            className="rounded-lg md:max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
             onClick={() => router.push(`/products/${p.link || p.id}`)}
           >
             {/* Image Area */}
