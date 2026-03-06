@@ -346,7 +346,7 @@ export default function AddressPage() {
 
                                 return (
                                     <div key={i} className="flex gap-3">
-                                        <Image src={item.product?.imageLink || "/homeposter.png"} alt="" width={60} height={60} className="rounded object-cover border border-gray-100" />
+                                        <Image src={item.product?.imageLink || "/homeposter.png"} alt="" width={60} height={60} className="rounded object-cover border border-gray-100" unoptimized />
                                         <p className="text-sm text-gray-700">Delivery between <span className="font-semibold">{startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - {endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></p>
                                     </div>
                                 );

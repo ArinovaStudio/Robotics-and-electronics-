@@ -111,6 +111,7 @@ export default function Footer() {
             alt="Payment Methods"
             width={280}
             height={40}
+            unoptimized
             className="object-contain"
           />
         </div>

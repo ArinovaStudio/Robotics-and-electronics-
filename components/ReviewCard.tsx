@@ -77,6 +77,7 @@ export default function ReviewCard({
             src={review.images[currentImageIdx]} 
             alt={`Review attachment ${currentImageIdx + 1}`} 
             fill 
+            unoptimized
             className="object-contain" 
           />
           

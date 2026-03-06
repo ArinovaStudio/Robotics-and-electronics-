@@ -30,8 +30,13 @@ export async function POST(req: NextRequest) {
     const image = body.get("image") as File || null;
 
     if(!image){
-      throw Error("Image is Required");
+      return NextResponse.json( { success: false, message: "Image is Required" }, { status: 400 } );
     }
+    
+    if(!title){
+      return NextResponse.json( { success: false, message: "Title is Required" }, { status: 400 } );
+    }
+
     const ImageUrl = await uploadFile(image, "banners");
 
     const banner = await prisma.banner.create({

@@ -8,20 +8,21 @@ import { useSession } from 'next-auth/react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const { data: session, status } = useSession();
+    const { data: session, status } = useSession({
+        required: true,
+        onUnauthenticated() {
+            router.push('/login?callbackUrl=/admin');
+        },
+    });
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
-        
-        if (status === 'unauthenticated') {
-            router.push('/login');
-        } 
-        else if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
+        if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
             router.push('/'); 
         }
     }, [status, session, router]);
 
-    if (status === 'loading' || status === 'unauthenticated' || session?.user?.role !== 'ADMIN') {
+    if (status === 'loading' || !session || session?.user?.role !== 'ADMIN') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>

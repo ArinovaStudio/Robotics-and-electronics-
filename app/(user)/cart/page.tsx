@@ -162,6 +162,7 @@ function CartPageContent() {
                         src={item.product.imageLink}
                         alt={item.product.title}
                         fill
+                        unoptimized
                         className="object-contain"
                       />
                     ) : (

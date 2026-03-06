@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export interface Banner {
   id: string;
@@ -12,10 +12,18 @@ import { Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BannerModal from "./BannerModal";
-import WarningModal from "./WarningModal";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banner: Banner,pending: boolean, onSubmit: any,onDelete: any }) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    await onDelete(banner.id);
+    setIsDeleteModalOpen(false);
+  };
+
   return (
+    <>
     <Card className="overflow-hidden pt-0 pb-4 gap-1 border hover:shadow-lg transition-all duration-300 group">
       {/* Image Section */}
       <div className="relative h-48 w-full overflow-hidden">
@@ -23,6 +31,7 @@ export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banne
           src={banner.image}
           alt={banner.title}
           fill
+          unoptimized
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
@@ -43,13 +52,26 @@ export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banne
           Edit
         </Button>
         </BannerModal>
-        <WarningModal pending={pending} onDelete={async ()=>await onDelete(banner.id)}>
-        <Button variant="destructive" size="sm" className="gap-2">
+        <Button 
+            variant="destructive" 
+          size="sm" 
+          className="gap-2"
+          onClick={() => setIsDeleteModalOpen(true)}
+        >
           <Trash2 size={16} />
           Delete
         </Button>
-        </WarningModal>
       </CardFooter>
     </Card>
+
+    <DeleteConfirmModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title={banner.title}
+        itemName="Banner"
+        isDeleting={pending}
+      />
+    </>
   );
 }

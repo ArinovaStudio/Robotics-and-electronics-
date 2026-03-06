@@ -175,7 +175,7 @@ export default function OrdersPage() {
                     <div key={item.id} className="flex gap-4 py-4 border-b border-[#f3f3f3] last:border-0 last:pb-0">
                       <div className="w-20 h-20 bg-[#f8fafd] rounded-xl flex shrink-0 items-center justify-center overflow-hidden relative">
                         {item.product.image ? (
-                          <Image src={item.product.image} alt={item.product.title} fill className="object-contain p-2" />
+                          <Image src={item.product.image} alt={item.product.title} fill className="object-contain p-2" unoptimized/>
                         ) : (
                           <Package className="text-gray-300" size={32} />
                         )}

@@ -33,6 +33,7 @@ export default function HomePoster() {
                     src={image}
                     alt={title}
                     fill
+                    unoptimized
                     className="object-cover w-full h-full rounded-4xl"
                     priority
                   />
