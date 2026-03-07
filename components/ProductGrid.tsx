@@ -9,12 +9,12 @@ type APIProduct = {
   description?: string;
   image: string;
   price: string;
-  salePrice: string | null; 
+  salePrice: string | null;
   brand?: string;
   category?: { id: string; name: string; slug: string };
   stock: number;
   isLowStock: boolean;
-  link?: string; 
+  link?: string;
 };
 
 type ProductGridProps = {
@@ -25,9 +25,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const router = useRouter();
 
   return (
-    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 gap-x-10! sm:gap-7">
+    <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-6 gap-x-10! sm:gap-7">
       {products.map((p, i) => {
-        
         const regularPrice = parseFloat(p.price) || 0;
         const salePrice = p.salePrice ? parseFloat(p.salePrice) : null;
 
@@ -43,18 +42,18 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
         return (
           <div
             key={p.id || i}
-            className="rounded-lg md:max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
+            className="rounded-lg  flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px]"
             onClick={() => router.push(`/products/${p.link || p.id}`)}
           >
             {/* Image Area */}
             <div className="w-full relative">
-              <div className="w-full h-[200px] relative rounded flex items-center justify-center overflow-hidden">
+              <div className="w-full h-[120px] sm:h-[200px] relative rounded flex items-center justify-center">
                 {p.image ? (
                   <Image
                     src={p.image}
                     alt={p.title || "Product image"}
                     fill
-                    className="object-cover rounded-xl h-full w-full"
+                    className="object-cover shadow-md rounded-xl h-full w-full"
                     unoptimized
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                   />
@@ -79,18 +78,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
             </div>
 
             {/* Card Content */}
-            <div className="pt-5 pb-[22px] flex flex-col flex-1">
-              
+            <div className="pt-4 sm:pt-5 pb-4 sm:pb-[22px] flex flex-col flex-1">
               {/* Brand Label */}
               {p.brand && (
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#f0b31e] mb-1">
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-[#f0b31e] mb-1">
                   {p.brand}
                 </span>
               )}
 
               {/* Title */}
               <h3
-                className="text-lg font-bold text-[#050A30] leading-tight mb-1.5 line-clamp-2"
+                className="text-[11px] sm:text-lg font-bold text-[#050A30] leading-tight mb-1 sm:mb-1.5 line-clamp-2"
                 title={p.title}
               >
                 {p.title}
@@ -98,23 +96,29 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
 
               {/* Description */}
               <p
-                className="text-xs text-gray-400 leading-relaxed mb-3.5 line-clamp-2 min-h-[38px]"
+                className="text-[8px] sm:text-xs text-gray-400 leading-relaxed mb-2.5 sm:mb-3.5 line-clamp-2! min-h-[34px] sm:min-h-[38px]"
                 title={p.description || ""}
               >
                 {p.description || "No description available."}
               </p>
 
               {/* Price */}
-              <div className="flex items-baseline font-inter gap-2.5 mt-auto">
-                <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
-                  <span className="text-[#F0B31E] text-[28px]">
-                    ₹{displayPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              <div className="flex items-baseline font-inter gap-2 mt-auto">
+                <span className="text-[22px] sm:text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
+                  <span className="text-[#F0B31E] text-[22px] sm:text-[28px]">
+                    ₹
+                    {displayPrice.toLocaleString("en-IN", {
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </span>
-                
+
                 {salePrice && salePrice < regularPrice && (
-                  <span className="text-[16px] font-medium text-gray-300 line-through">
-                    ₹{regularPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                  <span className="text-[13px] sm:text-[16px] font-medium text-gray-300 line-through">
+                    ₹
+                    {regularPrice.toLocaleString("en-IN", {
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 )}
               </div>

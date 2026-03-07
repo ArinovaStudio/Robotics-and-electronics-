@@ -77,7 +77,7 @@ export default function BannerPage() {
       ) : banners.length === 0 ? (
         <div className="text-center">No Banners Found!</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
           {banners.map((banner: any) => (
             <BannerCard
               onDelete={deleteItem}

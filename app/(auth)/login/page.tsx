@@ -68,12 +68,12 @@ function LoginForm() {
           router.push("/");
           return;
         }
-        let callbackUrl = searchParams.get("callbackUrl") || "/";
-        if (callbackUrl.includes("/login")) {
-          callbackUrl = "/";
-        }
-        router.refresh();
-        router.push(callbackUrl);
+        // let callbackUrl = searchParams.get("callbackUrl") || "/";
+        // if (callbackUrl.includes("/login")) {
+        //   callbackUrl = "/";
+        // }
+        // router.refresh();
+        // router.push(callbackUrl);
       }
     } catch (err: any) {
       setError(err.message);

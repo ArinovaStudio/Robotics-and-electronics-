@@ -176,7 +176,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFiltersChange, availabl
   }
 
   return (
-    <aside className="w-[260px] bg-[#f8f8f8] md:rounded-xl p-5 shadow-sm flex flex-col gap-0 border border-gray-100">
+    <aside className="w-[260px] max-md:h-full bg-[#f8f8f8] md:rounded-xl p-5 shadow-sm flex flex-col gap-0 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <span className="text-lg font-space-grotesk font-bold text-[#050a30]">FILTERS</span>
         <Funnel size={18} className="text-[#434343]" />

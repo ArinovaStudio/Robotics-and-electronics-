@@ -26,7 +26,7 @@ export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banne
     <>
     <Card className="overflow-hidden pt-0 pb-4 gap-1 border hover:shadow-lg transition-all duration-300 group">
       {/* Image Section */}
-      <div className="relative h-48 w-full overflow-hidden">
+      <div className="relative h-30 md:h-48 w-full overflow-hidden">
         <Image
           src={banner.image}
           alt={banner.title}
@@ -41,7 +41,7 @@ export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banne
 
       {/* Title */}
       <CardContent className="py-4">
-        <h3 className="text-lg font-semibold line-clamp-1">{banner.title}</h3>
+        <h3 className="text-sm md:text-lg font-semibold line-clamp-1">{banner.title}</h3>
       </CardContent>
 
       {/* Actions */}
@@ -49,7 +49,6 @@ export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banne
         <BannerModal loading={pending} banner={banner} mode={"edit"} onSubmit={onSubmit}>
         <Button variant="outline" size="sm" className="gap-2">
           <Edit size={16} />
-          Edit
         </Button>
         </BannerModal>
         <Button 
@@ -59,7 +58,6 @@ export default function BannerCard({ banner,pending,onSubmit,onDelete }: { banne
           onClick={() => setIsDeleteModalOpen(true)}
         >
           <Trash2 size={16} />
-          Delete
         </Button>
       </CardFooter>
     </Card>

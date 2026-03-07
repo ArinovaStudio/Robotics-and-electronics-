@@ -9,11 +9,11 @@ export default function Footer() {
       <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row gap-16 md:gap-0">
         {/* Left: Logo and Social */}
         <div className="flex-[1.2] flex flex-col gap-6 pr-10">
-          <div>
-            <div className="text-5xl relative h-30 w-30 flex uppercase font-semibold tracking-tight text-[#111] mb-4">
+          <div className="flex gap-4">
+            <div className="text-5xl relative h-25 w-25 flex uppercase font-semibold tracking-tight text-[#111] mb-4">
              <Image alt={"Loading"} priority unoptimized src={"/logo.png"} fill/>
             </div>
-            <p className="text-sm text-justify text-[#555] max-w-[260px] leading-relaxed">
+            <p className="text-sm max-w-[150px]! text-justify text-[#555] max-w-[260px] leading-relaxed">
               We have parts that suits your electronics and which you're proud
               to buil.
             </p>

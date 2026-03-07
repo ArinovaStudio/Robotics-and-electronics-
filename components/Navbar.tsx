@@ -172,24 +172,23 @@ export default function Navbar() {
 
         <X onClick={()=>setHidden(true)} className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70" />
       </div>
-      <nav className="w-full bg-white mt-2 flex items-center h-16 px-8 relative z-50">
+      <nav className="w-full bg-white mt-2 flex items-center h-16 px-4 md:px-8 relative z-50">
         {/* Logo */}
         <Link href="/" aria-label="Home">
-          <div className="font-bold text-2xl text-[#050a30] tracking-wide cursor-pointer">
+          <div className="relative font-bold h-10 w-10 md:h-15 md:w-15 rounded-lg overflow-hidden text-2xl text-[#050a30] tracking-wide cursor-pointer">
             <Image
               src="/logo.png"
+              fill
               alt="Robotics and Electronics Logo"
-              width={60}
-              height={60}
               unoptimized
-              className="object-contain"
+              className="object-fit"
             />
           </div>
         </Link>
 
         {/* Search Bar with Autocomplete */}
         <div className="flex-1 flex justify-center">
-          <div className="relative w-[55%] max-w-150">
+          <div className="relative mx-3 md:w-[55%] max-w-150">
             <form onSubmit={handleSearch}>
               <input
                 ref={inputRef}
