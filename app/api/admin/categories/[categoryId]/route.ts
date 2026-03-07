@@ -42,10 +42,34 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
     const description = formData.get("description") as string | null;
     const parentId = formData.get("parentId") as string | null;
     const isActive = formData.get("isActive") as string | null;
-    const sortOrder = formData.get("sortOrder") as string | null;
+    const sortOrderRaw = formData.get("sortOrder");
     const imageFile = formData.get("image") as File | null;
 
     const updateData: any = {};
+
+    if (sortOrderRaw !== null) {
+      if (sortOrderRaw === "" || sortOrderRaw === "null") {
+        updateData.sortOrder = null; 
+      } else {
+        const parsedSortOrder = parseInt(sortOrderRaw as string);
+        
+        if (isNaN(parsedSortOrder) || parsedSortOrder < 1) {
+          return NextResponse.json({ success: false, message: "Sort order must be 1 or greater" }, { status: 400 });
+        }
+
+        const duplicateSortOrder = await prisma.category.findFirst({
+          where: {
+            sortOrder: parsedSortOrder,
+            id: { not: categoryId },
+          },
+        });
+
+        if (duplicateSortOrder) {
+          return NextResponse.json({ success: false, message: `Sort order ${parsedSortOrder} is already in use` }, { status: 400 });
+        }
+        updateData.sortOrder = parsedSortOrder;
+      }
+    }
 
     if (name && name !== existingCategory.name) {
       const duplicateName = await prisma.category.findFirst({
@@ -75,22 +99,6 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
 
     if (description !== null) updateData.description = description;
     if (isActive !== null) updateData.isActive = isActive === "true";
-    if (sortOrder !== null && sortOrder !== "") {
-      const parsedSortOrder = parseInt(sortOrder);
-      
-      const duplicateSortOrder = await prisma.category.findFirst({
-        where: {
-          sortOrder: parsedSortOrder,
-          id: { not: categoryId },
-        },
-      });
-
-      if (duplicateSortOrder) {
-        return NextResponse.json({ success: false, message: `Sort order ${parsedSortOrder} is already in use by another category` }, { status: 400 });
-      }
-
-      updateData.sortOrder = parsedSortOrder;
-    }
 
     if (parentId !== null) {
       const newParentId = parentId === "null" || parentId.trim() === "" ? null : parentId;

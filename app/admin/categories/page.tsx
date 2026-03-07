@@ -190,7 +190,7 @@ export default function CategoriesPage() {
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-slate-600 font-medium">{cat._count.children}</TableCell>
-                                            <TableCell className="text-slate-600 font-mono text-sm">{cat.sortOrder}</TableCell>
+                                            <TableCell className="text-slate-600 font-mono text-sm">{cat.sortOrder ?? "-"}</TableCell>
                                             <TableCell>
                                                 {cat.isActive ? (
                                                      <Badge variant="outline" className="border-emerald-200 text-emerald-600 bg-emerald-50">Active</Badge>

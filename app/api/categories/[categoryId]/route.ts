@@ -36,22 +36,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cate
     });
 
     if (!category) {
-      return NextResponse.json(
-        { success: false, message: "Category not found or unavailable" },
-        { status: 404 }
-      );
+      return NextResponse.json( { success: false, message: "Category not found or unavailable" }, { status: 404 } );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: { category }
-    });
+    return NextResponse.json({ success: true, data: { category } }, { status: 200 });
 
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 } );
   }
 }

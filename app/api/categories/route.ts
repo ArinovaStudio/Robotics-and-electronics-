@@ -23,10 +23,12 @@ export async function GET(request: Request) {
       where.parentId = parentId;
     }
 
-    const categories = await prisma.category.findMany({
-      where,
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    });
+    const categories = await prisma.category.findMany({ where, orderBy: [
+      { sortOrder: { sort: 'asc', nulls: 'last' } },
+      { name: "asc" }
+    ] });
+
+    return NextResponse.json({ success: true, data: categories }, { status: 200 });
 
     return NextResponse.json(
       { success: true, data: categories },

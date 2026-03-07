@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (status === "active") where.isActive = true;
     else if (status === "hidden") where.isActive = false;
 
-    const [categories, totalFiltered, allCategoriesForMetrics] = await Promise.all([
+    const [categories, totalFiltered, allCategories] = await Promise.all([
       prisma.category.findMany({
         where,
         include: {
@@ -33,28 +33,62 @@ export async function GET(request: NextRequest) {
         },
         skip,
         take: limit,
-        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        orderBy: [
+          { sortOrder: { sort: 'asc', nulls: 'last' } }, 
+          { name: "asc" }
+        ],
       }),
       prisma.category.count({ where }),
       prisma.category.findMany({
-        select: { isActive: true, _count: { select: { products: true } } }
+        select: { 
+          id: true, 
+          parentId: true, 
+          isActive: true, 
+          _count: { select: { products: true } } 
+        }
       })
     ]);
 
-    const totalCategories = allCategoriesForMetrics.length;
+    const categoryMap = new Map();
+    allCategories.forEach(cat => {
+      categoryMap.set(cat.id, { ...cat, totalRecursiveProducts: 0 });
+    });
+
+    const getRecursiveCount = (catId: string): number => {
+      const cat = categoryMap.get(catId);
+      if (!cat) return 0;
+
+      let count = cat._count.products;
+
+      // recursively counting chidren category products
+      const children = allCategories.filter(c => c.parentId === catId);
+      children.forEach(child => {
+        count += getRecursiveCount(child.id);
+      });
+
+      return count;
+    };
+
+    const totalCategories = allCategories.length;
     let activeCategories = 0;
     let emptyCategories = 0;
 
-    allCategoriesForMetrics.forEach(cat => {
+    allCategories.forEach(cat => {
       if (cat.isActive) activeCategories++;
-      if (cat._count.products === 0) emptyCategories++;
+      if (getRecursiveCount(cat.id) === 0) emptyCategories++;
     });
 
     return NextResponse.json({
       success: true,
       message: "Categories fetched successfully",
       data: {
-        categories,
+        categories: categories.map(cat => ({
+          ...cat,
+          _count: {
+            ...cat._count,
+            products: getRecursiveCount(cat.id)
+          }
+        })),
         metrics: {
           totalCategories,
           activeCategories,
@@ -88,8 +122,26 @@ export async function POST(request: NextRequest) {
     const description = formData.get("description") as string | null;
     const parentId = formData.get("parentId") as string | null;
     const isActive = formData.get("isActive") !== "false";
-    const sortOrder = parseInt((formData.get("sortOrder") as string) || "0");
+    const sortOrderRaw = formData.get("sortOrder");
     const imageFile = formData.get("image") as File | null;
+
+    let finalSortOrder: number | null = null;
+
+    if (sortOrderRaw && sortOrderRaw !== "" && sortOrderRaw !== "null") {
+      finalSortOrder = parseInt(sortOrderRaw as string);
+      
+      if (isNaN(finalSortOrder) || finalSortOrder < 1) {
+        return NextResponse.json({ success: false, message: "Sort order must be 1 or greater" }, { status: 400 });
+      }
+
+      const duplicateSortOrder = await prisma.category.findFirst({ 
+        where: { sortOrder: finalSortOrder } 
+      });
+
+      if (duplicateSortOrder) {
+        return NextResponse.json({ success: false, message: `Sort order ${finalSortOrder} is already in use` }, { status: 400 });
+      }
+    }
 
     if (!name || name.trim() === "") {
       return NextResponse.json( { success: false, message: "Category name is required" }, { status: 400 });
@@ -103,21 +155,6 @@ export async function POST(request: NextRequest) {
     
     if (existingCategory) {
       return NextResponse.json({ success: false, message: "Category name already exists" }, { status: 400 });
-    }
-
-    let finalSortOrder: number;
-
-    if (sortOrder) {
-      finalSortOrder = sortOrder;
-      
-      const duplicateSortOrder = await prisma.category.findFirst({ where: { sortOrder: finalSortOrder } });
-
-      if (duplicateSortOrder) {
-        return NextResponse.json({ success: false, message: `Sort order ${finalSortOrder} is already in use.` }, { status: 400 });
-      }
-    } else {
-      const maxCategory = await prisma.category.aggregate({ _max: { sortOrder: true } });
-      finalSortOrder = (maxCategory._max.sortOrder || 0) + 1;
     }
 
     let imageUrl = null;
