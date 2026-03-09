@@ -29,11 +29,7 @@ export async function GET(request: Request) {
     ] });
 
     return NextResponse.json({ success: true, data: categories }, { status: 200 });
-
-    return NextResponse.json(
-      { success: true, data: categories },
-      { status: 200 }
-    );
+    
   } catch {
     return NextResponse.json(
       { success: false, message: "Internal server error" },
