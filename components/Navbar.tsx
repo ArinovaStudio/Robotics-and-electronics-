@@ -107,7 +107,7 @@ export default function Navbar() {
   const handleSelectProduct = (product: SuggestionProduct) => {
     setShowDropdown(false);
     setSearchQuery("");
-    router.push(`/products/${product.link || product.id}`);
+    router.push(`/products/${product.id}`);
   };
 
   // Keyboard navigation

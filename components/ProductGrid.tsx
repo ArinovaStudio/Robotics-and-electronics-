@@ -43,7 +43,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
           <div
             key={p.id || i}
             className="rounded-lg  flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px]"
-            onClick={() => router.push(`/products/${p.link || p.id}`)}
+            onClick={() => router.push(`/products/${p.id}`)}
           >
             {/* Image Area */}
             <div className="w-full relative">
