@@ -144,7 +144,7 @@ export default function SingleProductPage({
   }, []);
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?callbackUrl=/products/${product.link}`);
+      router.push(`/login?callbackUrl=/products/${product.id}`);
       return;
     }
     setAddingToCart(true);
@@ -161,7 +161,7 @@ export default function SingleProductPage({
 
   const handleBuyNow = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?callbackUrl=/products/${product.link}`);
+      router.push(`/login?callbackUrl=/products/${product.id}`);
       return;
     }
     setAddingToCart(true);
@@ -617,7 +617,7 @@ export default function SingleProductPage({
                     onClick={() => {
                       if (!isAuthenticated)
                         return router.push(
-                          `/login?callbackUrl=/products/${product.link}`
+                          `/login?callbackUrl=/products/${product.id}`
                         );
                       setEditingReview(null); // Ensure modal opens fresh
                       setShowReviewModal(true);

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSession, signIn } from "next-auth/react";
@@ -59,13 +59,18 @@ function LoginForm() {
 
       if (res?.ok) {
         console.log(searchParams);
+        router.refresh();
         const session = await getSession();
-        const userRole = session?.user?.role;
+        const userRole = String(session?.user?.role || "").toUpperCase();
         if (userRole === "ADMIN") {
           router.push("/admin");
           return;
         }else if(userRole==="CUSTOMER"){
-          router.push("/");
+          let callbackUrl = searchParams.get("callbackUrl") || "/";
+          if (callbackUrl.includes("/login")) {
+            callbackUrl = "/";
+          }
+          router.push(callbackUrl);
           return;
         }
         // let callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -302,6 +307,34 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const verifyUser = async () => {
+      const session = await getSession(); 
+      if (session) {
+        const role = String(session.user?.role || "").toUpperCase();
+        if (role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
+      } else {
+        setIsChecking(false);
+      }
+    };
+    verifyUser();
+  }, [router]);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex justify-center items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#f0b31e]" />
+      </div>
+    );
+  }
+
   return (
     <Suspense
       fallback={

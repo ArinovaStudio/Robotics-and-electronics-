@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
 
-    const where: any = { userId: user.id };
+    const where: any = { userId: user.id, status: { not: "PENDING" } };
 
     if (search) {
       where.OR = [
@@ -56,8 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: formattedOrders }, { status: 200 });
 
-  } catch (error: any) {
-    console.error("Orders fetch error:", error);
+  } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

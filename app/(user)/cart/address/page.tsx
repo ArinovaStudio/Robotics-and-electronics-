@@ -133,6 +133,18 @@ export default function AddressPage() {
 
     const totals = calculateTotals();
 
+    const cancelOrder = async (orderId: string) => {
+        try {
+            await fetch("/api/razorpay/cancel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orderId }),
+            });
+        } catch (error) {
+            console.error("Failed to cancel order:", error);
+        }
+    };
+
     const handlePayment = async () => {
         if (!selectedId) {
             alert("Please select a delivery address.");
@@ -203,6 +215,9 @@ export default function AddressPage() {
                 modal: {
                     ondismiss: function () {
                         setProcessingPayment(false);
+                        if (orderData?.data?.orderId) {
+                            cancelOrder(orderData.data.orderId);
+                        }
                     }
                 }
             };
@@ -212,6 +227,9 @@ export default function AddressPage() {
             rzp.on("payment.failed", function (response: any) {
                 alert(`Payment failed: ${response.error.description}`);
                 setProcessingPayment(false);
+                if (orderData?.data?.orderId) {
+                    cancelOrder(orderData.data.orderId);
+                }
             });
 
             rzp.open();
@@ -347,7 +365,7 @@ export default function AddressPage() {
                                 return (
                                     <div key={i} className="flex gap-3">
                                         <Image src={item.product?.imageLink || "/homeposter.png"} alt="" width={60} height={60} className="rounded object-cover border border-gray-100" unoptimized />
-                                        <p className="text-sm text-gray-700">Delivery between <span className="font-semibold">{startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - {endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></p>
+                                        {/* <p className="text-sm text-gray-700">Delivery between <span className="font-semibold">{startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - {endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></p> */}
                                     </div>
                                 );
                             })}
