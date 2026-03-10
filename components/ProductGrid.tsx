@@ -25,7 +25,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const router = useRouter();
 
   return (
-    <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-6 gap-x-10! sm:gap-7">
+    <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 md:gap-x-10! sm:gap-7">
       {products.map((p, i) => {
         const regularPrice = parseFloat(p.price) || 0;
         const salePrice = p.salePrice ? parseFloat(p.salePrice) : null;

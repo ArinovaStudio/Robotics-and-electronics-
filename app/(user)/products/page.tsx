@@ -126,7 +126,7 @@ export default function ProductsPage() {
     <main className="bg-white min-h-screen">
       <div className="w-full max-w-[1200px] mx-auto px-4 py-2 md:py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 flex max-md:justify-between items-center">
           <div className="grid gap-2 items-center mb-3">
           <h1 className="text-xl md:text-4xl font-bold text-[#050a30]">
             ALL PRODUCTS
@@ -219,7 +219,7 @@ export default function ProductsPage() {
                       Previous
                     </button>
 
-                    <div className="flex items-center gap-1">
+                    <div className={`flex items-center gap-1 max-md:hidden`}>
                       {getPageNumbers().map((p, idx) =>
                         p === "..." ? (
                           <span
