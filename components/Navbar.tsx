@@ -18,7 +18,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, useCart } from "@/app/contexts";
 import { signOut } from "next-auth/react";
-
+import { usePathname } from "next/navigation";
+import GoBackButton from "./GoBackButton";
 type SuggestionProduct = {
   id: string;
   title: string;
@@ -36,8 +37,7 @@ export default function Navbar() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-  const [hidden,setHidden] = useState(false);
-  // Autocomplete state
+  const [hidden, setHidden] = useState(false);
   const [suggestions, setSuggestions] = useState<SuggestionProduct[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -45,7 +45,7 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-
+  const pathName = usePathname();
   const handleLogout = async () => {
     try {
       await signOut({ redirect: true, callbackUrl: "/login" });
@@ -158,7 +158,11 @@ export default function Navbar() {
 
   return (
     <>
-      <div className={`${hidden && "hidden"} bg-black w-full py-2 text-sm flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 px-4 relative mb-1`}>
+      <div
+        className={`${
+          hidden && "hidden"
+        } bg-black w-full py-2 text-sm flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 px-4 relative mb-1`}
+      >
         <p className="text-white font-space-grotesk font-semibold text-center md:text-left">
           GET 50% OFF BLACK FRIDAY SALE
         </p>
@@ -170,25 +174,31 @@ export default function Navbar() {
           </Link>
         </p>
 
-        <X onClick={()=>setHidden(true)} className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70" />
+        <X
+          onClick={() => setHidden(true)}
+          className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70"
+        />
       </div>
       <nav className="w-full bg-white mt-2 flex items-center h-16 px-4 md:px-8 relative z-50">
         {/* Logo */}
-        <Link href="/" aria-label="Home">
-          <div className="relative font-bold h-10 w-10 md:h-15 md:w-15 rounded-lg overflow-hidden text-2xl text-[#050a30] tracking-wide cursor-pointer">
-            <Image
-              src="/logo.png"
-              fill
-              alt="Robotics and Electronics Logo"
-              unoptimized
-              className="object-fit"
-            />
-          </div>
-        </Link>
-
+        {pathName === "/" ? (
+          <Link href="/" aria-label="Home">
+            <div className="relative font-bold h-8 w-8 md:h-15 md:w-15 rounded-lg overflow-hidden text-2xl text-[#050a30] tracking-wide cursor-pointer">
+              <Image
+                src="/logo.png"
+                fill
+                alt="Robotics and Electronics Logo"
+                unoptimized
+                className="object-fit"
+              />
+            </div>
+          </Link>
+        ) : (
+          <GoBackButton />
+        )}
         {/* Search Bar with Autocomplete */}
-        <div className="flex-1 flex justify-center">
-          <div className="relative mx-3 md:w-[55%] max-w-150">
+        <div className="flex-1 ml-2 flex justify-center">
+          <div className="relative md:mx-3 md:w-[55%] max-w-150">
             <form onSubmit={handleSearch}>
               <input
                 ref={inputRef}
@@ -205,17 +215,17 @@ export default function Navbar() {
                   }
                 }}
                 placeholder="Search for products"
-                className="w-full h-11 pl-8 pr-16 font-space-grotesk rounded-full bg-[#f8f8f8] text-base outline-none border-none shadow-none"
+                className="w-full h-8 md:h-11 pl-3 md:pl-8 pr-16 font-space-grotesk rounded-full bg-[#f8f8f8] text-base outline-none border-none shadow-none"
                 autoComplete="off"
                 suppressHydrationWarning
               />
               <button
                 type="submit"
-                className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#f0b31e] hover:bg-[#e6a700] w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-colors"
+                className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#f0b31e] hover:bg-[#e6a700] w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center shadow-md transition-colors"
                 aria-label="Search"
                 suppressHydrationWarning
               >
-                <Search size={20} color="#fff" />
+                <Search size={16} color="#fff" />
               </button>
             </form>
 
@@ -337,11 +347,11 @@ export default function Navbar() {
         </div>
 
         {/* Icons */}
-        <div className="flex items-center gap-6 ml-6">
+        <div className="flex items-center gap-6 ml-2 md:ml-6">
           {/* Cart Icon */}
           <Link href="/cart" aria-label="Cart" className="relative">
             <ShoppingCart
-              size={24}
+              size={19}
               strokeWidth={2}
               className="text-[#000000] hover:text-[#f0b31e] cursor-pointer transition-colors"
             />
@@ -359,12 +369,7 @@ export default function Navbar() {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center cursor-pointer gap-2 text-[#000000] hover:text-[#f0b31e] transition-colors"
               >
-                <UserCircle size={24} strokeWidth={2} />
-                {/* <User size={24} strokeWidth={2} /> */}
-                {/* <ChevronDown
-                  size={16}
-                  className={`transition-transform ${showUserMenu ? "rotate-180" : ""}`}
-                /> */}
+                <UserCircle size={19} strokeWidth={2} />
               </button>
 
               {/* Dropdown Menu */}
@@ -387,31 +392,27 @@ export default function Navbar() {
                         {user.email}
                       </p>
                     </div>
-
-                    {/* Menu Items */}
                     <Link
                       href="/profile"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <UserCircle size={18} />
+                      <UserCircle size={20} />
                       My Profile
                     </Link>
 
                     <Link
                       href="/orders"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <Package size={18} />
+                      <Package size={20} />
                       My Orders
                     </Link>
 
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1"
+                      className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 border-t border-gray-100"
                     >
-                      <LogOut size={18} />
+                      <LogOut size={20} />
                       Logout
                     </button>
                   </div>
@@ -422,12 +423,6 @@ export default function Navbar() {
             <div className="w-10 h-10" />
           ) : (
             <div className="flex items-center gap-3">
-              {/* <Link
-                href="/login"
-                className="text-sm font-medium text-[#434343] hover:text-[#f0b31e] transition-colors"
-              >
-                Login
-              </Link> */}
               <Link
                 href="/login"
                 className="text-sm font-semibold bg-[#f0b31e] hover:bg-[#e6a700] text-white px-4 py-2 rounded-full transition-colors"

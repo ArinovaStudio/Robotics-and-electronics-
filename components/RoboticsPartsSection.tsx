@@ -93,28 +93,22 @@ export default function RoboticsPartsSection(): JSX.Element {
     <section className="w-full gap-8 mt-12 mb-12 relative ">
       {/* Header */}
       <div className="flex px-5 items-center justify-between mb-10">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#050A30] tracking-wide uppercase">
+        <h2 className="text-lg max-md:grid gap-1 space-x-1 sm:text-xl md:text-2xl font-bold text-[#050A30] tracking-wide uppercase">
           TOP SELLING{" "}
+          <span>
           <span className="relative inline-block">
             <span
               className="absolute bottom-0 left-0 w-full bg-[#FFE29A]"
               style={{ height: "55%" }}
-            ></span>
+              ></span>
             <span className="relative z-10">ROBOTICS</span>
           </span>{" "}
           PARTS
+            </span>
         </h2>
-        <Link
-          href="/products"
-          className="text-[#f0b31e] font-space-grotesk font-semibold text-base flex items-center gap-1 hover:underline"
-        >
-          VIEW ALL
-          <ArrowRight size={20} strokeWidth={2.2} className="ml-1" />
-        </Link>
-      </div>
-
-      {/* Mobile Filter Button */}
-      <div className="md:hidden mb-6 px-5">
+        {/* Mobile Filter Button */}
+      <div className="flex gap-0 items-center">
+      <div className="md:hidden px-5">
         <Button
           size={"icon"}
           onClick={() => setIsFilterOpen(true)}
@@ -122,6 +116,15 @@ export default function RoboticsPartsSection(): JSX.Element {
         >
           <Filter />
         </Button>
+      </div> 
+        <Link
+          href="/products"
+          className="text-[#f0b31e] font-space-grotesk font-semibold text-base flex items-center gap-1 hover:underline"
+        >
+          VIEW ALL
+          <ArrowRight size={20} strokeWidth={2.2} className="ml-1" />
+        </Link>
+        </div>
       </div>
 
       {/* Overlay (Mobile Only) */}

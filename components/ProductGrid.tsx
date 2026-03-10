@@ -96,7 +96,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
 
               {/* Description */}
               <p
-                className="text-[8px] sm:text-xs text-gray-400 leading-relaxed mb-2.5 sm:mb-3.5 line-clamp-2! min-h-[34px] sm:min-h-[38px]"
+                className="text-[8px] sm:text-xs text-gray-400 leading-relaxed mb-1 line-clamp-2! max-h-[34px] sm:max-h-[38px]"
                 title={p.description || ""}
               >
                 {p.description || "No description available."}

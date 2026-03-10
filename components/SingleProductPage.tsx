@@ -44,6 +44,7 @@ import { Star, ShoppingCart, Loader2, Check } from "lucide-react";
 import { useCart, useAuth } from "@/app/contexts";
 import ReviewModal from "@/components/ReviewModal";
 import ReviewCard from "./ReviewCard";
+import ProductGrid from "./ProductGrid";
 
 type APIProduct = {
   id: string;
@@ -739,85 +740,7 @@ export default function SingleProductPage({
             </h2>
 
             {/* 4-column product grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 place-items-center">
-              {suggestedProducts.map((p, i) => {
-                let recDiscountPct = 0;
-                if (p.salePrice && p.price > p.salePrice) {
-                  recDiscountPct = Math.round(
-                    ((p.price - p.salePrice) / p.price) * 100
-                  );
-                }
-
-                return (
-                  <div
-                    key={p.id || i}
-                    className=" rounded-lg max-h-[65vh] flex flex-col items-stretch w-full cursor-pointer transition-all duration-200 hover:-translate-y-[5px] overflow-hidden"
-                    onClick={() => router.push(`/products/${p.id}`)}
-                  >
-                    {/* Image Area */}
-                    <div className="w-full relative">
-                      <div className="w-full h-[200px]  relative rounded flex items-center justify-center  overflow-hidden">
-                        {p.imageLink ? (
-                          <Image
-                            src={p.imageLink}
-                            alt={p.title || "Product image"}
-                            fill
-                            unoptimized
-                            className="overflow-hidden rounded-xl h-full w-full"
-                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                          />
-                        ) : (
-                          <span className="text-5xl text-gray-300">📦</span>
-                        )}
-                      </div>
-
-                      {/* Discount Badge */}
-                      {discountPct > 0 && (
-                        <span className="absolute bottom-2 left-1 font-space-grotesk text-[10px] font-bold text-green-600 bg-green-300 px-3 py-[3px] rounded-full tracking-wide uppercase z-[2]">
-                          {discountPct}% OFF
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Card Content */}
-                    <div className="pt-5 pb-[22px] flex flex-col flex-1 ">
-                      {/* Title */}
-                      <h3
-                        className="text-lg font-bold text-[#050A30] leading-tight mb-1.5 line-clamp-2"
-                        title={p.title}
-                      >
-                        {p.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p
-                        className="text-xs text-gray-400 leading-relaxed mb-3.5 line-clamp-2 min-h-[38px]"
-                        title={p.description || ""}
-                      >
-                        {p.description || "No description available."}
-                      </p>
-
-                      {/* Price */}
-                      <div className="flex items-baseline font-inter gap-2.5 mt-auto">
-                        <span className="text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
-                          <span className="text-[#F0B31E] text-[28px]">
-                            ₹
-                            {Number(
-                              p.salePrice ? p.salePrice : p.price || 0
-                            ).toFixed(2)}
-                          </span>
-                        </span>
-                        {p.salePrice && p.salePrice < p.price && (
-                          <span className="text-[16px] font-medium text-gray-300 line-through">
-                            ₹{Number(p.price).toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <ProductGrid products={suggestedProducts as any}/>
           </section>
         )}
       </div>

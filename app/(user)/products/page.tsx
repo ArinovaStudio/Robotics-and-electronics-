@@ -124,19 +124,22 @@ export default function ProductsPage() {
 
   return (
     <main className="bg-white min-h-screen">
-      <div className="w-full max-w-[1200px] mx-auto px-4 py-8">
+      <div className="w-full max-w-[1200px] mx-auto px-4 py-2 md:py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#050a30] mb-2">
+          <div className="grid gap-2 items-center mb-3">
+          <h1 className="text-xl md:text-4xl font-bold text-[#050a30]">
             ALL PRODUCTS
           </h1>
-          <div className="flex items-center justify-between">
-            <p className="text-gray-500 text-sm">
-              {totalItems} product{totalItems !== 1 ? "s" : ""} found
+          <p className="text-gray-500 text-xs md:text-sm">
+              {totalItems} product{totalItems !== 1 ? "s" : ""}
             </p>
+          </div>
+          <div className="flex items-center justify-between">
+            
 
             {/* Sort + Mobile filter */}
-            <div className="flex items-center gap-3">
+            <div className="flex justify-between w-full items-center gap-3">
               <Button
                 size="icon"
                 onClick={() => setIsFilterOpen(true)}
@@ -144,18 +147,6 @@ export default function ProductsPage() {
               >
                 <Filter size={18} />
               </Button>
-
-              <select
-                value={sort}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#f0b31e]"
-              >
-                <option value="newest">Newest First</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="title_asc">Name: A to Z</option>
-                <option value="popular">Popular</option>
-              </select>
             </div>
           </div>
         </div>
@@ -182,6 +173,8 @@ export default function ProductsPage() {
               onFiltersChange={handleFiltersChange}
               availableBrands={availableBrands} // Pass down dynamically fetched brands
               resetKey={filterResetKey}
+              sort={sort}
+              handleSortChange={handleSortChange}
             />
           </div>
 
