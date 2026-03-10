@@ -63,14 +63,14 @@ function LoginForm() {
         const session = await getSession();
         const userRole = String(session?.user?.role || "").toUpperCase();
         if (userRole === "ADMIN") {
-          router.push("/admin");
+          window.location.href = "/admin";
           return;
         }else if(userRole==="CUSTOMER"){
           let callbackUrl = searchParams.get("callbackUrl") || "/";
           if (callbackUrl.includes("/login")) {
             callbackUrl = "/";
           }
-          router.push(callbackUrl);
+          window.location.href = callbackUrl;
           return;
         }
         // let callbackUrl = searchParams.get("callbackUrl") || "/";

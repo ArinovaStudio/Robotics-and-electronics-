@@ -17,12 +17,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
-        if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
-            router.push('/'); 
+        if (status === 'authenticated') {
+            const role = String(session?.user?.role || '').toUpperCase();
+            if (role !== 'ADMIN') {
+                router.push('/'); 
+            }
         }
     }, [status, session, router]);
 
-    if (status === 'loading' || !session || session?.user?.role !== 'ADMIN') {
+    const role = String(session?.user?.role || '').toUpperCase();
+
+    if (status === 'loading' || !session || role !== 'ADMIN') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
