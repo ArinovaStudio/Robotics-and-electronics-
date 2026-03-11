@@ -1,6 +1,7 @@
 "use client";
 import { FaTwitter, FaFacebookF, FaInstagram, FaGithub } from "react-icons/fa";
 import Image from "next/image";
+import Link from "next/link";
 import { SITE_NAME, YEAR } from "@/lib/constants";
 
 export default function Footer() {
@@ -11,7 +12,7 @@ export default function Footer() {
         <div className="flex-[1.2] flex flex-col gap-6 pr-10">
           <div className="flex gap-4">
             <div className="text-5xl relative h-25 w-25 flex uppercase font-semibold tracking-tight text-[#111] mb-4">
-             <Image alt={"Loading"} priority unoptimized src={"/logo.png"} fill/>
+              <Image alt={"Loading"} priority unoptimized src={"/logo.png"} fill/>
             </div>
             <p className="text-sm max-w-[150px]! text-justify text-[#555] max-w-[260px] leading-relaxed">
               We have parts that suits your electronics and which you're proud
@@ -47,32 +48,32 @@ export default function Footer() {
         </div>
 
         {/* Right: Links Grid */}
-        <div className="flex-[3] grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-4">
+        <div className="flex-[3] grid grid-cols-2 md:grid-cols-3 gap-10 md:gap-4">
           {[
             {
               title: "COMPANY",
-              links: ["About", "Features", "Works", "Career"],
+              links: [
+                { name: "About", href: "/about" },
+                { name: "Products", href: "/products" },
+                { name: "Contact Us", href: "/contact" },
+              ],
             },
             {
-              title: "HELP",
+              title: "HELP & SUPPORT",
               links: [
-                "Customer Support",
-                "Delivery Details",
-                "Terms & Conditions",
-                "Privacy Policy",
+                { name: "Terms & Conditions", href: "/terms-conditions" },
+                { name: "Privacy Policy", href: "/privacy-policy" },
+                { name: "Refund Policy", href: "/refund-policy" },
+                { name: "Customer Support", href: "/contact" },
               ],
             },
             {
               title: "FAQ",
-              links: ["Account", "Manage Deliveries", "Orders", "Payments"],
-            },
-            {
-              title: "RESOURCES",
               links: [
-                "Free eBooks",
-                "Development Tutorial",
-                "How to - Blog",
-                "Youtube Playlist",
+                { name: "Account", href: "/faq/account" },
+                { name: "Manage Deliveries", href: "/faq/manage-deliveries" },
+                { name: "Orders", href: "/faq/orders" },
+                { name: "Payments", href: "/faq/payments" },
               ],
             },
           ].map((col) => (
@@ -82,13 +83,13 @@ export default function Footer() {
               </div>
               <ul className="space-y-4">
                 {col.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                  <li key={link.name}>
+                    <Link
+                      href={link.href}
                       className="text-sm text-[#555] hover:text-[#111] transition"
                     >
-                      {link}
-                    </a>
+                      {link.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -105,15 +106,42 @@ export default function Footer() {
         <div className="relative text-sm uppercase text-[#666]">
           {SITE_NAME} © {YEAR}, All Rights Reserved
         </div>
-        <div>
-          <Image
-            src="/Frame53.png"
-            alt="Payment Methods"
-            width={280}
-            height={40}
-            unoptimized
-            className="object-contain"
-          />
+        {/* Payment Method Cards */}
+        <div className="flex items-center gap-2.5">
+          
+          {/* Visa Card */}
+          <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[54px] h-[34px] overflow-hidden">
+            <Image 
+              src="/visa.png" 
+              alt="Visa" 
+              fill
+              className="object-cover mix-blend-multiply"
+              unoptimized
+            />
+          </div>
+
+          {/* Mastercard Card */}
+          <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[54px] h-[34px] overflow-hidden">
+            <Image 
+              src="/mastercard.png" 
+              alt="Mastercard" 
+              fill
+              className="object-cover mix-blend-multiply"
+              unoptimized
+            />
+          </div>
+
+          {/* G Pay Card */}
+          <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[64px] h-[34px] overflow-hidden">
+            <Image 
+              src="/gpay.png" 
+              alt="Google Pay" 
+              fill
+              className="object-cover mix-blend-multiply"
+              unoptimized
+            />
+          </div>
+
         </div>
       </div>
     </footer>

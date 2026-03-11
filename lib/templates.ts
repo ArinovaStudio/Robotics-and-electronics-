@@ -175,3 +175,47 @@ export function getOrderStatusUpdateTemplate(
     </html>
   `;
 }
+
+export const getContactUsTemplate = (name: string, email: string, subject: string, message: string) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #f0b31e; color: #050a30; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+          .label { font-weight: bold; color: #050a30; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px; }
+          .message-box { background-color: white; padding: 15px; border-left: 4px solid #f0b31e; border-radius: 4px; margin-top: 5px; white-space: pre-wrap; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin:0;">New Contact Form Submission</h1>
+          </div>
+          <div class="content">
+            <p>You have received a new message from your website's Contact Us form.</p>
+            
+            <div class="label">Name</div>
+            <p style="margin: 5px 0 15px 0;">${name}</p>
+            
+            <div class="label">Email Address</div>
+            <p style="margin: 5px 0 15px 0;"><a href="mailto:${email}">${email}</a></p>
+
+            <div class="label">Subject</div>
+            <p style="margin: 5px 0 15px 0;">${subject}</p>
+            
+            <div class="label">Message</div>
+            <div class="message-box">${message}</div>
+          </div>
+          <div class="footer">
+            <p>This message was sent from the Robotics Store Contact Form.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
