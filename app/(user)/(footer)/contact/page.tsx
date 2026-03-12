@@ -175,7 +175,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-900 mb-1">Phone</p>
-                    <p className="text-sm text-gray-600">+91 00000 00000</p>
+                    <p className="text-sm text-gray-600">+91 62834 85334</p>
                   </div>
                 </div>
 
@@ -186,9 +186,9 @@ export default function ContactPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-900 mb-1">Office</p>
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      123 Robotics Avenue<br/>
-                      Tech District<br/>
-                      City, State 12345
+                      TNHB, Housing Board<br/>
+                      Avadi camp<br/>
+                      Chennai - 54
                     </p>
                   </div>
                 </div>

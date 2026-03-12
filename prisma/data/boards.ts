@@ -8,7 +8,7 @@ const developmentBoards = {
             { title: "NodeMCU (ESP8266)", sku: "DEV-002", price: 299, salePrice: 249 },
             { title: "ESP32 Dev Board", sku: "DEV-003", price: 399, salePrice: 349 },
             { title: "Raspberry Pi Pico", sku: "DEV-004", price: 459, salePrice: null },
-            { title: "ESP32 Dev Board", sku: "DEV-005", price: 999, salePrice: 699 },
+            { title: "Arduino Nano (Clone)", sku: "DEV-005", price: 999, salePrice: 699 },
             ]
         },
         {
