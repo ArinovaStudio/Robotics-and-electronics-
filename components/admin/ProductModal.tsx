@@ -158,6 +158,11 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                 body: formData,
             });
 
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Server Error (${res.status}): The connection dropped. Please wait a moment and try again.`);
+            }
+
             const data = await res.json();
 
             if (!res.ok || !data.success) {

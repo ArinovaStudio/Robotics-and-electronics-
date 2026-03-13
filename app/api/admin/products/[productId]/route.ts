@@ -10,7 +10,7 @@ const updateProductSchema = z.object({
   link: z.string().min(1).optional(),
   imageLink: z.string().optional(),
   additionalImageLinks: z.array(z.string()).optional(),
-  price: z.preprocess((val) => Number(val), z.number().positive()).optional(),
+  price: z.preprocess((val) => Number(val), z.number().nonnegative("Price cannot be negative")).optional(),
   salePrice: z.preprocess((val) => (val ? Number(val) : null), z.number().positive().nullable()).optional(),
   salePriceStartDate: z.preprocess((val) => (val ? new Date(val as string) : null), z.date().nullable()).optional(),
   salePriceEndDate: z.preprocess((val) => (val ? new Date(val as string) : null), z.date().nullable()).optional(),
