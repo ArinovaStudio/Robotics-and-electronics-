@@ -6,13 +6,14 @@ import FilterSidebar, { FilterState } from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
 import { Button } from "./ui/button";
 import Link from "next/link";
+import FeatureRequest from "./FeatureRequest";
 
 export default function RoboticsPartsSection(): JSX.Element {
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<any[]>([]);
-  const [availableBrands, setAvailableBrands] = useState<string[]>([]); 
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
   // Debounce filter state to avoid rapid fetches
   const debouncedFilters = useDebounce(activeFilters, 350);
@@ -49,7 +50,7 @@ export default function RoboticsPartsSection(): JSX.Element {
         const query = buildQuery(filters);
         const res = await fetch(`/api/products?${query}`);
         const data = await res.json();
-        
+
         if (data.success) {
           // No more client-side filtering needed!
           setProducts(data.data.products || []);
@@ -96,34 +97,34 @@ export default function RoboticsPartsSection(): JSX.Element {
         <h2 className="text-lg max-md:grid gap-1 space-x-1 sm:text-xl md:text-2xl font-bold text-[#050A30] tracking-wide uppercase">
           TOP SELLING{" "}
           <span>
-          <span className="relative inline-block">
-            <span
-              className="absolute bottom-0 left-0 w-full bg-[#FFE29A]"
-              style={{ height: "55%" }}
+            <span className="relative inline-block">
+              <span
+                className="absolute bottom-0 left-0 w-full bg-[#FFE29A]"
+                style={{ height: "55%" }}
               ></span>
-            <span className="relative z-10">ROBOTICS</span>
-          </span>{" "}
-          PARTS
-            </span>
+              <span className="relative z-10">ROBOTICS</span>
+            </span>{" "}
+            PARTS
+          </span>
         </h2>
         {/* Mobile Filter Button */}
-      <div className="flex gap-0 items-center">
-      <div className="md:hidden px-5">
-        <Button
-          size={"icon"}
-          onClick={() => setIsFilterOpen(true)}
-          className="bg-[#f0b31e] text-white font-semibold px-5 py-2 rounded-full shadow flex items-center gap-2"
-        >
-          <Filter />
-        </Button>
-      </div> 
-        <Link
-          href="/products"
-          className="text-[#f0b31e] font-space-grotesk font-semibold text-base flex items-center gap-1 hover:underline"
-        >
-          VIEW ALL
-          <ArrowRight size={20} strokeWidth={2.2} className="ml-1" />
-        </Link>
+        <div className="flex gap-0 items-center">
+          <div className="md:hidden px-5">
+            <Button
+              size={"icon"}
+              onClick={() => setIsFilterOpen(true)}
+              className="bg-[#f0b31e] text-white font-semibold px-5 py-2 rounded-full shadow flex items-center gap-2"
+            >
+              <Filter />
+            </Button>
+          </div>
+          <Link
+            href="/products"
+            className="text-[#f0b31e] font-space-grotesk font-semibold text-base flex items-center gap-1 hover:underline"
+          >
+            VIEW ALL
+            <ArrowRight size={20} strokeWidth={2.2} className="ml-1" />
+          </Link>
         </div>
       </div>
 
@@ -150,7 +151,11 @@ export default function RoboticsPartsSection(): JSX.Element {
             availableBrands={availableBrands} // Connect dynamic brands here
             resetKey={filterResetKey}
           />
+          <div>
+            <FeatureRequest />
+          </div>
         </div>
+
 
         {loading ? (
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">

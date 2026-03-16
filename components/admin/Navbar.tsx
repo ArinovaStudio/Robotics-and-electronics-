@@ -8,7 +8,8 @@ import {
     Box,
     FolderTree,
     X,
-    Images
+    Images,
+    LucideGitPullRequestArrow
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
@@ -21,6 +22,7 @@ const navItems = [
     { name: "Categories", icon: FolderTree, href: "/admin/categories" },
     { name: "Customers", icon: Users, href: "/admin/users" },
     { name: "Banners", icon: Images, href: "/admin/banners" },
+    { name: "Requests", icon: LucideGitPullRequestArrow, href: "/admin/requests" },
 ];
 
 interface NavbarProps {
