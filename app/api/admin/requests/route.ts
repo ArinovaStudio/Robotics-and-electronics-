@@ -33,27 +33,42 @@ export async function GET(req: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const [requests, totalItems] = await Promise.all([
+    const [
+      requests, 
+      filteredTotalItems, 
+      totalCount, 
+      pendingCount, 
+      approvedCount, 
+      rejectedCount
+    ] = await Promise.all([
       prisma.productRequest.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          user: {
-            select: { name: true, email: true, phone: true },
-          },
+          user: { select: { name: true, email: true, phone: true } },
         },
       }),
-      prisma.productRequest.count({ where }),
+      prisma.productRequest.count({ where }), 
+      prisma.productRequest.count({ where }), 
+      prisma.productRequest.count({ where: { ...where, status: "PENDING" } }),
+      prisma.productRequest.count({ where: { ...where, status: "APPROVED" } }),
+      prisma.productRequest.count({ where: { ...where, status: "REJECTED" } }),
     ]);
 
     return NextResponse.json({ 
       success: true, 
       data: requests,
+      counts: {
+        total: totalCount,
+        pending: pendingCount,
+        approved: approvedCount,
+        rejected: rejectedCount
+      },
       pagination: {
-        totalItems,
-        totalPages: Math.ceil(totalItems / limit),
+        totalItems: filteredTotalItems,
+        totalPages: Math.ceil(filteredTotalItems / limit),
         currentPage: page,
         limit,
       }

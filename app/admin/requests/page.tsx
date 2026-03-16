@@ -7,6 +7,7 @@ import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProductMetricCard } from "@/components/admin/ProductMetricCard";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 const STATUS_STYLES: Record<string, string> = {
     PENDING: "bg-yellow-50 text-yellow-700 border border-yellow-100",
@@ -25,6 +26,7 @@ export default function RequestsPage() {
     const [statusFilter, setStatusFilter] = useState("");
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ totalItems: 0, totalPages: 1 });
+    const [counts, setCounts] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
     const limit = 10;
 
     const [editTarget, setEditTarget] = useState<any | null>(null);
@@ -47,11 +49,14 @@ export default function RequestsPage() {
                 const params = new URLSearchParams({ page: String(page), limit: String(limit) });
                 if (debouncedSearch) params.set("search", debouncedSearch);
                 if (statusFilter) params.set("status", statusFilter);
+                
                 const res = await fetch(`/api/admin/requests?${params}`);
                 const data = await res.json();
+                
                 if (data.success) {
                     setRequests(data.data);
                     setPagination(data.pagination);
+                    setCounts(data.counts); 
                 }
             } catch (err) {
                 console.error(err);
@@ -63,13 +68,6 @@ export default function RequestsPage() {
     }, [page, debouncedSearch, statusFilter, refreshKey]);
 
     const totalPages = pagination.totalPages;
-
-    const counts = {
-        total: pagination.totalItems,
-        pending: requests.filter((r) => r.status === "PENDING").length,
-        approved: requests.filter((r) => r.status === "APPROVED" || r.status === "AVAILABLE").length,
-        rejected: requests.filter((r) => r.status === "REJECTED").length,
-    };
 
     const formatDate = (d: string) =>
         new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
@@ -184,14 +182,14 @@ export default function RequestsPage() {
                                 <TableBody>
                                     {loading ? (
                                         <TableRow>
-                                            <TableCell colSpan={7} className="text-center py-12 text-slate-500 font-medium">
+                                            <TableCell colSpan={8} className="text-center py-12 text-slate-500 font-medium">
                                                 <Loader2 className="animate-spin h-6 w-6 mx-auto mb-2 text-[#4a439a]" />
                                                 Loading requests...
                                             </TableCell>
                                         </TableRow>
                                     ) : requests.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={7} className="text-center py-12 text-slate-500 font-medium">
+                                            <TableCell colSpan={8} className="text-center py-12 text-slate-500 font-medium">
                                                 No requests found.
                                             </TableCell>
                                         </TableRow>
@@ -295,7 +293,7 @@ export default function RequestsPage() {
                         <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 gap-4">
                             <p className="text-sm text-slate-500 font-medium">
                                 Showing page <span className="text-slate-800 font-bold">{page}</span> of <span className="text-slate-800 font-bold">{totalPages || 1}</span>
-                                <span className="hidden sm:inline"> ({pagination.totalItems} total requests)</span>
+                                <span className="hidden sm:inline"> ({pagination.totalItems} total table results)</span>
                             </p>
                             <div className="flex gap-2">
                                 <Button variant="outline" className="bg-white border-slate-200 text-slate-700 hover:bg-slate-100 font-medium" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -338,7 +336,7 @@ export default function RequestsPage() {
                                 value={editForm.adminNotes}
                                 onChange={(e) => setEditForm(f => ({ ...f, adminNotes: e.target.value }))}
                                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none resize-none"
-                                placeholder="Optional notes..."
+                                placeholder="Optional notes (this will be emailed to the user)..."
                             />
                         </div>
 
@@ -353,20 +351,14 @@ export default function RequestsPage() {
             )}
 
             {/* DELETE MODAL */}
-            {deleteTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
-                        <h2 className="text-lg font-bold text-slate-800">Delete Request</h2>
-                        <p className="text-sm text-slate-500">Are you sure you want to delete the request for <span className="font-semibold text-slate-700">{deleteTarget.name}</span>? This cannot be undone.</p>
-                        <div className="flex justify-end gap-2 pt-2">
-                            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>Cancel</Button>
-                            <Button onClick={handleDelete} disabled={deleteLoading} className="bg-rose-500 hover:bg-rose-600 text-white">
-                                {deleteLoading ? <Loader2 className="animate-spin h-4 w-4" /> : "Delete"}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DeleteConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                title={deleteTarget?.name || "this request"}
+                itemName="Product Request"
+                isDeleting={deleteLoading}
+            />
         </>
     )
 }
