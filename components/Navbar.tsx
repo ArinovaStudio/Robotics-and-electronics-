@@ -46,6 +46,13 @@ export default function Navbar() {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const pathName = usePathname();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setHidden(true);
+    }
+  }, [isAuthenticated]);
+  
   const handleLogout = async () => {
     try {
       await signOut({ redirect: true, callbackUrl: "/login" });
