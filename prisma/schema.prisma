@@ -74,6 +74,7 @@ model User {
   orders    Order[]
   addresses Address[]
   reviews Review[]
+  productRequests ProductRequest[]
 }
 
 model Account {
@@ -354,4 +355,34 @@ model Banner{
   id String @unique @default(uuid())
   title String
   image String
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  AVAILABLE
+  REJECTED
+}
+
+model ProductRequest {
+  id String @id @default(cuid())
+  userId String
+  
+  name String
+  description String? @db.Text
+  productUrl String?
+  brand String?
+  image String?
+  quantity Int @default(1)
+
+  status RequestStatus @default(PENDING)
+  adminNotes String? @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
 }
