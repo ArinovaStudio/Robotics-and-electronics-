@@ -219,3 +219,67 @@ export const getContactUsTemplate = (name: string, email: string, subject: strin
     </html>
   `;
 };
+
+export const getProductRequestUpdateTemplate = (
+  name: string,
+  productName: string,
+  newStatus: string,
+  adminNotes?: string | null
+) => {
+  const statusMessages: Record<string, string> = {
+    APPROVED: "Great news! We have reviewed your request and approved it. We are currently sourcing this item.",
+    AVAILABLE: "Good news! The product you requested is now available in our store. You can now purchase it!",
+    REJECTED: "We have reviewed your request. Unfortunately, we are unable to source this product at this time.",
+    PENDING: "Your product request is currently review by our team."
+  };
+
+  const message = statusMessages[newStatus] || `The status of your product request has been updated to: ${newStatus}.`;
+  
+  const notesHtml = adminNotes ? `
+    <div style="margin-top: 20px; padding: 15px; background-color: white; border-left: 4px solid #f0b31e; border-radius: 4px;">
+      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;">Message from our team:</p>
+      <p style="margin: 0; color: #333; font-style: italic;">"${adminNotes}"</p>
+    </div>
+  ` : "";
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4a439a; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+          .status-badge { display: inline-block; padding: 5px 15px; background-color: #4a439a; color: white; border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 5px; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .product-info { margin: 20px 0; padding: 15px; background-color: #fff; border-radius: 5px; border: 1px solid #eee; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0;">Product Request Update</h1>
+          </div>
+          <div class="content">
+            <h2>Hi ${name},</h2>
+            <p>${message}</p>
+            
+            <div class="product-info">
+              <p style="margin: 0; color: #666; font-size: 14px;">Requested Product:</p>
+              <p style="margin: 5px 0 15px 0; font-weight: bold; font-size: 16px;">${productName}</p>
+              <p style="margin: 0;"><strong>Status:</strong> <span class="status-badge">${newStatus}</span></p>
+            </div>
+
+            ${notesHtml}
+            
+            <p style="margin-top: 30px;">Thank you for helping us improve our catalog!</p>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Robotics Store. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
