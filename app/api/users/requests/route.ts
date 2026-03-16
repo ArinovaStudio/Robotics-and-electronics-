@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { uploadFile } from "@/lib/upload";
 import { getUser } from "@/lib/auth"; 
+import { getProductRequestUpdateTemplate } from "@/lib/templates";
+import sendEmail from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +41,9 @@ export async function POST(req: NextRequest) {
         image: imageLink,
       },
     });
+
+    const emailHtml = getProductRequestUpdateTemplate( user.name, newRequest.name, "PENDING" );
+    await sendEmail( user.email, `We received your product request: ${newRequest.name}`, emailHtml );
 
     return NextResponse.json({ success: true, message: "Product requested successfully", data: newRequest }, { status: 200 });
 
