@@ -146,8 +146,8 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
     });
 
     return NextResponse.json({ success: true, message: "Category updated successfully", data: updatedCategory }, { status: 200 });
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (e: any) {
+    return NextResponse.json( { success: false, message: e.message || "Internal server error" }, { status: 500 });
   }
 }
  

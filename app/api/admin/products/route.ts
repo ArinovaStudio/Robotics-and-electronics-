@@ -185,7 +185,7 @@ export async function POST(req: Request) {
     const product = await prisma.product.create({ data: validation.data });
     
     return NextResponse.json({ success: true, message: "Product created successfully.", data: product }, { status: 201 });
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (e: any) {
+    return NextResponse.json( { success: false, message: e.message || "Internal server error" }, { status: 500 });
   }
 }

@@ -52,7 +52,7 @@ export default function Navbar() {
       setHidden(true);
     }
   }, [isAuthenticated]);
-  
+
   const handleLogout = async () => {
     try {
       await signOut({ redirect: true, callbackUrl: "/login" });
@@ -165,7 +165,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div
+      {isAuthenticated && <div
         className={`${
           hidden && "hidden"
         } bg-black w-full py-2 text-sm flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 px-4 relative mb-1`}
@@ -185,7 +185,8 @@ export default function Navbar() {
           onClick={() => setHidden(true)}
           className="text-white max-md:absolute top-2 right-4 cursor-pointer hover:opacity-70"
         />
-      </div>
+      </div>}
+      
       <nav className="w-full bg-white mt-2 flex items-center h-16 px-4 md:px-8 relative z-50">
         {/* Logo */}
         {pathName === "/" ? (
