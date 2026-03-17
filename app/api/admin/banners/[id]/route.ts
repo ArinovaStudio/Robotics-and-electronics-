@@ -64,8 +64,8 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     return NextResponse.json({ success: true, message: "Banner updated successfully", data: banner }, { status: 200 });
-  } catch {
-    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
+  } catch (e: any) {
+    return NextResponse.json( { success: false, message: e.message || "Internal server error" }, { status: 500 });
   }
 }
 

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       data: banner,
     });
 
-  } catch {
-    return NextResponse.json( { success: false, message: "Internal server error" }, { status: 500 });
+  } catch (e: any) {
+    return NextResponse.json( { success: false, message: e.message || "Internal server error" }, { status: 500 });
   }
 }

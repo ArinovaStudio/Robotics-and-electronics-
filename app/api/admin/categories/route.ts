@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Category created successfully" },{ status: 201 });
     
-  } catch {
-    return NextResponse.json( { success: false, message: "Internal server error" },{ status: 500 });
+  } catch (e: any) {
+    return NextResponse.json( { success: false, message: e.message || "Internal server error" }, { status: 500 });
   }
 }

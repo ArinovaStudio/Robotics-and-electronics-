@@ -10,6 +10,9 @@ const ALLOWED_IMAGE_TYPES = [
   "image/png",
   "image/webp",
   "image/gif",
+  "image/avif",
+  "image/svg+xml",
+  "image/bmp"
 ];
 
 const MAX_FILES_PER_REQUEST = 10;
