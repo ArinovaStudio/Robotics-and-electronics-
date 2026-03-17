@@ -270,8 +270,13 @@ export default function SingleProductPage({
         const similarData = await similarRes.json();
         const faqData = await faqRes.json();
         const reviewData = await reviewRes.json();
-        if (similarData.success)
-          setSuggestedProducts(similarData.data.products || []);
+        if (similarData.success) {
+          const formattedProducts = (similarData.data.products || []).map((p: any) => ({
+            ...p,
+            image: p.imageLink 
+          }));
+          setSuggestedProducts(formattedProducts);
+        }
         if (faqData.success) setFaqs(faqData.data || []);
         if (reviewData.success) {
           setReviews(reviewData.data.reviews || []);
