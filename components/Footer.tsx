@@ -16,7 +16,7 @@ export default function Footer() {
             </div>
             <p className="text-sm max-w-[150px]! text-justify text-[#555] max-w-[260px] leading-relaxed">
               We have parts that suits your electronics and which you're proud
-              to buil.
+              to build.
             </p>
           </div>
           <div className="flex gap-3 mt-1">
@@ -74,6 +74,7 @@ export default function Footer() {
                 { name: "Manage Deliveries", href: "/faq/manage-deliveries" },
                 { name: "Orders", href: "/faq/orders" },
                 { name: "Payments", href: "/faq/payments" },
+                { name: "Products", href: "/faq/products" },
               ],
             },
           ].map((col) => (

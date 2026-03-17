@@ -30,9 +30,7 @@ export default function HomeCategories() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        "/api/categories",
-      );
+      const response = await axios.get("/api/categories?isHome=true");
 
       if (response.data?.success && response.data?.data) {
         const cats = response.data.data;

@@ -8,7 +8,11 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const parentId = searchParams.get("parentId");
 
-    const where: any = { isActive: true }; // user should see only active categories
+    const isHome = searchParams.get("isHome");
+
+    const where: any = { isActive: true };
+
+    if (isHome === "true") where.isHome = true;
 
     if (search) {
       where.OR = [

@@ -153,14 +153,15 @@ export default function CategoriesPage() {
                                     <TableHead>Sub-categories</TableHead>
                                     <TableHead>Sort Order</TableHead>
                                     <TableHead>Status</TableHead>
+                                    <TableHead>Home</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {isLoading ? (
-                                    <TableRow><TableCell colSpan={8} className="text-center py-12 text-slate-500 font-medium"><Loader2 className="animate-spin h-6 w-6 mx-auto mb-2 text-[#4a439a]"/> Loading categories...</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={9} className="text-center py-12 text-slate-500 font-medium"><Loader2 className="animate-spin h-6 w-6 mx-auto mb-2 text-[#4a439a]"/> Loading categories...</TableCell></TableRow>
                                 ) : categories.length === 0 ? (
-                                    <TableRow><TableCell colSpan={8} className="text-center py-12 text-slate-500 font-medium">No categories found.</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={9} className="text-center py-12 text-slate-500 font-medium">No categories found.</TableCell></TableRow>
                                 ) : (
                                     categories.map((cat: any) => (
                                         <TableRow key={cat.id} className={`hover:bg-slate-50/50 transition-colors ${!cat.isActive ? "opacity-60 bg-slate-50" : ""}`}>
@@ -196,6 +197,13 @@ export default function CategoriesPage() {
                                                      <Badge variant="outline" className="border-emerald-200 text-emerald-600 bg-emerald-50">Active</Badge>
                                                 ) : (
                                                     <Badge variant="outline" className="border-slate-200 text-slate-500 bg-slate-50">Hidden</Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {cat.isHome ? (
+                                                    <Badge variant="outline" className="border-blue-200 text-blue-600 bg-blue-50">Yes</Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="border-slate-200 text-slate-400 bg-slate-50">No</Badge>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">

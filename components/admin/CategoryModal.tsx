@@ -20,6 +20,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
     const [description, setDescription] = useState("");
     const [parentId, setParentId] = useState("");
     const [isActive, setIsActive] = useState(true);
+    const [isHome, setIsHome] = useState(false);
     
     const [hasSortOrder, setHasSortOrder] = useState(false);
     const [sortOrder, setSortOrder] = useState("1");
@@ -33,6 +34,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
             setDescription(category.description || "");
             setParentId(category.parentId || "");
             setIsActive(category.isActive ?? true);
+            setIsHome(category.isHome ?? false);
             
             // If category has a sortOrder, enable the toggle and set the value
             if (category.sortOrder !== null && category.sortOrder !== undefined) {
@@ -48,7 +50,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
             setError("");
         } else if (isOpen) {
             setName(""); setDescription(""); setParentId(""); 
-            setIsActive(true); setHasSortOrder(false); setSortOrder("1");
+            setIsActive(true); setIsHome(false); setHasSortOrder(false); setSortOrder("1");
             setExistingImage(null); setImageFile(null); setError("");
         }
     }, [category, isOpen]);
@@ -64,6 +66,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
             formData.append("description", description);
             if (parentId) formData.append("parentId", parentId);
             formData.append("isActive", isActive.toString());
+            formData.append("isHome", isHome.toString());
             
             formData.append("sortOrder", hasSortOrder ? sortOrder : "null");
             
@@ -148,11 +151,19 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: any) {
 
                                 <div className="w-px bg-slate-200 hidden md:block" />
 
-                                <div className="flex flex-col justify-center min-w-[100px]">
-                                    <label className="flex items-center gap-2 text-sm cursor-pointer font-semibold text-slate-700">
-                                        <input type="checkbox" checked={isActive} onChange={e=>setIsActive(e.target.checked)} className="w-4 h-4 rounded text-[#4a439a]"/> Visible
-                                    </label>
-                                    <p className="text-xs text-slate-500 mt-1">Show in store</p>
+                                <div className="flex flex-col justify-center gap-3 min-w-[120px]">
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm cursor-pointer font-semibold text-slate-700">
+                                            <input type="checkbox" checked={isActive} onChange={e=>setIsActive(e.target.checked)} className="w-4 h-4 rounded text-[#4a439a]"/> Visible
+                                        </label>
+                                        <p className="text-xs text-slate-500 mt-1">Show in store</p>
+                                    </div>
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm cursor-pointer font-semibold text-slate-700">
+                                            <input type="checkbox" checked={isHome} onChange={e=>setIsHome(e.target.checked)} className="w-4 h-4 rounded text-[#4a439a]"/> Home Page
+                                        </label>
+                                        <p className="text-xs text-slate-500 mt-1">Show on home</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

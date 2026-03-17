@@ -23,12 +23,12 @@ export default function ProductsPage() {
     (filters: FilterState | null, p: number, s: string): string => {
       const params = new URLSearchParams();
       params.set("page", String(p));
-      params.set("limit", String(LIMIT)); 
+      params.set("limit", String(LIMIT));
       params.set("sort", s);
 
       if (filters) {
-        if (filters.categoryId) {
-          params.set("categoryId", filters.categoryId);
+        if (filters.categoryIds && filters.categoryIds.length > 0) {
+          params.set("categoryId", filters.categoryIds.join(","));
         }
         if (filters.brands && filters.brands.length > 0) {
           params.set("brand", filters.brands.join(","));
@@ -54,7 +54,7 @@ export default function ProductsPage() {
         const query = buildQuery(filters, p, s);
         const res = await fetch(`/api/products?${query}`);
         const data = await res.json();
-        
+
         if (data.success) {
           // No more client-side filtering needed! The API handles everything perfectly.
           setProducts(data.data.products || []);
@@ -122,21 +122,35 @@ export default function ProductsPage() {
     return pages;
   };
 
+  const getHeading = () => {
+    const names = activeFilters?.categoryNames ?? [];
+    if (names.length === 0) return "ALL PRODUCTS";
+    if (names.length === 1) return 'CATEGORY';
+    return "CATEGORIES";
+  };
+
+  const getSubtext = () => {
+    const names = activeFilters?.categoryNames ?? [];
+    if (names.length === 1) return names[0];
+    if (names.length > 1) return "All Results";
+    return `${totalItems} product${totalItems !== 1 ? "s" : ""}`;
+  };
+
   return (
     <main className="bg-white min-h-screen">
       <div className="w-full max-w-[1200px] mx-auto px-4 py-2 md:py-8">
         {/* Header */}
         <div className="mb-8 flex max-md:justify-between items-center">
           <div className="grid gap-2 items-center mb-3">
-          <h1 className="text-xl md:text-4xl font-bold text-[#050a30]">
-            ALL PRODUCTS
-          </h1>
-          <p className="text-gray-500 text-xs md:text-sm">
-              {totalItems} product{totalItems !== 1 ? "s" : ""}
+            <h1 className="text-xl md:text-4xl font-bold text-[#050a30]">
+              {getHeading()}
+            </h1>
+            <p className="text-gray-500 text-xs md:text-sm">
+              {getSubtext()}
             </p>
           </div>
           <div className="flex items-center justify-between">
-            
+
 
             {/* Sort + Mobile filter */}
             <div className="flex justify-between w-full items-center gap-3">
@@ -232,11 +246,10 @@ export default function ProductsPage() {
                           <button
                             key={p}
                             onClick={() => setPage(p as number)}
-                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
-                              page === p
+                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${page === p
                                 ? "bg-[#f0b31e] text-white shadow"
                                 : "border border-gray-200 hover:bg-gray-50"
-                            }`}
+                              }`}
                           >
                             {p}
                           </button>

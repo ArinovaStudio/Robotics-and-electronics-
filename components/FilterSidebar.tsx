@@ -13,7 +13,8 @@ type CategoryOption = {
 
 // Updated to match your new API fields
 export type FilterState = {
-  categoryId: string | null;
+  categoryIds: string[];
+  categoryNames: string[];
   brands: string[];
   minPrice: number;
   maxPrice: number;
@@ -176,10 +177,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Updated state based on the new API design
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
-  );
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState<
     [number, number]
@@ -205,10 +203,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     fetchCategories();
   }, []);
 
-  // Reset logic
   useEffect(() => {
     if (resetKey > 0) {
-      setSelectedCategoryId(null);
+      setSelectedCategoryIds([]);
       setSelectedBrands([]);
       setSelectedPriceRange([0, 50000]);
     }
@@ -221,7 +218,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     // Slight delay (debounce) prevents spamming the API while dragging the price slider
     const timeoutId = setTimeout(() => {
       onFiltersChange({
-        categoryId: selectedCategoryId,
+        categoryIds: selectedCategoryIds,
+        categoryNames: categories
+          .filter((c) => selectedCategoryIds.includes(c.id))
+          .map((c) => c.name),
         brands: selectedBrands,
         minPrice: selectedPriceRange[0],
         maxPrice:
@@ -231,7 +231,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategoryId, selectedBrands, selectedPriceRange]);
+  }, [selectedCategoryIds, selectedBrands, selectedPriceRange]);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands((prev) =>
@@ -240,8 +240,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   const handleCategorySelect = (id: string) => {
-    // If clicking the already selected category, deselect it. Otherwise select it.
-    setSelectedCategoryId((prev) => (prev === id ? null : id));
+    setSelectedCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
   };
 
   const Divider = () => <hr className="border-t border-[#e0e0e0] my-4" />;
@@ -282,7 +283,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               className="flex items-center gap-3 text-sm text-gray-800 font-medium cursor-pointer select-none hover:text-[#f0b31e] transition-colors"
             >
               <CustomCheckbox
-                checked={selectedCategoryId === c.id}
+                checked={selectedCategoryIds.includes(c.id)}
                 onChange={() => handleCategorySelect(c.id)}
               />
               <span className="truncate">{c.name}</span>

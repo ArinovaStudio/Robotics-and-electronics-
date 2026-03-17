@@ -69,11 +69,11 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  accounts  Account[]
-  cart      Cart?
-  orders    Order[]
-  addresses Address[]
-  reviews Review[]
+  accounts        Account[]
+  cart            Cart?
+  orders          Order[]
+  addresses       Address[]
+  reviews         Review[]
   productRequests ProductRequest[]
 }
 
@@ -97,10 +97,10 @@ model Account {
 }
 
 model OtpToken {
-  id String @id @default(cuid())
-  email String
-  code String
-  type OtpType
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  type      OtpType
   expiresAt DateTime
 }
 
@@ -132,6 +132,7 @@ model Category {
   image       String?
   parentId    String?
   isActive    Boolean  @default(true)
+  isHome      Boolean  @default(true)
   sortOrder   Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -144,7 +145,7 @@ model Category {
 }
 
 model Product {
-  id String @id @default(cuid())
+  id          String @id @default(cuid())
   title       String
   description String @db.Text
   link        String @unique // URL slug
@@ -153,10 +154,10 @@ model Product {
   imageLink            String // Primary image path
   additionalImageLinks String[] // Array of additional image paths
 
-  price Decimal
-  salePrice Decimal?
+  price              Decimal
+  salePrice          Decimal?
   salePriceStartDate DateTime?
-  salePriceEndDate DateTime?
+  salePriceEndDate   DateTime?
 
   // Availability & Stock
   availability  ProductAvailability @default(IN_STOCK)
@@ -190,11 +191,11 @@ model Product {
   updatedAt DateTime @updatedAt
 
   // Relations
-  category   Category    @relation(fields: [categoryId], references: [id])
+  category   Category     @relation(fields: [categoryId], references: [id])
   cartItems  CartItem[]
   orderItems OrderItem[]
   faqs       ProductFaq[]
-  reviews Review[]
+  reviews    Review[]
 
   @@index([categoryId])
   @@index([brand])
@@ -334,25 +335,25 @@ model Payment {
 }
 
 model Review {
-  id String @id @default(cuid())
-  rating Int
-  comment String? @db.Text
-  images String[] @default([])
-  isVerifiedPurchase Boolean @default(false)
-  userId String
-  productId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  rating             Int
+  comment            String?  @db.Text
+  images             String[] @default([])
+  isVerifiedPurchase Boolean  @default(false)
+  userId             String
+  productId          String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([userId])
 }
 
-model Banner{
-  id String @unique @default(uuid())
+model Banner {
+  id    String @unique @default(uuid())
   title String
   image String
 }
@@ -365,19 +366,19 @@ enum RequestStatus {
 }
 
 model ProductRequest {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
   userId String
-  
-  name String
-  description String? @db.Text
-  productUrl String?
-  brand String?
-  image String?
-  quantity Int @default(1)
 
-  status RequestStatus @default(PENDING)
-  adminNotes String? @db.Text
-  
+  name        String
+  description String? @db.Text
+  productUrl  String?
+  brand       String?
+  image       String?
+  quantity    Int     @default(1)
+
+  status     RequestStatus @default(PENDING)
+  adminNotes String?       @db.Text
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

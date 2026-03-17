@@ -42,6 +42,7 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
     const description = formData.get("description") as string | null;
     const parentId = formData.get("parentId") as string | null;
     const isActive = formData.get("isActive") as string | null;
+    const isHome = formData.get("isHome") as string | null;
     const sortOrderRaw = formData.get("sortOrder");
     const imageFile = formData.get("image") as File | null;
 
@@ -99,6 +100,7 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
 
     if (description !== null) updateData.description = description;
     if (isActive !== null) updateData.isActive = isActive === "true";
+    if (isHome !== null) updateData.isHome = isHome === "true";
 
     if (parentId !== null) {
       const newParentId = parentId === "null" || parentId.trim() === "" ? null : parentId;

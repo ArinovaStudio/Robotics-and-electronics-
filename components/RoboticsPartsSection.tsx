@@ -13,20 +13,23 @@ export default function RoboticsPartsSection(): JSX.Element {
   const [products, setProducts] = useState<any[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const LIMIT = 12;
 
   const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
-  // Debounce filter state to avoid rapid fetches
   const debouncedFilters = useDebounce(activeFilters, 350);
   const [filterResetKey, setFilterResetKey] = useState(0);
 
   // Build query string from the updated filter state
-  const buildQuery = useCallback((filters: FilterState | null): string => {
+  const buildQuery = useCallback((filters: FilterState | null, p: number): string => {
     const params = new URLSearchParams();
-    params.set("limit", "50");
+    params.set("page", String(p));
+    params.set("limit", String(LIMIT));
 
     if (filters) {
-      if (filters.categoryId) {
-        params.set("categoryId", filters.categoryId);
+      if (filters.categoryIds && filters.categoryIds.length > 0) {
+        params.set("categoryId", filters.categoryIds.join(","));
       }
       if (filters.brands && filters.brands.length > 0) {
         params.set("brand", filters.brands.join(","));
@@ -44,17 +47,17 @@ export default function RoboticsPartsSection(): JSX.Element {
 
   // Fetch products cleanly using the powerful new API
   const fetchProducts = useCallback(
-    async (filters: FilterState | null) => {
+    async (filters: FilterState | null, p: number) => {
       setLoading(true);
       try {
-        const query = buildQuery(filters);
+        const query = buildQuery(filters, p);
         const res = await fetch(`/api/products?${query}`);
         const data = await res.json();
 
         if (data.success) {
-          // No more client-side filtering needed!
           setProducts(data.data.products || []);
-          setAvailableBrands(data.data.facets?.brands || []); // Pass facets to sidebar
+          setAvailableBrands(data.data.facets?.brands || []);
+          setTotalPages(data.data.pagination.totalPages || 1);
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -65,29 +68,41 @@ export default function RoboticsPartsSection(): JSX.Element {
     [buildQuery],
   );
 
-  // Initial fetch
   useEffect(() => {
-    fetchProducts(null);
+    fetchProducts(null, 1);
   }, [fetchProducts]);
 
-  // Handle filter changes (debounced fetch)
   const handleFiltersChange = useCallback((filters: FilterState) => {
     setActiveFilters(filters);
+    setPage(1);
   }, []);
 
-  // Fetch products when debounced filters change
   useEffect(() => {
     if (debouncedFilters !== undefined) {
-      fetchProducts(debouncedFilters);
+      fetchProducts(debouncedFilters, page);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedFilters]);
+  }, [debouncedFilters, page]);
 
-  // Clear all filters (also resets sidebar)
   const clearFilters = () => {
     setActiveFilters(null);
     setFilterResetKey((k) => k + 1);
-    fetchProducts(null);
+    setPage(1);
+    fetchProducts(null, 1);
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
   };
 
   return (
@@ -184,6 +199,44 @@ export default function RoboticsPartsSection(): JSX.Element {
         ) : (
           <div className="flex-1">
             <ProductGrid products={products} />
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+
+                <div className="flex items-center gap-1 max-md:hidden">
+                  {getPageNumbers().map((p, idx) =>
+                    p === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="w-10 h-10 flex items-center justify-center text-gray-400">…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p as number)}
+                        className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
+                          page === p ? "bg-[#f0b31e] text-white shadow" : "border border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

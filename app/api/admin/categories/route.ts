@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
     const description = formData.get("description") as string | null;
     const parentId = formData.get("parentId") as string | null;
     const isActive = formData.get("isActive") !== "false";
+    const isHome = formData.get("isHome") !== "false";
     const sortOrderRaw = formData.get("sortOrder");
     const imageFile = formData.get("image") as File | null;
 
@@ -172,6 +173,7 @@ export async function POST(request: NextRequest) {
         slug,
         description,
         isActive,
+        isHome,
         sortOrder: finalSortOrder,
         parentId: parentId && parentId !== "null" ? parentId : null,
         image: imageUrl,

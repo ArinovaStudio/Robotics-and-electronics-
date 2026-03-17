@@ -25,14 +25,13 @@ export async function GET(request: Request) {
           where: { parentId: id, isActive: true },
           select: { id: true },
         });
-
         const childIds = children.map((c) => c.id);
         const nestedIds = await Promise.all(childIds.map((cid) => getAllChildIds(cid)));
-
         return [id, ...childIds, ...nestedIds.flat()];
       }
 
-      const allTargetIds = await getAllChildIds(categoryId);
+      const rootIds = categoryId.split(",").map((id) => id.trim()).filter(Boolean);
+      const allTargetIds = (await Promise.all(rootIds.map(getAllChildIds))).flat();
 
       where.categoryId = { in: allTargetIds };
     }
