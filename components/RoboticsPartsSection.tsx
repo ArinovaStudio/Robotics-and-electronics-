@@ -155,18 +155,18 @@ export default function RoboticsPartsSection(): JSX.Element {
         {/* Responsive Sidebar Wrapper */}
         <div
           className={`
-            fixed md:sticky top-0 left-0 h-full md:h-fit md:self-start
+            fixed md:sticky top-0 left-0 h-auto max-h-screen md:h-fit md:self-start
             z-50 md:z-auto
-            transform overflow-y-auto transition-transform duration-300
+            overflow-y-auto transition-transform duration-300
             ${isFilterOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
           `}
         >
           <FilterSidebar
             onFiltersChange={handleFiltersChange}
-            availableBrands={availableBrands} // Connect dynamic brands here
+            availableBrands={availableBrands}
             resetKey={filterResetKey}
           />
-          <div>
+          <div className="h-full">
             <FeatureRequest />
           </div>
         </div>
@@ -218,9 +218,8 @@ export default function RoboticsPartsSection(): JSX.Element {
                       <button
                         key={p}
                         onClick={() => setPage(p as number)}
-                        className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
-                          page === p ? "bg-[#f0b31e] text-white shadow" : "border border-gray-200 hover:bg-gray-50"
-                        }`}
+                        className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${page === p ? "bg-[#f0b31e] text-white shadow" : "border border-gray-200 hover:bg-gray-50"
+                          }`}
                       >
                         {p}
                       </button>

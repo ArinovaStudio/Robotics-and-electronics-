@@ -7,7 +7,7 @@ const FeatureRequest = () => {
   
   return (
     <>
-      <aside className="w-[260px] bg-[#f8f8f8] max-md:min-h-screen md:rounded-xl flex flex-col p-5 shadow-sm border border-gray-100 mt-4">
+      <aside className="w-[260px] bg-[#f8f8f8] h-full md:rounded-xl flex flex-col p-5 shadow-sm border border-gray-100 mt-0 md:mt-4">
         <h3 className="text-lg font-bold text-[#050A30] mb-4">Product Request</h3>
         <p className="text-[#666] text-sm mb-4">
           Have an idea for a new product? Let us know!

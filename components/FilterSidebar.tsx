@@ -261,7 +261,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   }
 
   return (
-    <aside className="w-[260px] bg-[#f8f8f8] max-md:min-h-screen md:rounded-xl flex flex-col p-5 shadow-sm border border-gray-100">
+    <aside className="w-[260px] bg-[#f8f8f8] md:rounded-xl flex flex-col p-5 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <span className="text-lg font-space-grotesk font-bold text-[#050a30]">
           FILTERS

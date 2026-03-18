@@ -47,7 +47,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
           >
             {/* Image Area */}
             <div className="w-full relative">
-              <div className="w-full h-[120px] sm:h-[200px] relative rounded flex items-center justify-center">
+              <div className="w-full h-[120px] sm:h-[250px] relative rounded flex items-center justify-center">
                 {p.image ? (
                   <Image
                     src={p.image}

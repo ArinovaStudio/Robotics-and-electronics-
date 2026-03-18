@@ -108,7 +108,7 @@ export const FeatureModal = ({ open, onClose }: FeatureModalProps) => {
 
   return createPortal(
     <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto my-8 relative">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto my-8 relative">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-[#050A30]">Request New Product</h3>
           <button 
