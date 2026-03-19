@@ -178,7 +178,7 @@ export default function ProductPage() {
                     </div>
 
                     {/* TABLE */}
-                    <div className="overflow-x-auto">
+                    <div className="overflow-auto max-w-6xl">
                         <Table>
                             <TableHeader className="bg-slate-50/80">
                                 <TableRow>
