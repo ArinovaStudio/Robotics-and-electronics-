@@ -1,3 +1,4 @@
+import CertificationsStrip from "@/components/CertificationsStrip";
 import EndReached from "@/components/EndReached";
 import HomeCategories from "@/components/HomeCategories";
 import HomePoster from "@/components/HomePoster";
@@ -11,6 +12,7 @@ export default function Home() {
       <HomeCategories />
       <RoboticsPartsSection />
       <EndReached />
+      <CertificationsStrip />
     </main>
   );
 }
