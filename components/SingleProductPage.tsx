@@ -372,7 +372,25 @@ export default function SingleProductPage({
 
               {/* Main image */}
               <div className="flex-1 flex justify-center sm:justify-start w-full">
-                <div className="w-full relative h-[350px] md:h-[450px] rounded-2xl bg-[#f8fafd] border border-[#e8e8e8] overflow-hidden shrink-0">
+                <div className="w-full relative h-[350px] md:h-[450px] rounded-2xl bg-white border border-[#e8e8e8] overflow-hidden shrink-0">
+                  <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
+                    <Image 
+                      src="/msme.png" 
+                      alt="MSME Certified" 
+                      width={72} 
+                      height={28} 
+                      className="object-contain h-5 md:h-6 w-auto"
+                    />
+                    <div className="w-px h-5 md:h-6 bg-slate-300"></div>
+                    <Image 
+                      src="/startup-india.png" 
+                      alt="Startup India DPIIT" 
+                      width={96} 
+                      height={28} 
+                      className="object-contain h-5 md:h-6 w-auto"
+                    />
+                  </div>
+
                   {allImages.length > 0 && (
                     <Image
                       src={allImages[selectedImage]}
