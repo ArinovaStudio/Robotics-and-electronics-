@@ -10,7 +10,7 @@ import {
 function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav
-      className="flex items-center gap-2 text-sm text-[#9ca3af] mb-8"
+      className="flex flex-wrap items-center gap-y-2 gap-x-2 text-sm text-[#9ca3af] mb-8"
       aria-label="Breadcrumb"
     >
       {items.map((item, idx) => (
@@ -18,14 +18,16 @@ function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
           {item.href && idx !== items.length - 1 ? (
             <Link
               href={item.href}
-              className="hover:text-[#050a30] transition-colors"
+              className="hover:text-[#050a30] transition-colors whitespace-nowrap"
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-[#050a30] font-semibold">{item.label}</span>
+            <span className="text-[#050a30] font-semibold break-words min-w-0">
+              {item.label}
+            </span>
           )}
-          {idx < items.length - 1 && <span className="text-[#ccc]">›</span>}
+          {idx < items.length - 1 && <span className="text-[#ccc] flex-shrink-0">›</span>}
         </React.Fragment>
       ))}
     </nav>
