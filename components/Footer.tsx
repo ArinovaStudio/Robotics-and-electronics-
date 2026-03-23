@@ -2,7 +2,7 @@
 import { FaTwitter, FaFacebookF, FaInstagram, FaGithub } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
-import { SITE_NAME, YEAR } from "@/lib/constants";
+import { SITE_NAME } from "@/lib/constants";
 
 export default function Footer() {
   return (
@@ -104,46 +104,69 @@ export default function Footer() {
       <div className="max-w-[1400px] mx-auto mt-14 border-t border-[#cecece]" />
 
       {/* Bottom bar */}
-      <div className="max-w-[1400px] mx-auto mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative text-sm uppercase text-[#666]">
-          {SITE_NAME} © {YEAR}, All Rights Reserved
+      <div className="max-w-[1400px] mx-auto mt-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="relative text-sm uppercase text-[#666] text-center md:text-left">
+          {SITE_NAME} © {new Date().getFullYear()}, All Rights Reserved
         </div>
-        {/* Payment Method Cards */}
-        <div className="flex items-center gap-2.5">
+        
+        {/* Right Side: Trust Badges & Payment Methods */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           
-          {/* Visa Card */}
-          <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[54px] h-[34px] overflow-hidden">
+          {/* Trust Badges */}
+          <div className="flex items-center gap-4 sm:pr-6 sm:border-r border-[#cecece]">
             <Image 
-              src="/visa.png" 
-              alt="Visa" 
-              fill
-              className="object-cover mix-blend-multiply"
-              unoptimized
+              src="/msme.png" 
+              alt="MSME Certified" 
+              width={70} 
+              height={28} 
+              className="object-contain h-6 md:h-7 w-auto mix-blend-multiply opacity-80 hover:opacity-100 transition-opacity"
+            />
+            <Image 
+              src="/startup-india.png" 
+              alt="Startup India DPIIT" 
+              width={90} 
+              height={28} 
+              className="object-contain h-6 md:h-7 w-auto mix-blend-multiply opacity-80 hover:opacity-100 transition-opacity"
             />
           </div>
 
-          {/* Mastercard Card */}
-          <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[54px] h-[34px] overflow-hidden">
-            <Image 
-              src="/mastercard.png" 
-              alt="Mastercard" 
-              fill
-              className="object-cover mix-blend-multiply"
-              unoptimized
-            />
-          </div>
+          {/* Payment Method Cards */}
+          <div className="flex items-center gap-2.5">
+            
+            {/* Visa Card */}
+            <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[54px] h-[34px] overflow-hidden">
+              <Image 
+                src="/visa.png" 
+                alt="Visa" 
+                fill
+                className="object-cover mix-blend-multiply"
+                unoptimized
+              />
+            </div>
 
-          {/* G Pay Card */}
-          <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[64px] h-[34px] overflow-hidden">
-            <Image 
-              src="/gpay.png" 
-              alt="Google Pay" 
-              fill
-              className="object-cover mix-blend-multiply"
-              unoptimized
-            />
-          </div>
+            {/* Mastercard Card */}
+            <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[54px] h-[34px] overflow-hidden">
+              <Image 
+                src="/mastercard.png" 
+                alt="Mastercard" 
+                fill
+                className="object-cover mix-blend-multiply"
+                unoptimized
+              />
+            </div>
 
+            {/* G Pay Card */}
+            <div className="relative bg-white rounded-[6px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-center w-[64px] h-[34px] overflow-hidden">
+              <Image 
+                src="/gpay.png" 
+                alt="Google Pay" 
+                fill
+                className="object-cover mix-blend-multiply"
+                unoptimized
+              />
+            </div>
+
+          </div>
         </div>
       </div>
     </footer>
