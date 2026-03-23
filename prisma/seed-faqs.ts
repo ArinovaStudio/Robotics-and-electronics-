@@ -2,7 +2,7 @@ import "dotenv/config";
 import prisma from "../lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("AIzaSyBzI03xesfEN1lgjFbah66UDOP_UMtuCf0");
+const genAI = new GoogleGenerativeAI("");
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
