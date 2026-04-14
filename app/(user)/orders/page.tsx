@@ -181,7 +181,7 @@ export default function OrdersPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <Link href={`/products/${item.product.id}`} className="text-[#050a30] font-bold hover:text-[#f0b31e] transition-colors line-clamp-1 mb-1">
+                        <Link href={`/products/${item.product.link || item.product.id}`} className="text-[#050a30] font-bold hover:text-[#f0b31e] transition-colors line-clamp-1 mb-1">
                           {item.product.title}
                         </Link>
                         <p className="text-gray-500 text-sm">Qty: <span className="font-semibold text-[#050a30]">{item.quantity}</span></p>

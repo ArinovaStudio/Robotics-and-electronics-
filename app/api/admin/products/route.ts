@@ -88,7 +88,7 @@ export async function GET(request: Request) {
 
 const createProductSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().min(1, "Description is required").max(500, "Description cannot exceed 500 characters"),
   link: z.string().min(1, "Link/slug is required"),
   imageLink: z.string().min(1, "Primary image is required"),
   additionalImageLinks: z.array(z.string()).optional().default([]),
@@ -179,7 +179,7 @@ export async function POST(req: Request) {
 
     const validation = createProductSchema.safeParse(payload);
     if (!validation.success){
-      return NextResponse.json({ success: false, message: "validation error", error: validation.error.issues[0].message }, { status: 400 });
+      return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
     const product = await prisma.product.create({ data: validation.data });

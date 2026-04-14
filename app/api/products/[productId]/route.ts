@@ -9,9 +9,12 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ pro
       return NextResponse.json( { success: false, message: "Product ID is required" }, { status: 400 });
     }
 
-    const product = await prisma.product.findUnique({
+    const product = await prisma.product.findFirst({
       where: { 
-        id: productId,
+        OR: [
+          { id: productId },
+          { link: productId }
+        ],
         isActive: true,
         category: { isActive: true }
       },

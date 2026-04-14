@@ -245,7 +245,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                     
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-medium text-slate-700">Description <span className="text-red-500">*</span></label>
-                                        <textarea required value={description} onChange={e=>setDescription(e.target.value)} className="w-full border rounded-md p-3 text-sm min-h-[120px] border-slate-200 focus:ring-2 focus:ring-[#4a439a]/20 focus:border-[#4a439a] outline-none transition-all resize-y" placeholder="Describe the product..." />
+                                        <textarea required value={description} onChange={e=>setDescription(e.target.value)} className="w-full border rounded-md p-3 text-sm min-h-[120px] border-slate-200 focus:ring-2 focus:ring-[#4a439a]/20 focus:border-[#4a439a] outline-none transition-all resize-y" maxLength={500} placeholder="Describe the product..." />
                                     </div>
                                 </div>
 

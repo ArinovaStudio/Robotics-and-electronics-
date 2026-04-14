@@ -123,6 +123,7 @@ export async function GET(request: Request) {
           category: p.category,
           stock: p.stockQuantity,
           isLowStock: p.stockQuantity > 0 && p.stockQuantity < 5,
+          link: p.link
         })),
         facets: {
           categories: filterStats

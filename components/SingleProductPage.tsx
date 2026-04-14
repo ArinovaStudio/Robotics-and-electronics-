@@ -119,7 +119,7 @@ export default function SingleProductPage({
   const [showReviewModal, setShowReviewModal] = useState(false);
   const router = useRouter();
   const { addToCart } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const [productDetails, setProductDetails] = useState<any>({});
   const [reviewPage, setReviewPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
@@ -145,8 +145,10 @@ export default function SingleProductPage({
     }
   }, []);
   const handleAddToCart = async () => {
+    if (isLoading) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?callbackUrl=/products/${product.id}`);
+      router.push(`/login?callbackUrl=/products/${product.link || product.id}`);
       return;
     }
     setAddingToCart(true);
@@ -162,8 +164,10 @@ export default function SingleProductPage({
   };
 
   const handleBuyNow = async () => {
+    if (isLoading) return;
+    
     if (!isAuthenticated) {
-      router.push(`/login?callbackUrl=/products/${product.id}`);
+      router.push(`/login?callbackUrl=/products/${product.link || product.id}`);
       return;
     }
     setAddingToCart(true);
@@ -624,7 +628,7 @@ export default function SingleProductPage({
                     onClick={() => {
                       if (!isAuthenticated)
                         return router.push(
-                          `/login?callbackUrl=/products/${product.id}`
+                          `/login?callbackUrl=/products/${product.link || product.id}`
                         );
                       setEditingReview(null); // Ensure modal opens fresh
                       setShowReviewModal(true);

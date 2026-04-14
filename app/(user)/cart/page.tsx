@@ -170,7 +170,7 @@ function CartPageContent() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <Link href={`/products/${item.product.id}`}>
+                    <Link href={`/products/${item.product.link || item.product.id}`}>
                       <h2 className="text-md md:text-lg font-bold text-[#050a30] mb-1 hover:text-[#f0b31e] transition-colors">
                         {item.product.title}
                       </h2>

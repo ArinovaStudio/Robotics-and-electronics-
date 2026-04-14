@@ -6,7 +6,7 @@ import { getAdminUser } from "@/lib/auth";
 
 const updateProductSchema = z.object({
   title: z.string().min(1).optional(),
-  description: z.string().min(1).optional(),
+  description: z.string().min(1).max(500, "Description cannot exceed 500 characters").optional(),
   link: z.string().min(1).optional(),
   imageLink: z.string().optional(),
   additionalImageLinks: z.array(z.string()).optional(),
