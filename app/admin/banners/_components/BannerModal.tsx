@@ -25,6 +25,7 @@ type Props = {
 export default function BannerModal({ loading, banner, children ,onSubmit,mode}: Props) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
+  const [link, setLink] = useState("")
   const [image, setImage] = useState<string | null | File>(null);
 
   const isEdit = !!banner
@@ -32,6 +33,7 @@ export default function BannerModal({ loading, banner, children ,onSubmit,mode}:
   useEffect(() => {
     if (mode==="edit") {
       setTitle(banner!.title)
+      setLink(banner!.link || "")
       setImage(banner!.image)
     } else {
       setTitle("")
@@ -63,6 +65,15 @@ export default function BannerModal({ loading, banner, children ,onSubmit,mode}:
               placeholder="Banner title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Target Link <span className="text-gray-400 font-normal">(Optional)</span></Label>
+            <Input
+              placeholder="e.g. /products/arduino-uno"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
             />
           </div>
 
@@ -99,7 +110,7 @@ export default function BannerModal({ loading, banner, children ,onSubmit,mode}:
 
           <Button
             onClick={async ()=>{
-              await onSubmit({...(banner ?? {}),title,image},mode);
+              await onSubmit({...(banner ?? {}), title, image, link},mode);
               setOpen(false);
             }}
             disabled={loading}

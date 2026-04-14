@@ -4,6 +4,7 @@ export interface Banner {
   id: string;
   title: string;
   image: string;
+  link: string
 }
 
 import Image from "next/image";

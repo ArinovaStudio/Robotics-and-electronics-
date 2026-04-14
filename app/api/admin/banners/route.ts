@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     const body = await req.formData();
     const title = body.get("title") as string;
     const image = body.get("image") as File || null;
+    const link = body.get("link") as string | null;
 
     if(!image){
       return NextResponse.json( { success: false, message: "Image is Required" }, { status: 400 } );
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
       data: {
         title: title,
         image: ImageUrl,
+        link: link || null
       },
     });
 

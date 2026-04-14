@@ -32,6 +32,7 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ id:
     const body = await req.formData();
     const title = body.get("title") as string;
     const image = body.get("image") as any;
+    const link = body.get("link") as string | null;
 
     const existingBanner = await prisma.banner.findUnique({ where: { id } });
     if (!existingBanner) {
@@ -51,6 +52,11 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ id:
     if(title){
       data.title=title;
     }
+
+    if (link !== null) {
+      data.link = link.trim() === "" ? null : link.trim();
+    }
+    
     if(image instanceof File){
       data.image = await uploadFile(image, "banners");
 

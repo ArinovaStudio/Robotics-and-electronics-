@@ -23,6 +23,11 @@ export default function BannerPage() {
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("image", data.image);
+
+      if (data.link !== undefined) {
+        formData.append("link", data.link);
+      }
+
       const request = await fetch(url, {
         method: method,
         body: formData,

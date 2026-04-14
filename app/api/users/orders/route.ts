@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { createdAt: "desc" },
       include: {
-        items: { include: { product: { select: { title: true } } }},
+        items: { include: { product: { select: { title: true, link: true } } } },
         payment: { select: { status: true, paymentMethod: true } }
       }
     });
@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
             id: item.productId,
             title: snapshot.title || item.product?.title || "Unknown Product",
             image: snapshot.image || null,
+            link: snapshot.link || null
           }
         };
       })

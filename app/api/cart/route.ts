@@ -25,7 +25,8 @@ export async function GET() {
                 availability: true,
                 isActive: true,
                 category: { select: { isActive: true } },
-                reviews: { select: { rating: true } }
+                reviews: { select: { rating: true } },
+                link: true,
               },
             }
           }
@@ -104,7 +105,8 @@ export async function GET() {
           originalPrice: originalPrice,
           stockQuantity: p.stockQuantity,
           availability: p.availability,
-          averageRating: Number(avgRating.toFixed(1))
+          averageRating: Number(avgRating.toFixed(1)),
+          link: p.link
         },
         lineTotal: lineTotal
       };
