@@ -34,6 +34,7 @@ const unbounded = Open_Sans({
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://tsquarey.store'),
   title: "Tsquarey",
   description: "We have parts that suit your electronics and which you're proud to build. Shop Arduino, sensors, modules, and DIY kits.",
   openGraph: {
