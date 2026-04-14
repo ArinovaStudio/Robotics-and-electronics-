@@ -59,11 +59,10 @@ export default function CategoryDetailPage() {
 
   // Fetch products using the unified endpoint
   const fetchProducts = useCallback(
-    async (p: number, s: string) => {
-      if (!categoryId) return;
+    async (p: number, s: string, actualCatId: string) => {
       setLoading(true);
       try {
-        const query = buildQuery(p, s, categoryId);
+        const query = buildQuery(p, s, actualCatId);
         const res = await fetch(`/api/products?${query}`); 
         const data = await res.json();
 
@@ -83,13 +82,15 @@ export default function CategoryDetailPage() {
         setLoading(false);
       }
     },
-    [categoryId, buildQuery],
+    [buildQuery],
   );
 
   // Fetch on page/sort change
   useEffect(() => {
-    if (categoryId) fetchProducts(page, sort);
-  }, [page, sort, categoryId, fetchProducts]);
+    if (category?.id) {
+      fetchProducts(page, sort, category.id);
+    }
+  }, [page, sort, category?.id, fetchProducts]);
 
   const handleSortChange = (s: string) => {
     setSort(s);

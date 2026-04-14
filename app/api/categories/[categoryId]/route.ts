@@ -5,8 +5,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cate
   try {
     const { categoryId } = await params;
 
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId, isActive: true },
+    const category = await prisma.category.findFirst({
+      where: { 
+        OR: [
+          { id: categoryId },
+          { slug: categoryId }
+        ],
+        isActive: true 
+      },
       include: {
         children: {
           where: { isActive: true },

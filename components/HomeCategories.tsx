@@ -90,7 +90,7 @@ export default function HomeCategories() {
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/categories/${cat.id}`}
+            href={`/categories/${cat.slug}`}
             className="flex flex-col items-center min-w-22.5 justify-start group"
             onMouseEnter={() => setSelectedSlug(cat.slug)}
           >
