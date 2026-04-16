@@ -27,7 +27,7 @@ export function CustomSwiper({ children }: any) {
         }}
         breakpoints={{
           0: { slidesPerView: 1 },
-          500: { slidesPerView: 2 },
+          700: { slidesPerView: 2 },
         }}
         className="w-full justify-center items-center"
       >
