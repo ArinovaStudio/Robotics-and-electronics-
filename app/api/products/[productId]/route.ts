@@ -5,15 +5,17 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ pro
   try {
     const { productId } = await params;
     
-    if (!productId) {
-      return NextResponse.json( { success: false, message: "Product ID is required" }, { status: 400 });
+    if (!productId || productId === "null" || productId === "undefined" || productId.trim() === "") {
+      return NextResponse.json( { success: false, message: "Invalid Product ID" }, { status: 400 });
     }
+
+    const cleanId = decodeURIComponent(productId).replace(/^\/+/, '').trim();
 
     const product = await prisma.product.findFirst({
       where: { 
         OR: [
-          { id: productId },
-          { link: productId }
+          { id: cleanId },
+          { link: cleanId }
         ],
         isActive: true,
         category: { isActive: true }

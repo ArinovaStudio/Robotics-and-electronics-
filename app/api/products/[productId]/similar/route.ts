@@ -12,8 +12,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") || "8");
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
+    const product = await prisma.product.findFirst({
+      where: { 
+        OR: [
+          { id: productId },
+          { link: productId }
+        ]
+      },
       select: {
         id: true,
         categoryId: true,
@@ -31,7 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
 
     const similarProducts = await prisma.product.findMany({
       where: {
-        id: { not: productId },
+        id: { not: product.id },
         categoryId: product.categoryId,
         isActive: true,
         category: { isActive: true },
@@ -56,19 +61,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
       .sort((a, b) => b.score - a.score) 
       .slice(0, limit); 
 
-    const formatted = scored.map((p) => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      link: p.link,
-      imageLink: p.imageLink,
-      price: p.price,
-      salePrice: p.salePrice,
-      availability: p.availability,
-      brand: p.brand,
-      category: p.category,
-      stockQuantity: p.stockQuantity,
-    }));
+    const formatted = scored.map((p) => {
+      let safeLink = p.id;
+      if (p.link && p.link.trim() !== "" && p.link !== "null" && p.link !== "undefined") {
+        safeLink = p.link.replace(/^\/+/, '').trim();
+      }
+
+      return {
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        link: safeLink,
+        imageLink: p.imageLink,
+        price: p.price,
+        salePrice: p.salePrice,
+        availability: p.availability,
+        brand: p.brand,
+        category: p.category,
+        stockQuantity: p.stockQuantity,
+      };
+    });
 
     return NextResponse.json({ success: true, data: { products: formatted, total: formatted.length } }, { status: 200 });
 

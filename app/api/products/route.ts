@@ -111,20 +111,27 @@ export async function GET(request: Request) {
       success: true,
       message: "Products fetched successfully",
       data: {
-        products: products.map((p) => ({
-          id: p.id,
-          title: p.title,
-          description: p.description,
-          image: p.imageLink,
-          price: Number(p.price).toFixed(2),
-          salePrice: p.salePrice ? Number(p.salePrice).toFixed(2) : null,
-          availability: p.availability,
-          brand: p.brand,
-          category: p.category,
-          stock: p.stockQuantity,
-          isLowStock: p.stockQuantity > 0 && p.stockQuantity < 5,
-          link: p.link
-        })),
+        products: products.map((p) => {
+          let safeLink = p.id;
+          if (p.link && p.link.trim() !== "" && p.link !== "null" && p.link !== "undefined") {
+            safeLink = p.link.replace(/^\/+/, '').trim();
+          }
+
+          return {
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            image: p.imageLink,
+            price: Number(p.price).toFixed(2),
+            salePrice: p.salePrice ? Number(p.salePrice).toFixed(2) : null,
+            availability: p.availability,
+            brand: p.brand,
+            category: p.category,
+            stock: p.stockQuantity,
+            isLowStock: p.stockQuantity > 0 && p.stockQuantity < 5,
+            link: safeLink
+          };
+        }),
         facets: {
           categories: filterStats
             .filter((c) => c._count.products > 0)
