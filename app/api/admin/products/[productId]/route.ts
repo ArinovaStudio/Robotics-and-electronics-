@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { uploadFile, uploadMultipleFiles, deleteFile } from "@/lib/upload";
 import z from "zod";
-import { getAdminUser } from "@/lib/auth";
+import { getAdminUser } from "@/lib/auth"; 
 
 const updateProductSchema = z.object({
   title: z.string().min(1).optional(),
@@ -18,6 +18,7 @@ const updateProductSchema = z.object({
   stockQuantity: z.preprocess((val) => Number(val), z.number().int().min(0)).optional(),
   sku: z.string().min(1).optional(),
   mpn: z.string().nullable().optional(),
+  featured: z.preprocess((val) => val === "true" || val === true, z.boolean().default(false)),
   brand: z.string().nullable().optional(),
   condition: z.enum(["NEW", "REFURBISHED", "USED"]).optional(),
   categoryId: z.string().min(1).optional(),
@@ -99,7 +100,7 @@ export async function PATCH( request: NextRequest, { params }: { params: Promise
       "salePriceStartDate", "salePriceEndDate", "availability", 
       "stockQuantity", "sku", "mpn", "brand", "condition", 
       "categoryId", "productDetails", "productHighlights", 
-      "isActive", "isBundle"
+      "isActive", "isBundle","featured"
     ];
 
     fields.forEach(field => {
