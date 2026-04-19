@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Open_Sans, Space_Grotesk } from "next/font/go
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "@/components/Footer";
+import Analytics from "@/components/Analytics"
 import { Providers } from "@/components/Providers";
 import { SITE_NAME } from "@/lib/constants";
 import Script from "next/script";
@@ -56,6 +57,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
+          <Analytics />
         </Providers>
 
                 {/* Google Analytics */}
