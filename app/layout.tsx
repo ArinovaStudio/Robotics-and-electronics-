@@ -57,8 +57,8 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <Analytics />
         </Providers>
+        <Analytics />
 
                 {/* Google Analytics */}
         <Script
