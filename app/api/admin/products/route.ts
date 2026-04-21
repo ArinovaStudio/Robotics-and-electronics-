@@ -123,7 +123,9 @@ export async function POST(req: Request) {
     const title = formData.get("title") as string;
     const sku = formData.get("sku") as string;
     const categoryId = formData.get("categoryId") as string;
-    const link = (formData.get("link") as string) || title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const rawLink = (formData.get("link") as string) || title;
+
+    const link = rawLink?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
     const [category, existingProduct] = await Promise.all([
       prisma.category.findUnique({ where: { id: categoryId } }),

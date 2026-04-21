@@ -42,7 +42,8 @@ export async function PATCH( request: NextRequest, { params }: { params: Promise
     }
 
     const formData = await request.formData();
-    const link = formData.get("link") as string;
+    const rawLink = (formData.get("link") as string);
+    const link = rawLink?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
     const sku = formData.get("sku") as string;
 
     if (link || sku) {

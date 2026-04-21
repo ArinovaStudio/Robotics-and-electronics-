@@ -131,10 +131,10 @@ export default function SingleProductPage({
   useEffect(() => {
     if (product) {
       const groupedDetails: any = {};
-      for (let item of product.productDetails) {
-        const sectionName = (item?.sectionName as string).toLowerCase();
-        const attributeName = (item?.attributeName as string).toLowerCase();
-        const attributeValue = (item?.attributeValue as string).toLowerCase();
+      for (const item of product.productDetails) {
+        const sectionName = item?.sectionName?.toLowerCase();
+        const attributeName = item?.attributeName?.toLowerCase();
+        const attributeValue = item?.attributeValue?.toLowerCase();
         if (Object.keys(groupedDetails).includes(sectionName)) {
           groupedDetails[sectionName].push({ attributeName, attributeValue });
         } else {
