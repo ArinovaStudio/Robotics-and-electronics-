@@ -3,8 +3,10 @@ import { Geist, Geist_Mono, Inter, Open_Sans, Space_Grotesk } from "next/font/go
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "@/components/Footer";
+// import Analytics from "@/components/Analytics"
 import { Providers } from "@/components/Providers";
 import { SITE_NAME } from "@/lib/constants";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +58,27 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+                {/* 
+        <Analytics />
+        
+                Google Analytics
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-00SZCS1HEH"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-00SZCS1HEH', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
+      */}
       </body>
     </html>
   );

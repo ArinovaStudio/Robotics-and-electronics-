@@ -27,7 +27,9 @@ function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
               {item.label}
             </span>
           )}
-          {idx < items.length - 1 && <span className="text-[#ccc] flex-shrink-0">›</span>}
+          {idx < items.length - 1 && (
+            <span className="text-[#ccc] flex-shrink-0">›</span>
+          )}
         </React.Fragment>
       ))}
     </nav>
@@ -124,7 +126,7 @@ export default function SingleProductPage({
   const [reviewPage, setReviewPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [reviewsLoading, setReviewsLoading] = useState(false);
-
+  const [showAll, setShowAll] = useState(false);
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [showMyReviews, setShowMyReviews] = useState(false);
   const [editingReview, setEditingReview] = useState<any>(null);
@@ -165,7 +167,7 @@ export default function SingleProductPage({
 
   const handleBuyNow = async () => {
     if (isLoading) return;
-    
+
     if (!isAuthenticated) {
       router.push(`/login?callbackUrl=/products/${product.link || product.id}`);
       return;
@@ -277,10 +279,12 @@ export default function SingleProductPage({
         const faqData = await faqRes.json();
         const reviewData = await reviewRes.json();
         if (similarData.success) {
-          const formattedProducts = (similarData.data.products || []).map((p: any) => ({
-            ...p,
-            image: p.imageLink 
-          }));
+          const formattedProducts = (similarData.data.products || []).map(
+            (p: any) => ({
+              ...p,
+              image: p.imageLink,
+            })
+          );
           setSuggestedProducts(formattedProducts);
         }
         if (faqData.success) setFaqs(faqData.data || []);
@@ -378,18 +382,18 @@ export default function SingleProductPage({
 
               {/* Main image */}
               <div className="flex-1 flex justify-center sm:justify-start w-full">
-              <div className="w-full relative h-[350px] md:h-[450px] shrink-0">
-                {allImages.length > 0 && (
-                  <Image
-                    src={allImages[selectedImage]}
-                    alt={product.title}
-                    fill
-                    unoptimized
-                    className="object-contain p-2 sm:p-6" 
-                  />
-                )}
+                <div className="w-full relative h-[350px] md:h-[450px] shrink-0">
+                  {allImages.length > 0 && (
+                    <Image
+                      src={allImages[selectedImage]}
+                      alt={product.title}
+                      fill
+                      unoptimized
+                      className="object-contain p-2 sm:p-6"
+                    />
+                  )}
+                </div>
               </div>
-            </div>
             </div>
           </div>
           {/* Details */}
@@ -534,33 +538,37 @@ export default function SingleProductPage({
           {activeTab === "details" && (
             <div className="mt-8 text-[#434343] text-sm md:text-base leading-relaxed space-y-6">
               {/* Features & Specifications */}
-              <div>
-                <h3 className="text-xl border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
-                  Features & Specifications
-                </h3>
+              <Accordion type="single" collapsible className="w-full border-b">
+                <AccordionItem value="features">
+                  <AccordionTrigger className="text-xl hover:no-underline font-bold text-[#050a30] px-[5px]">
+                    Features & Specifications
+                  </AccordionTrigger>
 
-                {product.productHighlights &&
-                product.productHighlights.length > 0 ? (
-                  <ul className="space-y-2">
-                    {product.productHighlights.map((highlight, i) => (
-                      <li
-                        key={i}
-                        className="border-b-2 pl-2 text-md font-[600] border-b pb-3"
-                      >
-                        {highlight}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>
-                    No extra specifications strictly defined for this product
-                    right now.
-                  </p>
-                )}
-              </div>
+                  <AccordionContent className="px-[5px] pb-4">
+                    {product.productHighlights &&
+                    product.productHighlights.length > 0 ? (
+                      <ul className="space-y-2">
+                        {product.productHighlights.map((highlight, i) => (
+                          <li
+                            key={i}
+                            className={`border-b last:border-b-0 pl-2 text-md font-medium pb-2`}
+                          >
+                            {highlight}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        No extra specifications strictly defined for this
+                        product right now.
+                      </p>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
 
               {/* Dynamic Sections */}
-              {Object.keys(productDetails).map((section: string) => {
+              {/* {Object.keys(productDetails).map((section: string) => {
                 return (
                   <div key={section}>
                     <h3 className="text-xl capitalize border-b-2 border-b pb-3 px-[5px] font-bold text-[#050a30] mb-4">
@@ -596,7 +604,37 @@ export default function SingleProductPage({
                     )}
                   </div>
                 );
-              })}
+              })} */}
+              {Object.keys(productDetails).map((section: string) => (
+                <div key={section}>
+                  {productDetails?.[section]?.length > 0 ? (
+                    <ul className="space-y-2">
+                      {productDetails[section].map(
+                        ({ attributeName }: any, i: number) => (
+                          <li
+                            key={i}
+                            className="grid grid-cols-2 border-b py-2 text-sm"
+                          >
+                            {/* Section */}
+                            <span className="font-bold text-md capitalize">
+                              {section}
+                            </span>
+
+                            {/* Attribute Name */}
+                            <span className="text-right text-gray-900 capitalize">
+                              {attributeName}
+                            </span>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      No specifications available.
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           )}
 
@@ -628,7 +666,9 @@ export default function SingleProductPage({
                     onClick={() => {
                       if (!isAuthenticated)
                         return router.push(
-                          `/login?callbackUrl=/products/${product.link || product.id}`
+                          `/login?callbackUrl=/products/${
+                            product.link || product.id
+                          }`
                         );
                       setEditingReview(null); // Ensure modal opens fresh
                       setShowReviewModal(true);
@@ -646,7 +686,9 @@ export default function SingleProductPage({
                   <ReviewCard
                     key={review.id}
                     review={review}
-                    isOwnReview={showMyReviews || (!!user?.id && review.userId === user.id)}
+                    isOwnReview={
+                      showMyReviews || (!!user?.id && review.userId === user.id)
+                    }
                     onEdit={() => {
                       setEditingReview(review);
                       setShowReviewModal(true);
@@ -751,7 +793,7 @@ export default function SingleProductPage({
             </h2>
 
             {/* 4-column product grid */}
-            <ProductGrid products={suggestedProducts as any}/>
+            <ProductGrid products={suggestedProducts as any} />
           </section>
         )}
       </div>

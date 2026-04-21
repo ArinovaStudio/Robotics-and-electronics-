@@ -197,6 +197,9 @@ model Product {
   faqs       ProductFaq[]
   reviews    Review[]
 
+  //featured
+  featured Boolean? @default(false)
+
   @@index([categoryId])
   @@index([brand])
   @@index([availability])

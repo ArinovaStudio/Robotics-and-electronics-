@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { authFetcher } from "@/store/adminStore"; 
+import { Switch } from "../ui/switch";
 
 export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     const { data: categoriesData } = useSWR("/api/admin/categories", authFetcher);
@@ -14,7 +15,6 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
-
     // Basic & Classifications
     const [title, setTitle] = useState("");
     const [link, setLink] = useState("");
@@ -25,7 +25,8 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     const [mpn, setMpn] = useState("");
     const [customLabel0, setCustomLabel0] = useState("");
     const [customLabel1, setCustomLabel1] = useState("");
-    
+    const [isFeatured,setIsFeatured] = useState(false);
+
     // Status
     const [availability, setAvailability] = useState("IN_STOCK");
     const [condition, setCondition] = useState("NEW");
@@ -41,7 +42,8 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
     
     // Arrays
     const [highlights, setHighlights] = useState<string[]>([]);
-    const [details, setDetails] = useState<{sectionName:string, attributeName:string, attributeValue:string}[]>([]);
+    // const [details, setDetails] = useState<{sectionName:string, attributeName:string, attributeValue:string}[]>([]);
+    const [details, setDetails] = useState<{sectionName:string, attributeName:string}[]>([]);
     const [faqs, setFaqs] = useState<{id?:string, question:string, answer:string, order:number}[]>([]);
     const [faqsToDelete, setFaqsToDelete] = useState<string[]>([]);
     
@@ -69,7 +71,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             setIsActive(product.isActive ?? true);
             setIsBundle(product.isBundle ?? false);
             setStockQuantity(product.stockQuantity?.toString() || "0");
-            
+            setIsFeatured(product?.featured ?? false);
             setPrice(product.price?.toString() || "");
             setSalePrice(product.salePrice?.toString() || "");
             
@@ -129,7 +131,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
             if (mpn) formData.append("mpn", mpn);
             if (customLabel0) formData.append("customLabel0", customLabel0);
             if (customLabel1) formData.append("customLabel1", customLabel1);
-            
+            formData.append("featured",isFeatured.toString());
             formData.append("availability", availability);
             formData.append("condition", condition);
             formData.append("isActive", isActive.toString());
@@ -247,6 +249,10 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                         <label className="text-sm font-medium text-slate-700">Description <span className="text-red-500">*</span></label>
                                         <textarea required value={description} onChange={e=>setDescription(e.target.value)} className="w-full border rounded-md p-3 text-sm min-h-[120px] border-slate-200 focus:ring-2 focus:ring-[#4a439a]/20 focus:border-[#4a439a] outline-none transition-all resize-y" maxLength={500} placeholder="Describe the product..." />
                                     </div>
+                                    <div className="space-x-1.5 flex">
+                                        <label className="text-sm font-medium text-slate-700">Featured <span className="text-red-500">*</span></label>
+                                        <Switch checked={isFeatured} onCheckedChange={setIsFeatured} onChange={(e)=>{console.log(e.target.value)}}/>
+                                    </div>
                                 </div>
 
                                 {/* Media */}
@@ -301,7 +307,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                         <h3 className="font-semibold text-slate-800 text-lg">Details & Highlights</h3>
                                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                             <Button className="flex-1 sm:flex-none" type="button" size="sm" variant="outline" onClick={() => setHighlights([...highlights, ""])}><Plus size={14} className="mr-1"/> Highlight</Button>
-                                            <Button className="flex-1 sm:flex-none" type="button" size="sm" variant="outline" onClick={() => setDetails([...details, {sectionName:"", attributeName:"", attributeValue:""}])}><Plus size={14} className="mr-1"/> Detail</Button>
+                                            <Button className="flex-1 sm:flex-none" type="button" size="sm" variant="outline" onClick={() => setDetails([...details, {sectionName:"", attributeName:""}])}><Plus size={14} className="mr-1"/> Detail</Button>
                                         </div>
                                     </div>
                                     
@@ -327,7 +333,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                                         <Input placeholder="Section (e.g. Dimensions)" value={d.sectionName} onChange={e => { const newD = [...details]; newD[i].sectionName = e.target.value; setDetails(newD); }} className="bg-white focus-visible:ring-[#4a439a]" />
                                                         <Input placeholder="Attribute (e.g. Weight)" value={d.attributeName} onChange={e => { const newD = [...details]; newD[i].attributeName = e.target.value; setDetails(newD); }} className="bg-white focus-visible:ring-[#4a439a]" />
-                                                        <Input placeholder="Value (e.g. 200g)" value={d.attributeValue} onChange={e => { const newD = [...details]; newD[i].attributeValue = e.target.value; setDetails(newD); }} className="bg-white focus-visible:ring-[#4a439a]" />
+                                                        {/* <Input placeholder="Value (e.g. 200g)" value={d.attributeValue} onChange={e => { const newD = [...details]; newD[i].attributeValue = e.target.value; setDetails(newD); }} className="bg-white focus-visible:ring-[#4a439a]" /> */}
                                                     </div>
                                                     <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 sm:static text-red-500 hover:text-red-600 hover:bg-red-100 sm:hover:bg-transparent shrink-0" onClick={() => setDetails(details.filter((_, idx) => idx !== i))}><Trash2 size={16}/></Button>
                                                 </div>
