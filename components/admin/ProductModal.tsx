@@ -123,7 +123,10 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
         try {
             const formData = new FormData();
             formData.append("title", title);
-            if (link) formData.append("link", link);
+            if (link) {
+                const cleanLink = link.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+                formData.append("link", cleanLink);
+            }
             formData.append("description", description);
             formData.append("categoryId", categoryId);
             formData.append("sku", sku);
