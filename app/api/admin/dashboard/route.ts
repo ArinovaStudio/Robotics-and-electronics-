@@ -79,6 +79,35 @@ export async function GET() {
         totalSold: item._sum.quantity || 0,
     }));
 
+    const recentDiscountOrders = await prisma.order.findMany({
+      where: { status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] } },
+      orderBy: { createdAt: "desc" },
+      take: 10, 
+      include: {
+        items: {
+          include: {
+            product: { select: { price: true } }
+          }
+        }
+      }
+    });
+
+    const discountChartData = recentDiscountOrders.map((order) => {
+      let withoutOffer = 0;
+      let afterOffer = 0;
+
+      order.items.forEach((item) => {
+        withoutOffer += Number(item.product.price) * item.quantity;
+        afterOffer += Number(item.priceAtPurchase) * item.quantity;
+      });
+
+      return {
+        orderId: order.orderNumber, 
+        WithoutOffer: withoutOffer,
+        AfterOffer: afterOffer,
+      };
+    }).reverse();
+
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(now.getFullYear() - 1);
 
@@ -144,6 +173,7 @@ export async function GET() {
         ordersByStatus,
         lowStockProducts,
         topSellingProducts: topSellingProductsWithRevenue,
+        discountChartData,
         chartData: {
             weekly: Array.from(weeklyMap.values()),
             monthly: Array.from(monthlyMap.values()),

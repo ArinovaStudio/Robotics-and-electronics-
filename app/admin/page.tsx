@@ -7,6 +7,7 @@ import { AnalyticCard, Timeframe } from "@/components/admin/AnalyticCard";
 import { AnalyticChart } from "@/components/admin/AnalyticChart"; 
 import { authFetcher } from "@/store/adminStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DiscountChart } from "@/components/admin/DiscountChart";
 
 export default function AdminDashboard() {
     const { data, isLoading } = useSWR("/api/admin/dashboard", authFetcher);
@@ -25,7 +26,7 @@ export default function AdminDashboard() {
         );
     }
 
-    const { overview, recentStats, ordersByStatus, lowStockProducts, topSellingProducts, chartData } = data.data;
+    const { overview, recentStats, ordersByStatus, lowStockProducts, topSellingProducts, chartData, discountChartData } = data.data;
 
     const getRevenueValue = () => {
         switch (revenueTimeframe) {
@@ -99,8 +100,9 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
                 
                 {/* Dynamic Area Chart (Takes up 2 columns) */}
-                <div className="lg:col-span-2 flex flex-col min-h-[400px]">
+                <div className="lg:col-span-2 flex flex-col gap-6 min-h-[400px]">
                     <AnalyticChart chartData={chartData} />
+                    <DiscountChart data={discountChartData} />
                 </div>
 
                 {/* Low Stock & Top Selling Lists */}
