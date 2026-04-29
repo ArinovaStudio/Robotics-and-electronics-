@@ -106,7 +106,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="max-w-[1400px] mx-auto mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative text-sm uppercase text-[#666]">
-          {SITE_NAME} © {new Date().getFullYear()}, All Rights Reserved
+          TSQUAREY1 OPC PRIVATE LIMITED © {new Date().getFullYear()}, All Rights Reserved
         </div>
         {/* Payment Method Cards */}
         <div className="flex items-center gap-2.5">
