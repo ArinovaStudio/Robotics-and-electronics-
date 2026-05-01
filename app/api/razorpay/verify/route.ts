@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { getUser } from "@/lib/auth";
 import { getOrderConfirmationTemplate } from "@/lib/templates";
 import sendEmail from "@/lib/email";
+import razorpay from "@/lib/razorpay";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,15 +33,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Invalid payment signature" }, { status: 400 });
     }
 
+    const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+    
+    const method = paymentDetails.method;
+    
+    let bankName: string | undefined = undefined;
+    let cardLast4: string | undefined = undefined;
+    let cardNetwork: string | undefined = undefined;
+    let vpa: string | undefined = undefined;
+    let walletName: string | undefined = undefined;
+    
+    if (method === 'card') {
+      cardLast4 = paymentDetails.card?.last4 ?? undefined;
+      cardNetwork = paymentDetails.card?.network ?? undefined;
+    } else if (method === 'upi') {
+      vpa = paymentDetails.vpa ?? undefined;
+    } else if (method === 'netbanking') {
+      bankName = paymentDetails.bank ?? undefined;
+    } else if (method === 'wallet') {
+      walletName = paymentDetails.wallet ?? undefined;
+    }
+
     const confirmedOrder = await prisma.$transaction(async (tx) => {
 
       await tx.payment.update({
         where: { razorpayOrderId: razorpay_order_id },
         data: {
-          razorpayPaymentId: razorpay_payment_id,
+          razorpayPaymentId: razorpay_payment_id, 
           razorpaySignature: razorpay_signature,
           status: "SUCCESS",
           paidAt: new Date(),
+          paymentMethod: method,
+          bankName: bankName,
+          cardLast4: cardLast4,
+          cardNetwork: cardNetwork,
+          vpa: vpa,
+          walletName: walletName
         }
       });
 
