@@ -82,29 +82,19 @@ export async function GET() {
     const recentDiscountOrders = await prisma.order.findMany({
       where: { status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] } },
       orderBy: { createdAt: "desc" },
-      take: 10, 
-      include: {
-        items: {
-          include: {
-            product: { select: { price: true } }
-          }
-        }
+      take: 10,
+      select: {
+        orderNumber: true,
+        subtotal: true,
+        totalAmount: true,
       }
     });
 
     const discountChartData = recentDiscountOrders.map((order) => {
-      let withoutOffer = 0;
-      let afterOffer = 0;
-
-      order.items.forEach((item) => {
-        withoutOffer += Number(item.product.price) * item.quantity;
-        afterOffer += Number(item.priceAtPurchase) * item.quantity;
-      });
-
       return {
         orderId: order.orderNumber, 
-        WithoutOffer: withoutOffer,
-        AfterOffer: afterOffer,
+        WithoutOffer: Number(order.subtotal),
+        AfterOffer: Number(order.totalAmount),
       };
     }).reverse();
 

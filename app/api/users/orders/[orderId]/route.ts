@@ -13,7 +13,7 @@ export async function GET( request: NextRequest, { params }: { params: Promise<{
 
     const order = await prisma.order.findFirst({
       where: { id: orderId, userId: user.id },
-      include: { address: true, payment: true, items: true }
+      include: { address: true, payment: true, items: true, coupon: true },
     });
 
     if (!order) {

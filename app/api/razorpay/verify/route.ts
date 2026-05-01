@@ -53,6 +53,10 @@ export async function POST(request: NextRequest) {
         include: { items: true }
       });
 
+      if (order.couponId) {
+        await tx.coupon.update({ where: { id: order.couponId }, data: { usedCount: { increment: 1 } } });
+      }
+
       for (const item of order.items) {
         await tx.product.update({
           where: { id: item.productId },

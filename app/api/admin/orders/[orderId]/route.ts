@@ -29,6 +29,7 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ ord
           },
         },
         payment: true,
+        coupon: true,
       },
     });
 

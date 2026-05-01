@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const { addressId } = await request.json();
+    const { addressId, couponCode } = await request.json();
     if (!addressId){
         return NextResponse.json({ success: false, message: "Address is required" }, { status: 400 });
     }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     let subtotal = 0;
-    let totalDiscount = 0;
+    let productDiscount = 0;
 
     for (const item of cart.items) {
       const p = item.product;
@@ -37,14 +37,47 @@ export async function POST(request: NextRequest) {
       const activePrice = p.salePrice ? Number(p.salePrice) : originalPrice;
       
       subtotal += originalPrice * item.quantity;
-
       if (p.salePrice) {
-        totalDiscount += (originalPrice - activePrice) * item.quantity;
+        productDiscount += (originalPrice - activePrice) * item.quantity;
       }
     }
 
-    const totalAmount = subtotal - totalDiscount;
+    let totalAmount = subtotal - productDiscount;
+    let finalCouponDiscount = 0;
+    let validCoupon = null;
 
+    // Check if coupon code is valid
+    if (couponCode) {
+      validCoupon = await prisma.coupon.findUnique({ where: { code: couponCode.toUpperCase().trim() } });
+
+      const now = new Date();
+      if (
+        validCoupon && validCoupon.isActive &&
+        (!validCoupon.startDate || now >= validCoupon.startDate) &&
+        (!validCoupon.expiryDate || now <= validCoupon.expiryDate) &&
+        (!validCoupon.usageLimit || validCoupon.usedCount < validCoupon.usageLimit) &&
+        (!validCoupon.minOrderAmount || totalAmount >= Number(validCoupon.minOrderAmount))
+      ) {
+
+        if (validCoupon.discountType === "PERCENTAGE") {
+          finalCouponDiscount = totalAmount * (Number(validCoupon.discountValue) / 100);
+          if (validCoupon.maxDiscountAmount) {
+            finalCouponDiscount = Math.min(finalCouponDiscount, Number(validCoupon.maxDiscountAmount));
+          }
+        } else {
+          finalCouponDiscount = Number(validCoupon.discountValue);
+        }
+        
+        finalCouponDiscount = Math.min(finalCouponDiscount, totalAmount);
+        totalAmount -= finalCouponDiscount;
+      } else {
+        return NextResponse.json({ success: false, message: "Coupon is no longer valid." }, { status: 400 });
+      }
+    }
+
+    const totalDiscount = productDiscount + finalCouponDiscount;
+
+    // Create Razorpay Order
     const razorpayOrder = await razorpay.orders.create({
       amount: Math.round(totalAmount * 100), 
       currency: "INR",
@@ -56,12 +89,8 @@ export async function POST(request: NextRequest) {
     
     while (!isUnique) {
       orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
-      
       const existingOrder = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true } });
-      
-      if (!existingOrder) {
-        isUnique = true;
-      }
+      if (!existingOrder) isUnique = true;
     }
 
     const newOrder = await prisma.$transaction(async (tx) => {
@@ -71,6 +100,8 @@ export async function POST(request: NextRequest) {
           orderNumber,
           userId: user.id,
           addressId,
+          couponId: validCoupon ? validCoupon.id : null,
+          couponCode: validCoupon ? validCoupon.code : null,
           status: "PENDING",
           subtotal: subtotal,
           discount: totalDiscount,
@@ -106,8 +137,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { orderId: newOrder.id, razorpayOrderId: razorpayOrder.id, amount: totalAmount, currency: "INR"
-      }
+      data: { orderId: newOrder.id, razorpayOrderId: razorpayOrder.id, amount: totalAmount, currency: "INR" }
     }, { status: 200 });
 
   } catch {

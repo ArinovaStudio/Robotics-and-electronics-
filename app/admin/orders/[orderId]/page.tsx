@@ -185,10 +185,18 @@ export default function OrderDetailsPage() {
                                 </div>
                                 
                                 {/* Discount */}
-                                <div className="flex justify-between text-emerald-600 font-medium">
-                                    <span>Discount</span>
-                                    <span>-{formatCurrency(order.discount)}</span>
-                                </div>
+                                {Number(order.discount) > 0 && (
+                                    <div className="flex justify-between text-emerald-600 font-medium">
+                                        <span>Product Discount</span>
+                                        <span>-{formatCurrency(order.discount)}</span>
+                                    </div>
+                                )}
+
+                                {order.couponCode && (
+                                    <div className="flex justify-between text-[#4a439a] font-medium bg-indigo-50 p-2 rounded-md border border-indigo-100">
+                                        <span>Coupon applied: <span className="font-bold tracking-wider">{order.couponCode}</span></span>
+                                    </div>
+                                )}
                                 
                                 <hr className="border-slate-100 my-3 sm:my-2" />
                                 

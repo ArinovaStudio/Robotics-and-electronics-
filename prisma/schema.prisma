@@ -249,6 +249,10 @@ model Order {
   orderNumber String      @unique
   userId      String
   addressId   String
+
+  couponId    String?
+  couponCode  String?
+
   status      OrderStatus @default(PENDING)
 
   // Pricing
@@ -277,6 +281,7 @@ model Order {
   // Relations
   user    User        @relation(fields: [userId], references: [id])
   address Address     @relation(fields: [addressId], references: [id])
+  coupon  Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items   OrderItem[]
   payment Payment?
 
@@ -390,4 +395,33 @@ model ProductRequest {
 
   @@index([userId])
   @@index([status])
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model Coupon {
+  id String @id @default(cuid())
+  code String @unique
+  description String? @db.Text
+  
+  discountType DiscountType @default(PERCENTAGE)
+  discountValue Decimal @db.Decimal(10, 2)
+  
+  minOrderAmount Decimal? @db.Decimal(10, 2)
+  maxDiscountAmount Decimal? @db.Decimal(10, 2)
+  
+  usageLimit Int?
+  usedCount Int @default(0)
+  
+  isActive Boolean @default(true)
+  startDate DateTime?
+  expiryDate DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
 }
