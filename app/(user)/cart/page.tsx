@@ -38,8 +38,16 @@ function CartPageContent() {
     error,
     updateQuantity: contextUpdateQuantity,
     removeItem: contextRemoveItem,
+    totals,
+    appliedCoupon,
+    handleApplyCoupon,
+    handleRemoveCoupon,
+    couponError,
+    couponInput,
+    setCouponInput,
+    isValidatingCoupon,
+    setIsValidatingCoupon,
   } = useCart();
-
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
   // Redirect to login if not authenticated
@@ -90,7 +98,8 @@ function CartPageContent() {
   const delivery = Number(cart?.summary?.shipping || 0);
   const total = Number(cart?.summary?.total || 0);
   const freeShipping = delivery === 0;
-  const discountPct = subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
+  const discountPct =
+    subtotal > 0 ? Math.round((discount / (subtotal + discount)) * 100) : 0;
 
   if (authLoading || cartLoading) {
     return (
@@ -128,7 +137,7 @@ function CartPageContent() {
       </div>
     );
   }
-
+  const finalTotal = totals.total - (appliedCoupon?.discountAmount || 0);
   return (
     <div className="max-w-300 mx-auto px-4 py-10">
       {/* Breadcrumbs */}
@@ -145,15 +154,17 @@ function CartPageContent() {
         <div className="flex-1 w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ececec]">
           {cart.items.map((item) => {
             if (!item.product) return null;
-            
+
             const isUpdating = updatingItems.has(item.product.id);
-            
-            const price = Number(item.product.price || 0); 
-            
+
+            const price = Number(item.product.price || 0);
+
             return (
               <div
                 key={item.id}
-                className={`flex md:flex-row w-full justify-between flex-col items-center gap-6 py-4 border-b border-[#f3f3f3] last:border-b-0 ${isUpdating ? "opacity-50" : ""}`}
+                className={`flex md:flex-row w-full justify-between flex-col items-center gap-6 py-4 border-b border-[#f3f3f3] last:border-b-0 ${
+                  isUpdating ? "opacity-50" : ""
+                }`}
               >
                 <div className="flex flex-row justify-between gap-6 w-full">
                   <div className="w-25 h-25 rounded bg-[#f5f5f5] flex items-center justify-center overflow-hidden relative">
@@ -170,7 +181,9 @@ function CartPageContent() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <Link href={`/products/${item.product.link || item.product.id}`}>
+                    <Link
+                      href={`/products/${item.product.link || item.product.id}`}
+                    >
                       <h2 className="text-md md:text-lg font-bold text-[#050a30] mb-1 hover:text-[#f0b31e] transition-colors">
                         {item.product.title}
                       </h2>
@@ -184,7 +197,9 @@ function CartPageContent() {
                 <div className="flex max-md:w-full justify-start">
                   <div className="flex items-center gap-2 bg-[#f5f5f5] rounded-full px-4 py-2">
                     <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantity - 1)
+                      }
                       disabled={isUpdating || item.quantity <= 1}
                       className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-5 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -194,7 +209,9 @@ function CartPageContent() {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantity + 1)
+                      }
                       disabled={isUpdating}
                       className="text-[#050a30] text-xl font-bold hover:text-[#f0b31e] w-5 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -214,32 +231,114 @@ function CartPageContent() {
           })}
         </div>
         {/* Order Summary */}
-        <div className="w-full md:max-w-87.5 bg-white rounded-2xl p-7 shadow-sm border border-[#ececec]">
-          <h2 className="text-xl font-bold text-[#050a30] mb-6">
-            Order Summary
+        <div className="bg-white min-w-sm border border-gray-200 rounded-lg p-6 sticky top-6">
+          <h2 className="text-sm font-bold text-gray-700 mb-6">
+            ORDER SUMMARY
           </h2>
-          <div className="flex justify-between text-[#434343] text-base mb-3">
-            <span>Subtotal</span>
-            <span className="font-bold">₹{subtotal.toFixed(2)}</span>
+          {/* Coupon Section */}
+          <div className="mb-6 border-y border-gray-200 py-6">
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-md text-sm">
+                <div className="flex flex-col">
+                  <span className="font-bold text-emerald-800 tracking-wide">
+                    {appliedCoupon.code}
+                  </span>
+                  <span className="text-emerald-600 font-medium">
+                    Saved ₹{appliedCoupon.discountAmount.toFixed(2)}
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleRemoveCoupon}
+                  className="text-slate-400 hover:text-red-500 font-bold p-1 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-3">
+                  APPLY COUPON
+                </h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter code"
+                    value={couponInput}
+                    onChange={(e) =>
+                      setCouponInput(e.target.value.toUpperCase())
+                    }
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-800 uppercase font-medium"
+                  />
+
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={isValidatingCoupon || !couponInput.trim()}
+                    className="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 disabled:opacity-50 transition-colors w-24 flex justify-center items-center"
+                  >
+                    {isValidatingCoupon ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "APPLY"
+                    )}
+                  </button>
+                </div>
+
+                {couponError && (
+                  <p className="text-red-500 text-xs mt-2 font-medium">
+                    {couponError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
-          {discount > 0 && (
-            <div className="flex justify-between text-[#22c55e] text-base mb-3">
-              <span>Discount{discountPct > 0 ? ` (-${discountPct}%)` : ""}</span>
-              <span className="font-bold">-₹{discount.toFixed(2)}</span>
+          <div className="space-y-2 text-sm mb-6">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Subtotal</span>
+              <span className="text-gray-800 font-medium">
+                ₹{totals.subtotal.toFixed(2)}
+              </span>
             </div>
-          )}
-          <div className="flex justify-between text-[#434343] text-base mb-3">
-            <span>Delivery Fee</span>
-            <span className="font-bold">{freeShipping ? <span className="text-[#22c55e]">Free</span> : `₹${delivery.toFixed(2)}`}</span>
+
+            {discount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>
+                  Discount{discountPct > 0 ? ` (-${discountPct}%)` : ""}
+                </span>
+                <span className="font-medium">-₹{discount.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">Delivery Fee</span>
+              <span className="text-gray-800 font-medium">
+                {freeShipping ? (
+                  <span className="text-green-600">FREE</span>
+                ) : (
+                  `₹${delivery.toFixed(2)}`
+                )}
+              </span>
+            </div>
+            {/* Coupon Discount */}
+            {appliedCoupon && (
+              <div className="flex justify-between text-sm text-green-600 font-medium mb-4">
+                <span>Coupon Discount ({appliedCoupon.code})</span>
+                <span>-₹{appliedCoupon.discountAmount.toFixed(2)}</span>
+              </div>
+            )}
           </div>
-          <hr className="my-4 border-[#ececec]" />
-          <div className="flex justify-between text-[#050a30] text-xl font-bold mb-6">
-            <span>Total</span>
-            <span>₹{total.toFixed(2)}</span>
+
+          {/* Total */}
+          <div className="border-t border-gray-200 pt-4 mb-6">
+            <div className="flex justify-between text-base font-bold">
+              <span className="text-gray-800">Total Amount</span>
+              <span className="text-gray-800">₹{finalTotal.toFixed(2)}</span>
+            </div>
           </div>
+
           <button
             onClick={() => router.push("/cart/address")}
-            className="w-full bg-[#f0b31e] text-white font-bold text-lg py-3 rounded-full flex items-center justify-center gap-2 hover:bg-[#e0a800] transition-all"
+            className="w-full bg-[#F0B31E] flex justify-center items-center gap-2 text-white font-bold py-3 rounded transition-all hover:bg-[#e0a800]"
           >
             Go to Checkout
             <svg

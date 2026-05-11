@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
 import { useAuth } from "./AuthContext";
 
 interface CartProduct {
@@ -8,7 +15,7 @@ interface CartProduct {
   title: string;
   link?: string;
   imageLink: string;
-  price: number; 
+  price: number;
   originalPrice: number;
   availability: string;
   stockQuantity: number;
@@ -39,14 +46,27 @@ interface CartContextType {
   cart: Cart | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchCart: () => Promise<void>;
   addToCart: (productId: string, quantity: number) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
-  
+  couponInput: string;
+  setCouponInput: any;
+  appliedCoupon: {
+    code: string;
+    discountAmount: number;
+  } | null;
+  setAppliedCoupon: any;
+  couponError: string;
+  setCouponError: any;
+  isValidatingCoupon: boolean;
+  setIsValidatingCoupon: any;
+  totals: any;
+  handleApplyCoupon: any;
+  handleRemoveCoupon: any;
   // Computed
   cartItemCount: number;
 }
@@ -62,29 +82,36 @@ export function CartProvider({ children }: CartProviderProps) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   const getHeaders = useCallback((): HeadersInit => {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
-    
+
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
-    
+
     return headers;
   }, [token]);
 
   const fetchCart = useCallback(async () => {
     if (!isAuthenticated) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const res = await fetch("/api/cart", {
         headers: getHeaders(),
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (res.status === 401) {
@@ -124,7 +151,7 @@ export function CartProvider({ children }: CartProviderProps) {
       const res = await fetch("/api/cart/items", {
         method: "POST",
         headers: getHeaders(),
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ productId, quantity }),
       });
 
@@ -148,7 +175,7 @@ export function CartProvider({ children }: CartProviderProps) {
       const res = await fetch(`/api/cart/items`, {
         method: "POST",
         headers: getHeaders(),
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ productId, quantity }),
       });
 
@@ -180,7 +207,7 @@ export function CartProvider({ children }: CartProviderProps) {
       const res = await fetch(`/api/cart/items`, {
         method: "DELETE",
         headers: getHeaders(),
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ productId }),
       });
 
@@ -211,7 +238,7 @@ export function CartProvider({ children }: CartProviderProps) {
       const res = await fetch("/api/cart/clear", {
         method: "DELETE",
         headers: getHeaders(),
-        credentials: 'include',
+        credentials: "include",
       });
 
       const data = await res.json();
@@ -227,6 +254,80 @@ export function CartProvider({ children }: CartProviderProps) {
     }
   };
 
+  const calculateTotals = () => {
+    if (!cart?.items || cart.items.length === 0)
+      return {
+        itemCount: 0,
+        subtotal: 0,
+        totalSavings: 0,
+        shipping: 0,
+        total: 0,
+      };
+    if (cart.summary && cart.summary.total) {
+      return {
+        itemCount: Number(cart.summary.itemCount || cart.items.length),
+        subtotal: Number(cart.summary.subtotal || 0),
+        totalSavings: Number(cart.summary.totalSavings || 0),
+        shipping: Number(cart.summary.shipping || 0),
+        total: Number(cart.summary.total || 0),
+      };
+    }
+    let subtotal = 0,
+      totalSavings = 0;
+    cart.items.forEach((item: any) => {
+      const price = Number(item.product?.price || item.price || 0);
+      const originalPrice = Number(
+        item.product?.originalPrice || item.originalPrice || price
+      );
+      const quantity = Number(item.quantity || 1);
+      subtotal += originalPrice * quantity;
+      const savings = (originalPrice - price) * quantity;
+      if (savings > 0) totalSavings += savings;
+    });
+    const shipping = subtotal > 1000 ? 0 : 50;
+    const total = subtotal - totalSavings + shipping;
+    return {
+      itemCount: cart.items.length,
+      subtotal,
+      totalSavings,
+      shipping,
+      total,
+    };
+  };
+
+  const totals = calculateTotals();
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setIsValidatingCoupon(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/users/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponInput,
+          cartTotal: totals.subtotal - totals.totalSavings,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAppliedCoupon(data.data);
+        setCouponInput("");
+      } else {
+        setCouponError(data.message);
+      }
+    } catch (err) {
+      setCouponError("Failed to validate coupon");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError("");
+  };
+
   const cartItemCount = cart?.summary?.itemCount || 0;
 
   const value: CartContextType = {
@@ -239,6 +340,17 @@ export function CartProvider({ children }: CartProviderProps) {
     removeItem,
     clearCart,
     cartItemCount,
+    couponInput,
+    setCouponInput,
+    appliedCoupon,
+    couponError,
+    isValidatingCoupon,
+    setAppliedCoupon,
+    setCouponError,
+    setIsValidatingCoupon,
+    totals,
+    handleApplyCoupon,
+    handleRemoveCoupon,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
