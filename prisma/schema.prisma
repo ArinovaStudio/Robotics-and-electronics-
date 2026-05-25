@@ -314,6 +314,11 @@ model Payment {
   razorpayPaymentId String?
   razorpaySignature String?
 
+  // PayU Details
+  payuTransactionId String?  @unique 
+  payuPaymentId     String?
+  payuHash          String?
+
   // Payment Info
   amount        Decimal       @db.Decimal(10, 2)
   currency      String        @default("INR")
@@ -339,6 +344,7 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id])
 
   @@index([razorpayOrderId])
+  @@index([payuTransactionId])
   @@index([status])
 }
 

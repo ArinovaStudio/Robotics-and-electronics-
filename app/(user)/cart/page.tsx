@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, useCart } from "@/app/contexts";
+import { PaymentFailedModal } from "@/components/PaymentFailedModal";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -50,12 +51,22 @@ function CartPageContent() {
   } = useCart();
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login?callbackUrl=/cart");
     }
   }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("error") === "payment_failed") {
+      setIsErrorModalOpen(true);
+      window.history.replaceState(null, '', '/cart');
+    }
+  }, []);
 
   const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return;
@@ -140,6 +151,12 @@ function CartPageContent() {
   const finalTotal = totals.total - (appliedCoupon?.discountAmount || 0);
   return (
     <div className="max-w-300 mx-auto px-4 py-10">
+
+      <PaymentFailedModal 
+        isOpen={isErrorModalOpen} 
+        onClose={() => setIsErrorModalOpen(false)} 
+      />
+
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-sm text-[#9ca3af] mb-6">
         <Link href="/" className="hover:text-[#050a30]">

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
-import razorpay from "@/lib/razorpay";
 import { getOrderConfirmationTemplate } from "@/lib/templates";
 import sendEmail from "@/lib/email";
 
@@ -12,7 +11,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const { addressId, couponCode, paymentType = "ONLINE" } = await request.json();
+    const { addressId, couponCode } = await request.json();
     if (!addressId){
         return NextResponse.json({ success: false, message: "Address is required" }, { status: 400 });
     }
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
     let finalCouponDiscount = 0;
     let validCoupon = null;
 
-    // Check if coupon code is valid
     if (couponCode) {
       validCoupon = await prisma.coupon.findUnique({ where: { code: couponCode.toUpperCase().trim() } });
 
@@ -60,7 +58,6 @@ export async function POST(request: NextRequest) {
         (!validCoupon.usageLimit || validCoupon.usedCount < validCoupon.usageLimit) &&
         (!validCoupon.minOrderAmount || totalAmount >= Number(validCoupon.minOrderAmount))
       ) {
-
         if (validCoupon.discountType === "PERCENTAGE") {
           finalCouponDiscount = totalAmount * (Number(validCoupon.discountValue) / 100);
           if (validCoupon.maxDiscountAmount) {
@@ -88,111 +85,53 @@ export async function POST(request: NextRequest) {
       if (!existingOrder) isUnique = true;
     }
 
-    // COD option
-    if (paymentType === "COD") {
-      const confirmedOrder = await prisma.$transaction(async (tx) => {
-        const order = await tx.order.create({
-          data: {
-            orderNumber,
-            userId: user.id,
-            addressId,
-            couponId: validCoupon?.id,
-            couponCode: validCoupon?.code,
-            status: "CONFIRMED",
-            confirmedAt: new Date(),
-            subtotal, discount: totalDiscount, totalAmount,
-            items: {
-              create: cart.items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                priceAtPurchase: item.product.salePrice ? Number(item.product.salePrice) : Number(item.product.price),
-                productSnapshot: { title: item.product.title, image: item.product.imageLink, sku: item.product.sku }
-              }))
-            },
-            payment: {
-              create: {
-                amount: totalAmount,
-                status: "PENDING",
-                paymentMethod: "COD"
-              }
-            }
-          },
-          include: { items: true }
-        });
-
-        for (const item of order.items) {
-          await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { decrement: item.quantity } } });
-        }
-
-        if (validCoupon) {
-          await tx.coupon.update({ where: { id: validCoupon.id }, data: { usedCount: { increment: 1 } } });
-        }
-
-        await tx.cartItem.deleteMany({ where: { cart: { userId: user.id } } });
-
-        return order;
-      });
-
-      // Send Email
-      const emailHtml = getOrderConfirmationTemplate(user.name || "Customer", confirmedOrder.orderNumber, totalAmount, confirmedOrder.items, true);
-      await sendEmail(user.email, `Order Confirmed! #${confirmedOrder.orderNumber} - Robotics Store`, emailHtml);
-
-      return NextResponse.json({ success: true, data: { isCOD: true, orderId: confirmedOrder.id } }, { status: 200 });
-    }
-
-    // Create Razorpay Order
-    const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(totalAmount * 100), 
-      currency: "INR",
-      receipt: `rcpt_${Date.now()}_${user.id.substring(0, 5)}`,
-    });
-
-    const newOrder = await prisma.$transaction(async (tx) => {
-
+    const confirmedOrder = await prisma.$transaction(async (tx) => {
       const order = await tx.order.create({
         data: {
           orderNumber,
           userId: user.id,
           addressId,
-          couponId: validCoupon ? validCoupon.id : null,
-          couponCode: validCoupon ? validCoupon.code : null,
-          status: "PENDING",
-          subtotal: subtotal,
-          discount: totalDiscount,
-          totalAmount: totalAmount,
+          couponId: validCoupon?.id,
+          couponCode: validCoupon?.code,
+          status: "CONFIRMED", 
+          confirmedAt: new Date(),
+          subtotal, discount: totalDiscount, totalAmount,
           items: {
-            create: cart.items.map((item) => {
-              const activePrice = item.product.salePrice ? Number(item.product.salePrice) : Number(item.product.price);
-              return {
-                productId: item.productId,
-                quantity: item.quantity,
-                priceAtPurchase: activePrice,
-                productSnapshot: { 
-                  title: item.product.title,
-                  image: item.product.imageLink,
-                  sku: item.product.sku,
-                }
-              };
-            })
+            create: cart.items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              priceAtPurchase: item.product.salePrice ? Number(item.product.salePrice) : Number(item.product.price),
+              productSnapshot: { title: item.product.title, image: item.product.imageLink, sku: item.product.sku }
+            }))
           },
           payment: {
             create: {
-              razorpayOrderId: razorpayOrder.id,
               amount: totalAmount,
               status: "PENDING",
+              paymentMethod: "COD"
             }
           }
         },
-        include: { payment: true }
+        include: { items: true }
       });
+
+      for (const item of order.items) {
+        await tx.product.update({ where: { id: item.productId }, data: { stockQuantity: { decrement: item.quantity } } });
+      }
+
+      if (validCoupon) {
+        await tx.coupon.update({ where: { id: validCoupon.id }, data: { usedCount: { increment: 1 } } });
+      }
+
+      await tx.cartItem.deleteMany({ where: { cart: { userId: user.id } } });
 
       return order;
     });
 
-    return NextResponse.json({
-      success: true,
-      data: { isCOD: false, orderId: newOrder.id, razorpayOrderId: razorpayOrder.id, amount: totalAmount, currency: "INR" }
-    }, { status: 200 });
+    const emailHtml = getOrderConfirmationTemplate(user.name || "Customer", confirmedOrder.orderNumber, totalAmount, confirmedOrder.items, true);
+    await sendEmail(user.email, `Order Confirmed! #${confirmedOrder.orderNumber} - Robotics Store`, emailHtml);
+
+    return NextResponse.json({ success: true, data: { orderId: confirmedOrder.id } }, { status: 200 });
 
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });

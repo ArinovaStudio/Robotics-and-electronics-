@@ -92,7 +92,7 @@ export function PriceSummary({
               onChange={() => setPaymentMethod("ONLINE")}
               className="w-4 h-4 accent-[#f0b31e] cursor-pointer"
             />
-            <span className="text-sm font-medium text-gray-800">Pay Online (Razorpay)</span>
+            <span className="text-sm font-medium text-gray-800">Pay Online</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
