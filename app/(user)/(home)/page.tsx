@@ -14,7 +14,7 @@ export default function Home() {
       <TechEngi />
       <HomeCategories />
       <RoboticsPartsSection />
-      <EndReached />
+      {/* <EndReached /> */}
       <CertificationsStrip />
     </main>
   );

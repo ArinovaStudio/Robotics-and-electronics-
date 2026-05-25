@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAdminUser } from "@/lib/auth";
 import { z } from "zod";
-import { getOrderStatusUpdateTemplate } from "@/lib/templates";
+import { getInvoiceEmailTemplate, getOrderStatusUpdateTemplate } from "@/lib/templates";
 import sendEmail from "@/lib/email";
 
 export async function GET( req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
@@ -70,11 +70,13 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ o
 
     const currentOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      select: { 
+      select: {
+        id: true, 
         status: true, 
         notes: true, 
         orderNumber: true,
-        user: { select: { name: true, email: true } }
+        user: { select: { name: true, email: true } },
+        payment: { select: { id: true, paymentMethod: true, status: true } }
       },
     });
 
@@ -109,7 +111,14 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ o
       updateData.trackingNumber = trackingNumber;
       updateData.trackingUrl = trackingUrl;
     }
-    if (status === "DELIVERED") updateData.deliveredAt = new Date();
+    if (status === "DELIVERED") {
+      updateData.deliveredAt = new Date();
+      
+      if (currentOrder.payment?.paymentMethod === "COD" && currentOrder.payment.status === "PENDING") {
+        updateData.payment = { update: { status: "SUCCESS", paidAt: new Date() } };
+      }
+    }
+
     if (status === "CANCELLED") updateData.cancelledAt = new Date();
 
     if (notes) {
@@ -123,15 +132,24 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ o
     });
 
     if (status !== currentOrder.status && currentOrder.user?.email) {
-      const emailHtml = getOrderStatusUpdateTemplate(
-        currentOrder.user.name || "Customer",
-        currentOrder.orderNumber,
-        status,
-        trackingNumber,
-        trackingUrl
-      );
+      let emailHtml = "";
+      let subject = "";
 
-      sendEmail( currentOrder.user.email, `Update on your order #${currentOrder.orderNumber}`, emailHtml );
+      if (status === "DELIVERED") {
+        emailHtml = getInvoiceEmailTemplate(currentOrder); 
+        subject = `Delivered: Invoice for Order #${currentOrder.orderNumber} - Tsquarey`;
+      } else {
+        emailHtml = getOrderStatusUpdateTemplate(
+          currentOrder.user.name || "Customer",
+          currentOrder.orderNumber,
+          status,
+          trackingNumber,
+          trackingUrl
+        );
+        subject = `Update on your order #${currentOrder.orderNumber}`;
+      }
+
+      sendEmail(currentOrder.user.email, subject, emailHtml);
     }
 
     return NextResponse.json({

@@ -44,7 +44,13 @@ export const getOTPTemplate = (otp: string, type: "EMAIL_VERIFICATION" | "PASSWO
     `;
 };
 
-export const getOrderConfirmationTemplate = ( name: string, orderNumber: string, totalAmount: number | string, items: any[] ) => {
+export const getOrderConfirmationTemplate = ( 
+  name: string, 
+  orderNumber: string, 
+  totalAmount: number | string, 
+  items: any[],
+  isCOD: boolean = false
+) => {
   const itemsHtml = items.map((item) => {
       const title = item.productSnapshot?.title || "Product";
       const itemTotal = Number(item.priceAtPurchase) * item.quantity;
@@ -74,23 +80,30 @@ export const getOrderConfirmationTemplate = ( name: string, orderNumber: string,
           .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
           .total-row { font-size: 18px; font-weight: bold; color: #4a439a; }
+          .cod-badge { display: inline-block; background-color: #f0b31e; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 15px;}
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>Payment Successful! 🎉</h1>
+            <h1>${isCOD ? 'Order Confirmed! 🎉' : 'Payment Successful! 🎉'}</h1>
           </div>
           <div class="content">
             <h2>Thank you for your order, ${name}!</h2>
-            <p>We've received your payment and your order is now confirmed. We are getting it ready for shipment.</p>
+            
+            ${isCOD ? '<span class="cod-badge">CASH ON DELIVERY</span>' : ''}
+            
+            <p>${isCOD 
+                ? 'We have received your order and it is now confirmed. Please keep the exact cash ready to pay at the time of delivery.' 
+                : 'We have received your payment and your order is now confirmed. We are getting it ready for shipment.'
+            }</p>
             <p><strong>Order Number:</strong> ${orderNumber}</p>
             
             <table>
               <tbody>
                 ${itemsHtml}
                 <tr>
-                  <td style="padding: 15px 10px; text-align: right;"><strong>Total Paid:</strong></td>
+                  <td style="padding: 15px 10px; text-align: right;"><strong>${isCOD ? 'Amount to Pay:' : 'Total Paid:'}</strong></td>
                   <td class="total-row" style="padding: 15px 10px; text-align: right;">₹${Number(totalAmount).toFixed(2)}</td>
                 </tr>
               </tbody>
@@ -277,6 +290,45 @@ export const getProductRequestUpdateTemplate = (
           </div>
           <div class="footer">
             <p>&copy; ${new Date().getFullYear()} Robotics Store. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+export const getInvoiceEmailTemplate = (order: any) => {
+  const downloadUrl = `${process.env.NEXTAUTH_URL || 'https://tsquarey.store'}/api/users/orders/${order.id}/invoice`;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4a439a; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; text-align: center; }
+          .btn { display: inline-block; background-color: #f0b31e; color: #fff; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 5px; margin-top: 20px; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Your Order Has Been Delivered! 📦</h1>
+          </div>
+          <div class="content">
+            <h2>Hi ${order.user.name},</h2>
+            <p>Your order <strong>#${order.orderNumber}</strong> has been successfully delivered. We hope you love your new electronics parts!</p>
+            <p>As requested, your final invoice is now available. You can download a PDF copy for your records by clicking the button below.</p>
+            
+            <a href="${downloadUrl}" class="btn">Download Invoice</a>
+            
+            <p style="margin-top: 30px; font-size: 14px; color: #555;">If you have any issues with your items, feel free to contact us.</p>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Tsquarey. All rights reserved.</p>
           </div>
         </div>
       </body>

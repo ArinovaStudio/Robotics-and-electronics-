@@ -14,6 +14,8 @@ export function PriceSummary({
   handlePayment,
   processingPayment,
   selectedId,
+  paymentMethod,
+  setPaymentMethod,
 }: any) {
   const finalTotal = totals.total - (appliedCoupon?.discountAmount || 0);
 
@@ -36,57 +38,6 @@ export function PriceSummary({
           </div>
         ))}
       </div>
-
-      {/* Coupon Section */}
-      {/* <div className="mb-6 border-b border-gray-200 pb-6">
-        {appliedCoupon ? (
-          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-md text-sm">
-            <div className="flex flex-col">
-              <span className="font-bold text-emerald-800 tracking-wide">
-                {appliedCoupon.code}
-              </span>
-              <span className="text-emerald-600 font-medium">
-                Saved ₹{appliedCoupon.discountAmount.toFixed(2)}
-              </span>
-            </div>
-            <button
-              onClick={onRemoveCoupon}
-              className="text-slate-400 hover:text-red-500 font-bold p-1 transition-colors"
-            >
-              ✕
-            </button>
-          </div>
-        ) : (
-          <div>
-            <h3 className="text-sm font-bold text-gray-700 mb-3">APPLY COUPON</h3>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter code"
-                value={couponInput}
-                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-800 uppercase font-medium"
-              />
-              <button
-                onClick={onApplyCoupon}
-                disabled={isValidatingCoupon || !couponInput.trim()}
-                className="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 disabled:opacity-50 transition-colors w-24 flex justify-center items-center"
-              >
-                {isValidatingCoupon ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "APPLY"
-                )}
-              </button>
-            </div>
-            {couponError && (
-              <p className="text-red-500 text-xs mt-2 font-medium">
-                {couponError}
-              </p>
-            )}
-          </div>
-        )}
-      </div> */}
 
       <h3 className="text-sm font-bold text-gray-700 mb-3">
         PRICE DETAILS ({totals.itemCount} Items)
@@ -128,6 +79,35 @@ export function PriceSummary({
         </div>
       </div>
 
+      {/* Payment Method Selector */}
+      <div className="mb-6">
+        <h3 className="text-sm font-bold text-gray-700 mb-3">PAYMENT METHOD</h3>
+        <div className="flex flex-col gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="ONLINE"
+              checked={paymentMethod === "ONLINE"}
+              onChange={() => setPaymentMethod("ONLINE")}
+              className="w-4 h-4 accent-[#f0b31e] cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-800">Pay Online (Razorpay)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="COD"
+              checked={paymentMethod === "COD"}
+              onChange={() => setPaymentMethod("COD")}
+              className="w-4 h-4 accent-[#f0b31e] cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-800">Cash on Delivery (COD)</span>
+          </label>
+        </div>
+      </div>
+
       <button
         onClick={handlePayment}
         disabled={!selectedId || processingPayment}
@@ -137,6 +117,8 @@ export function PriceSummary({
           <>
             <Loader2 className="w-5 h-5 animate-spin" /> PROCESSING...
           </>
+        ) : paymentMethod === "COD" ? (
+          "PLACE ORDER"
         ) : (
           "PAY SECURELY"
         )}

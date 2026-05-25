@@ -41,8 +41,8 @@ export default function AddressPage() {
   const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">("ONLINE");
 
-  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<Address | null>(null);
 
@@ -71,7 +71,6 @@ export default function AddressPage() {
     if (isAuthenticated) fetchAddresses();
   }, [isAuthenticated]);
 
-  // Address Handlers
   const handleDeleteAddress = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (!confirm("Are you sure you want to delete this address?")) return;
@@ -107,7 +106,11 @@ export default function AddressPage() {
 
   const handlePayment = async () => {
     if (!selectedId) return alert("Please select a delivery address.");
-    if (!(window as any).Razorpay) return alert("Razorpay SDK failed to load.");
+    
+    if (paymentMethod === "ONLINE" && !(window as any).Razorpay) {
+      return alert("Razorpay SDK failed to load.");
+    }
+    
     setProcessingPayment(true);
 
     try {
@@ -117,6 +120,7 @@ export default function AddressPage() {
         body: JSON.stringify({
           addressId: selectedId,
           couponCode: appliedCoupon?.code,
+          paymentType: paymentMethod,
         }),
       });
 
@@ -124,6 +128,11 @@ export default function AddressPage() {
       if (!orderData.success) {
         alert(orderData.message || "Failed to create order");
         setProcessingPayment(false);
+        return;
+      }
+
+      if (orderData.data.isCOD) {
+        router.push("/orders");
         return;
       }
 
@@ -285,6 +294,8 @@ export default function AddressPage() {
             handlePayment={handlePayment}
             processingPayment={processingPayment}
             selectedId={selectedId}
+            paymentMethod={paymentMethod} 
+            setPaymentMethod={setPaymentMethod}
           />
         </div>
       </div>
