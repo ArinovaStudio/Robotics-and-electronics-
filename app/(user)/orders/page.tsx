@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/contexts";
 import { useRouter } from "next/navigation";
-import { Package, Loader2, Search, ExternalLink } from "lucide-react";
+import { Package, Loader2, Search, ExternalLink, Download } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -137,7 +137,7 @@ export default function OrdersPage() {
               </Link>
             )}
           </div>
-        ) : (
+        ) : ( 
           <div className={`space-y-6 transition-opacity duration-200 ${loadingOrders ? 'opacity-50' : 'opacity-100'}`}>
             {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-2xl shadow-sm border border-[#ececec] overflow-hidden">
@@ -161,11 +161,20 @@ export default function OrdersPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-gray-500 font-medium mb-1">Order #</p>
-                    <p className="text-[#050a30] font-mono text-xs font-bold bg-gray-100 px-2 py-1 rounded">
-                      {order.orderNumber}
-                    </p>
+                  <div className="text-right flex flex-col items-end">
+                    <a 
+                      href={`/api/users/orders/${order.id}/invoice`}
+                      className="flex items-center gap-1 text-[11px] font-bold text-[#f0b31e] bg-[#fff8e6] border border-[#f0b31e]/30 px-2 py-1 rounded mb-3 hover:bg-[#f0b31e] hover:text-white transition-colors"
+                    >
+                      <Download size={12} />
+                      INVOICE
+                    </a>
+                    <div>
+                      <p className="text-gray-500 font-medium mb-1">Order #</p>
+                      <p className="text-[#050a30] font-mono text-xs font-bold bg-gray-100 px-2 py-1 rounded">
+                        {order.orderNumber}
+                      </p>
+                    </div>
                   </div>
                 </div>
 

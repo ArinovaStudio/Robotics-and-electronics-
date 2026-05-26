@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export function useRazorpay(user: any, address: any) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -19,7 +20,7 @@ export function useRazorpay(user: any, address: any) {
 
   const processRazorpayPayment = async (selectedId: string, couponCode?: string) => {
     if (!(window as any).Razorpay) {
-      alert("Razorpay SDK failed to load.");
+      toast.error("Razorpay SDK not loaded.");
       return;
     }
     
@@ -35,7 +36,7 @@ export function useRazorpay(user: any, address: any) {
       const orderData = await checkoutRes.json();
       
       if (!orderData.success) {
-        alert(orderData.message || "Failed to create order");
+        toast.error(orderData.message || "Failed to create order");
         setIsProcessing(false);
         return;
       }
@@ -63,11 +64,11 @@ export function useRazorpay(user: any, address: any) {
             if (verifyData.success) {
                 router.push(`/order-success?orderId=${orderData.data.orderId}`);
             } else {
-              alert(`Verification failed: ${verifyData.message}`);
+              toast.error(verifyData.message);
               setIsProcessing(false);
             }
           } catch {
-            alert("An error occurred verifying the payment.");
+            toast.error("Something went wrong verifying the payment.");
             setIsProcessing(false);
           }
         },
@@ -87,13 +88,13 @@ export function useRazorpay(user: any, address: any) {
       
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
-        alert(`Payment failed: ${response.error.description}`);
+        toast.error(response.error.description);
         setIsProcessing(false);
         if (orderData?.data?.orderId) cancelOrder(orderData.data.orderId);
       });
       rzp.open();
     } catch {
-      alert("Something went wrong initializing the payment.");
+      toast.error("Something went wrong verifying the payment.");
       setIsProcessing(false);
     }
   };

@@ -10,6 +10,7 @@ import AddressModal from "@/components/AddressModal";
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [fetchingProfile, setFetchingProfile] = useState(true);
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,8 +33,10 @@ export default function ProfilePage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (showGlobalLoader: boolean = true) => {
     try {
+      if (showGlobalLoader) setFetchingProfile(true);
+      
       const res = await fetch("/api/users/profile");
       const json = await res.json();
 
@@ -51,27 +54,14 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error("Profile fetch error:", err);
+    } finally {
+      if (showGlobalLoader) setFetchingProfile(false); 
     }
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) fetchProfile();
+    if (isAuthenticated) fetchProfile(true);
   }, [isAuthenticated, fetchProfile]);
-
-  useEffect(() => {
-    if (user && !isEditing) {
-      const nameParts = (user.name || "").split(" ");
-      const firstName = nameParts[0] || "";
-      const lastName = nameParts.slice(1).join(" ") || "";
-
-      setFormData({
-        firstName,
-        lastName,
-        email: user.email || "",
-        phone: user?.phone || "",
-      });
-    }
-  }, [user, isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +82,7 @@ export default function ProfilePage() {
       if (res.ok && data.success) {
         setSuccess("Profile updated successfully!");
         
-        await fetchProfile();
+        await fetchProfile(false); 
 
         setIsEditing(false);
         setTimeout(() => setSuccess(""), 3000);
@@ -106,7 +96,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading || (!isAuthenticated && !isLoading)) {
+  if (isLoading || fetchingProfile || (!isAuthenticated && !isLoading)) {
     return (
       <div className="flex justify-center items-center py-40">
         <Loader2 className="w-12 h-12 border-4 border-[#f0b31e] border-t-transparent rounded-full animate-spin text-[#f0b31e]" />
@@ -119,7 +109,7 @@ export default function ProfilePage() {
       <AddressModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchProfile}
+        onSuccess={() => fetchProfile(false)}
       />
 
       <div className="max-w-[1400px] mx-auto">
@@ -216,12 +206,12 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => {
                         setIsEditing(false);
-                        const nameParts = (user?.name || "").split(" ");
+                        const nameParts = (profileData?.user?.name || user?.name || "").split(" ");
                         setFormData({
                           firstName: nameParts[0] || "",
                           lastName: nameParts.slice(1).join(" ") || "",
-                          email: user?.email || "",
-                          phone: user?.phone || "",
+                          email: profileData?.user?.email || user?.email || "",
+                          phone: profileData?.user?.phone || user?.phone || "",
                         });
                       }}
                       className="px-8 py-2.5 bg-gray-200 hover:bg-gray-300 text-black rounded-lg font-bold text-sm tracking-wide transition-colors"

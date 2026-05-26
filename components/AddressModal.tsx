@@ -1,6 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
+import indianCitiesData from "@/lib/indianCities.json";
+
+const typedCitiesData: Record<string, string[]> = indianCitiesData;
+const indianStates = Object.keys(typedCitiesData).sort();
 
 type AddressFormData = {
   id?: string;
@@ -29,6 +33,8 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const availableCities = formData.state ? typedCitiesData[formData.state] || [] : [];
+
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -43,6 +49,12 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.phone.length !== 10) {
+      setError("Phone number must be exactly 10 digits.");
+      return; 
+    }
+
     setSaving(true);
     setError("");
 
@@ -91,17 +103,64 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
         {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded text-sm">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input required placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
-          <input required placeholder="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
-          <input required placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
-          <input placeholder="Address Line 2 (Optional)" value={formData.addressLine2 || ""} onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
           
-          <div className="flex gap-4">
-            <input required placeholder="City" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-1/2 border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
-            <input required placeholder="State" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="w-1/2 border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
+            <input required placeholder="e.g. John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Phone <span className="text-red-500">*</span></label>
+            <input required type="tel" maxLength={10} placeholder="e.g. 9876543210" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Address Line 1 <span className="text-red-500">*</span></label>
+            <input required placeholder="e.g. Flat 402, Sunshine Apartments" value={formData.addressLine1} onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Address Line 2 (Optional)</label>
+            <input placeholder="e.g. Near City Mall" value={formData.addressLine2 || ""} onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
           </div>
           
-          <input required placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-gray-700 mb-1">City <span className="text-red-500">*</span></label>
+              <select 
+                required 
+                value={formData.city} 
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                disabled={!formData.state}
+                className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e] bg-white disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="" disabled>Select City</option>
+                {availableCities.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-gray-700 mb-1">State <span className="text-red-500">*</span></label>
+              <select 
+                required 
+                value={formData.state} 
+                onChange={(e) => setFormData({ ...formData, state: e.target.value, city: "" })} 
+                className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e] bg-white"
+              >
+                <option value="" disabled>Select State</option>
+                {indianStates.map((state) => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Pincode <span className="text-red-500">*</span></label>
+            <input required maxLength={6} placeholder="e.g. 110001" value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, '') })} className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#f0b31e]" />
+          </div>
           
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={saving} className="flex-1 flex justify-center items-center gap-2 bg-[#f0b31e] text-white py-2.5 rounded font-bold hover:bg-[#e0a800] transition-colors disabled:opacity-50">

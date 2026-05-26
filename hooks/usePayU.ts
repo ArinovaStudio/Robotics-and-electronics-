@@ -1,7 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export function usePayU() {
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setIsProcessing(false);
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
 
   const processPayUPayment = async (selectedId: string, couponCode?: string) => {
     setIsProcessing(true);
@@ -16,7 +28,7 @@ export function usePayU() {
       const orderData = await checkoutRes.json();
       
       if (!orderData.success) {
-        alert(orderData.message || "Failed to create order");
+        toast.error(orderData.message || "Failed to create order");
         setIsProcessing(false);
         return;
       }
@@ -50,7 +62,7 @@ export function usePayU() {
       form.submit();
       
     } catch {
-      alert("Something went wrong initializing PayU.");
+      toast.error("Something went wrong with checkout.");
       setIsProcessing(false);
     }
   };

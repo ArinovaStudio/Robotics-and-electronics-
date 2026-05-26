@@ -5,6 +5,7 @@ import { useAuth, useCart } from "@/app/contexts";
 import Link from "next/link";
 import Script from "next/script";
 import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import AddressModal from "@/components/AddressModal";
 import { AddressCard } from "@/components/checkout/AddressCard";
 import { PriceSummary } from "@/components/checkout/PriceSummary";
@@ -48,7 +49,6 @@ export default function AddressPage() {
 
   useEffect(() => { if (isAuthenticated) fetchAddresses(); }, [isAuthenticated]);
 
-  // Address Handlers
   const handleDeleteAddress = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (!confirm("Are you sure you want to delete this address?")) return;
@@ -58,8 +58,9 @@ export default function AddressPage() {
       if (data.success) {
         if (selectedId === id) setSelectedId("");
         fetchAddresses();
-      } else alert(data.message || "Failed to delete address");
-    } catch { alert("An error occurred while deleting the address."); }
+        toast.success("Address deleted successfully"); 
+      } else toast.error(data.message || "Failed to delete address");
+    } catch { toast.error("An error occurred while deleting the address."); }
   };
 
   const handleEditClick = (e: React.MouseEvent, address: Address) => {
@@ -77,7 +78,10 @@ export default function AddressPage() {
   const activeGateway = process.env.NEXT_PUBLIC_GATEWAY || "RAZORPAY";
 
   const handlePayment = async () => {
-    if (!selectedId) return alert("Please select a delivery address.");
+    if (!selectedId) {
+      toast.error("Please select a delivery address to proceed."); 
+      return; 
+    }
     
     if (paymentMethod === "COD") {
         setIsCODProcessing(true);
@@ -91,9 +95,12 @@ export default function AddressPage() {
             if (data.success){
               router.push(`/order-success?orderId=${data.data.orderId}`);
             }
-            else { alert(data.message); setIsCODProcessing(false); }
+            else { 
+              toast.error(data.message);
+              setIsCODProcessing(false); 
+            }
         } catch {
-            alert("Something went wrong with COD checkout.");
+            toast.error("Something went wrong with COD checkout.");
             setIsCODProcessing(false);
         }
         return;
