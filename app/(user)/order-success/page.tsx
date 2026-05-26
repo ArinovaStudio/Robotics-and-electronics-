@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BadgeCheck, Truck, CreditCard, ChevronRight, Wand2, Loader2 } from "lucide-react";
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
@@ -22,7 +22,7 @@ export default function OrderSuccessPage() {
 
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/users/orders/${orderId}`);
+        const res = await fetch(`/api/users/order/${orderId}`);
         const data = await res.json();
         if (data.success) {
           setOrder(data.data);
@@ -95,12 +95,10 @@ export default function OrderSuccessPage() {
             </Link>
           </div>
 
-          {/* Delivery Illustration Replacement */}
           <div className="absolute top-5 right-5 bg-blue-50 p-4 rounded-full">
             <Truck className="w-10 h-10 text-blue-500" strokeWidth={1.5} />
           </div>
 
-          {/* Footer of Address Box */}
           <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-2">
             <Wand2 className="w-4 h-4 text-gray-400" />
             <p className="text-xs text-gray-500">
@@ -148,5 +146,19 @@ export default function OrderSuccessPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[#f0b31e]" />
+        </div>
+      }
+    >
+      <OrderSuccessContent />
+    </Suspense>
   );
 }
