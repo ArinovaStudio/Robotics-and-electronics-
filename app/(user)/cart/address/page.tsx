@@ -88,7 +88,9 @@ export default function AddressPage() {
                 body: JSON.stringify({ addressId: selectedId, couponCode: appliedCoupon?.code })
             });
             const data = await res.json();
-            if (data.success) router.push("/orders");
+            if (data.success){
+              router.push(`/order-success?orderId=${data.data.orderId}`);
+            }
             else { alert(data.message); setIsCODProcessing(false); }
         } catch {
             alert("Something went wrong with COD checkout.");

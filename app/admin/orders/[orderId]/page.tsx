@@ -299,7 +299,7 @@ export default function OrderDetailsPage() {
                                     <div className="overflow-hidden">
                                         <p className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Transaction ID</p>
                                         <p className="font-mono text-xs sm:text-sm text-slate-600 truncate" title={order.payment.razorpayOrderId}>
-                                            {order.payment.razorpayOrderId}
+                                            {order.payment.razorpayOrderId || order.payment.payuTransactionId || "N/A"}
                                         </p>
                                     </div>
                                 </div>

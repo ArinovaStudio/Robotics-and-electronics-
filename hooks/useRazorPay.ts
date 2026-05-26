@@ -61,7 +61,7 @@ export function useRazorpay(user: any, address: any) {
             });
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
-                router.push("/orders");
+                router.push(`/order-success?orderId=${orderData.data.orderId}`);
             } else {
               alert(`Verification failed: ${verifyData.message}`);
               setIsProcessing(false);

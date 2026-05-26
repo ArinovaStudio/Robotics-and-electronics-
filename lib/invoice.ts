@@ -20,7 +20,7 @@ export async function generateInvoicePDF(order: any): Promise<Uint8Array> {
     try {
       const logoPath = path.join(process.cwd(), 'public', 'logo.png');
       if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, 50, 45, { fit: [120, 60], align: 'left' });
+        doc.image(logoPath, 50, 45, { fit: [120, 60] });
       } else {
         doc.fontSize(24).font("Helvetica-Bold").fillColor(primaryColor).text("Tsquarey", 50, 45);
       }

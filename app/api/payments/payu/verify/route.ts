@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       );
       await sendEmail(confirmedOrder.user.email, `Order Confirmed! #${confirmedOrder.orderNumber} - Robotics Store`, emailHtml);
 
-      return NextResponse.redirect(new URL('/orders', request.url));
+      return NextResponse.redirect(new URL(`/order-success?orderId=${confirmedOrder.id}`, request.url));
     } 
     
     else {
