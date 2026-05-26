@@ -22,7 +22,7 @@ function OrderSuccessContent() {
 
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/users/order/${orderId}`);
+        const res = await fetch(`/api/users/orders/${orderId}`);
         const data = await res.json();
         if (data.success) {
           setOrder(data.data);
