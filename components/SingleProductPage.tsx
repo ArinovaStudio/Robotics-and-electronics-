@@ -424,8 +424,9 @@ export default function SingleProductPage({
                   -{Number(discountPct).toFixed(0)}% OFF
                 </span>
               )}
+              */}
             </div>
-            */}
+            
 
             <p className="text-[#555] text-sm leading-relaxed mb-5 whitespace-pre-wrap">
               {product.description}
