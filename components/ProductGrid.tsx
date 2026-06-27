@@ -105,22 +105,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
               {/* Price */}
               <div className="flex items-baseline font-inter gap-2 mt-auto">
                 <span className="text-[22px] sm:text-[28px] font-bold text-[#F0B31E] tracking-tight flex items-baseline gap-0.5">
-                  <span className="text-[#F0B31E] text-[22px] sm:text-[28px]">
-                    ₹
-                    {displayPrice.toLocaleString("en-IN", {
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </span>
-
-                {salePrice && salePrice < regularPrice && (
-                  <span className="text-[13px] sm:text-[16px] font-medium text-gray-300 line-through">
                     ₹
                     {regularPrice.toLocaleString("en-IN", {
                       maximumFractionDigits: 2,
                     })}
                   </span>
-                )}
+
               </div>
             </div>
           </div>
