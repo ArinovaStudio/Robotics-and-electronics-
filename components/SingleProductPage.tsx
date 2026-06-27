@@ -411,8 +411,9 @@ export default function SingleProductPage({
 
             <div className="flex items-center gap-3 mb-4">
               <span className="text-[#050a30] text-[28px] font-extrabold">
-                ₹{Number(currentPrice).toFixed(2)}
+                ₹{Number(product.price).toFixed(2)}
               </span>
+              {/*
               {discountPct > 0 && (
                 <span className="text-[#9ca3af] text-xl font-bold line-through">
                   ₹{Number(product.price).toFixed(2)}
@@ -424,6 +425,7 @@ export default function SingleProductPage({
                 </span>
               )}
             </div>
+            */}
 
             <p className="text-[#555] text-sm leading-relaxed mb-5 whitespace-pre-wrap">
               {product.description}
