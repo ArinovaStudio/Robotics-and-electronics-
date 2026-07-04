@@ -297,13 +297,15 @@ export default function Navbar() {
                               </p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-sm font-bold text-[#f0b31e]">
-                                  ₹{displayPrice}
+                                  ₹{regularPrice}
                                 </span>
+                                {/*
                                 {salePrice && salePrice < regularPrice && (
                                   <span className="text-xs text-gray-400 line-through">
                                     ₹{regularPrice}
                                   </span>
                                 )}
+                                */}
                                 <span className="text-xs text-gray-400">
                                   · {product.category?.name || product.brand}
                                 </span>
