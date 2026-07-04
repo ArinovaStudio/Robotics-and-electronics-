@@ -90,7 +90,7 @@ export default function RealEstateCard({ product }: { product: Product }) {
           {/* Price + Badge */}
           <div className="flex items-center justify-between">
             <div className="text-xl font-semibold text-yellow-600">
-              ₹{product.salePrice ?? product.price}
+              ₹{product.price}
             </div>
 
             {product.salePrice && (
