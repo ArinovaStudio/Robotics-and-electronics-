@@ -76,7 +76,7 @@ export default function ProductDetail({
   product,
   similarProducts,
 }: {
-  product: Product;
+  product: any;
   similarProducts: SimilarProduct[];
 }) {
   const images = [product.imageLink, ...(product.additionalImageLinks || [])].filter(

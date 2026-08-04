@@ -60,7 +60,7 @@ function LoginForm() {
         } else if (userRole === "CUSTOMER") {
           let callbackUrl = searchParams.get("callbackUrl") || "";
           if (callbackUrl.includes("/login")) {
-            callbackUrl = "";
+            callbackUrl = "/";
           }
           window.location.href = callbackUrl;
           return;
@@ -79,7 +79,7 @@ function LoginForm() {
     try {
       let callbackUrl = searchParams.get("callbackUrl") || "";
       if (callbackUrl.includes("/login")) {
-        callbackUrl = "";
+        callbackUrl = "/";
       }
       await signIn("google", { callbackUrl });
     } catch (err: any) {

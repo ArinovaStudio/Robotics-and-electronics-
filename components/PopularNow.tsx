@@ -39,7 +39,7 @@ export default async function PopularNow() {
       <div className="grid md:grid-cols-[240px_1fr] md:grid-rows-[auto_1fr]">
         {/* Left gutter — badge lives here, rest is empty whitespace, spans both rows */}
         <div className="hidden md:flex md:row-span-2 border-r border-gray-300 dark:border-[#232323] items-start px-6 py-16">
-          <span className="font-dm-sans text-xs uppercase tracking-widest text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/15 px-3 py-1 rounded-full">
+          <span className="font-dm-sans text-xs uppercase tracking-widest text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/15 px-3 py-3">
             Popular Now
           </span>
         </div>

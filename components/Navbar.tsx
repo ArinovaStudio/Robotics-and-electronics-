@@ -113,7 +113,7 @@ export default function Navbar() {
           className="font-oliveira text-xl md:text-2xl tracking-wide cursor-pointer"
           style={{ color: ACCENT }}
         >
-          Hello
+          Tsquarey
         </span>
       </Link>
 
@@ -133,7 +133,7 @@ export default function Navbar() {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.trim().length >= 2 && setShowSuggestions(true)}
             placeholder="Search products..."
-            className="w-full bg-transparent px-2 py-1.5 font-dm-sans text-xs tracking-wide text-gray-700 dark:text-white/80 placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none"
+            className="bg-transparent w-full px-2 py-1.5 font-dm-sans text-xs tracking-wide text-gray-700 dark:text-white/80 placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none"
           />
         </form>
 
@@ -191,7 +191,7 @@ export default function Navbar() {
         </Link>
 
         {/* Theme toggle — sits in its own bordered box like the links */}
-        <div className="flex items-center px-4 border-l border-gray-300 dark:border-[#232323]">
+        <div className="flex items-center px-6">
           <ThemeToggle />
         </div>
 
@@ -237,7 +237,7 @@ export default function Navbar() {
                     type="button"
                     onClick={() => {
                       setShowProfileMenu(false);
-                      signOut({ callbackUrl: "" });
+                      signOut({ callbackUrl: "/" });
                     }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-[11px] tracking-widest uppercase text-red-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                   >
