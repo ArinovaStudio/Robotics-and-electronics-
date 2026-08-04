@@ -1,18 +1,14 @@
-"use client";
-
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
-import React from "react";
+import { oliveira, dmSans } from "@/app/fonts";
+import type { ReactNode } from "react";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppProviders } from "@/app/contexts";
 
-export default function layout({ children }: React.PropsWithChildren) {
+export default function BetaLayout({ children }: { children: ReactNode }) {
   return (
-    <AppProviders>
-      <div>
-        <Navbar />
-        {children}
-        <Footer />
-      </div>
-    </AppProviders>
+    <div className={`${oliveira.variable} ${dmSans.variable} font-dm-sans`}>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <AppProviders>{children}</AppProviders>
+      </ThemeProvider>
+    </div>
   );
 }

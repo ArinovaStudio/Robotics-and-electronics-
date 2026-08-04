@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BadgeCheck, Truck, CreditCard, ChevronRight, Wand2, Loader2 } from "lucide-react";
 
+const ACCENT = "#ff5a1f";
+const BORDER = "#232323";
+
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -41,17 +44,23 @@ function OrderSuccessContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-[#f0b31e]" />
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4">
-        <p className="text-red-500 font-bold mb-4">{error || "Order not found."}</p>
-        <Link href="/" className="bg-[#f0b31e] text-white px-6 py-2 rounded font-bold">Go Home</Link>
+      <div className="flex flex-col items-center justify-center py-32 px-4">
+        <p className="font-mono text-sm text-red-500 mb-6">{error || "Order not found."}</p>
+        <Link
+          href=""
+          className="font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-8 py-4 transition-opacity hover:opacity-90"
+          style={{ backgroundColor: ACCENT }}
+        >
+          Go Home
+        </Link>
       </div>
     );
   }
@@ -60,90 +69,98 @@ function OrderSuccessContent() {
   const address = order.address;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl w-full bg-white rounded-md shadow-sm border border-gray-200 p-8">
-        
-        {/* Header Section */}
-        <div className="text-center mb-10 border-b border-gray-100 pb-8">
-          <BadgeCheck className="w-16 h-16 text-[#03a685] mx-auto mb-4" />
-          <h1 className="text-[28px] font-bold text-[#03a685] mb-4">
-            Order confirmed
+    <div className="flex flex-col items-center px-6 md:px-16 py-16">
+      <div className="max-w-3xl w-full border border-gray-300 dark:border-white/10 p-8">
+
+        {/* Header */}
+        <div className="text-center mb-10 border-b border-gray-100 dark:border-white/5 pb-8">
+          <BadgeCheck className="w-16 h-16 mx-auto mb-4" style={{ color: ACCENT }} />
+          <h1 className="font-dm-sans text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-4">
+            Order Confirmed
           </h1>
-          <p className="text-gray-600 text-sm md:text-base max-w-lg mx-auto">
-            Your order is confirmed. You will receive an order confirmation email/SMS shortly with the expected delivery date for your items.
+          <p className="font-mono text-sm text-gray-500 dark:text-white/40 max-w-lg mx-auto leading-6">
+            Your order is confirmed. You will receive an order confirmation email / SMS shortly with the expected delivery date for your items.
           </p>
         </div>
 
-        {/* Delivering To Box */}
-        <div className="border border-gray-200 rounded p-5 mb-6 relative">
+        {/* Delivering To */}
+        <div className="border p-5 mb-6 relative" style={{ borderColor: BORDER }}>
           <div className="pr-24">
-            <h3 className="text-xs text-gray-500 mb-2">Delivering to:</h3>
-            <p className="text-sm font-bold text-gray-900 mb-1">
+            <h3 className="font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+              Delivering to
+            </h3>
+            <p className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white mb-1">
               {address?.name} | {address?.phone}
             </p>
-            <p className="text-xs text-gray-600 mb-4 leading-relaxed max-w-sm">
+            <p className="font-mono text-xs text-gray-600 dark:text-white/60 mb-4 leading-relaxed max-w-sm">
               {address?.addressLine1}
               {address?.addressLine2 ? `, ${address.addressLine2}` : ""}
               {`, ${address?.city}, ${address?.state} - ${address?.pincode}`}
             </p>
-            
-            <Link 
-              href={`/orders`} 
-              className="inline-flex items-center text-xs font-bold text-[#ff3f6c] border border-[#ff3f6c] rounded px-3 py-1.5 hover:bg-red-50 transition-colors"
+
+            <Link
+              href={`/orders/${orderId}`}
+              className="inline-flex items-center gap-1 font-mono text-[11px] font-bold uppercase tracking-widest border px-3 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+              style={{ borderColor: ACCENT, color: ACCENT }}
             >
-              ORDER DETAILS <ChevronRight className="w-3 h-3 ml-1" />
+              Order Details <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="absolute top-5 right-5 bg-blue-50 p-4 rounded-full">
-            <Truck className="w-10 h-10 text-blue-500" strokeWidth={1.5} />
+          <div className="absolute top-5 right-5 border border-gray-200 dark:border-white/10 p-4">
+            <Truck className="w-10 h-10 text-gray-400 dark:text-white/30" strokeWidth={1.5} />
           </div>
 
-          <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-2">
-            <Wand2 className="w-4 h-4 text-gray-400" />
-            <p className="text-xs text-gray-500">
-              You can Track/View/Modify order from orders page.
+          <div className="mt-5 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center gap-2">
+            <Wand2 className="w-4 h-4 text-gray-400 dark:text-white/30" />
+            <p className="font-mono text-xs text-gray-500 dark:text-white/40">
+              You can track / view / modify your order from the orders page.
             </p>
           </div>
         </div>
 
-        {/* Pay at your convenience Box */}
+        {/* Pay at your convenience */}
         {isCOD && (
-          <div className="border border-gray-200 rounded p-5 mb-8 relative flex items-center justify-between">
+          <div className="border p-5 mb-8 relative flex items-center justify-between" style={{ borderColor: BORDER }}>
             <div className="pr-4 max-w-sm">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-sm font-bold text-gray-900">Now pay at your convenience</h3>
-                <span className="bg-[#03a685] text-white text-[10px] font-bold px-2 py-0.5 rounded">New</span>
+                <h3 className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white">
+                  Now pay at your convenience
+                </h3>
+                <span
+                  className="font-mono text-[10px] font-bold uppercase tracking-widest text-white px-2 py-0.5"
+                  style={{ backgroundColor: ACCENT }}
+                >
+                  New
+                </span>
               </div>
-              <p className="text-xs text-gray-600 leading-relaxed mb-2">
-                Now you can pay online using Pay Now option from orders or you can Pay on Delivery (Cash/UPI).
+              <p className="font-mono text-xs text-gray-600 dark:text-white/60 leading-relaxed">
+                You can pay online using the Pay Now option from your orders page, or pay on delivery (Cash/UPI).
               </p>
-              <button className="text-xs font-bold text-[#ff3f6c] hover:underline">
-                See How
-              </button>
             </div>
-            <div className="bg-emerald-50 p-3 rounded-full mr-4">
-              <CreditCard className="w-10 h-10 text-[#ff3f6c]" strokeWidth={1.5} />
+            <div className="border border-gray-200 dark:border-white/10 p-3">
+              <CreditCard className="w-10 h-10 text-gray-400 dark:text-white/30" strokeWidth={1.5} />
             </div>
           </div>
         )}
 
-        {/* Bottom Buttons */}
+        {/* Bottom buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
-          <Link 
-            href="/products" 
-            className="flex-1 text-center border border-gray-300 text-gray-700 font-bold text-sm py-3.5 px-4 rounded hover:bg-gray-50 transition-colors"
+          <Link
+            href="/products"
+            className="flex-1 text-center border font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-white/70 py-4 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+            style={{ borderColor: BORDER }}
           >
-            CONTINUE SHOPPING
+            Continue Shopping
           </Link>
-          <Link 
-            href="/orders" 
-            className="flex-1 text-center bg-[#f0b31e] hover:bg-[#e6a700] text-white font-bold text-sm py-3.5 px-4 rounded transition-colors"
+          <Link
+            href="/orders"
+            className="flex-1 text-center font-dm-sans text-xs font-semibold uppercase tracking-widest text-white py-4 transition-opacity hover:opacity-90"
+            style={{ backgroundColor: ACCENT }}
           >
-            VIEW ORDER
+            View Order
           </Link>
         </div>
-
       </div>
     </div>
   );
@@ -151,10 +168,10 @@ function OrderSuccessContent() {
 
 export default function OrderSuccessPage() {
   return (
-    <Suspense 
+    <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[#f0b31e]" />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
         </div>
       }
     >

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Loader2, CheckCircle2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
+const ACCENT = "#ff5a1f";
+const BORDER = "#232323";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -25,10 +25,7 @@ export default function ForgotPasswordPage() {
       const response = await fetch("/api/auth/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
-          type: "PASSWORD_RESET"
-        }),
+        body: JSON.stringify({ email, type: "PASSWORD_RESET" }),
       });
 
       const data = await response.json();
@@ -50,96 +47,94 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10 text-center">
-          <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-[#050a30] mb-2">
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
+        <div className="w-full max-w-md border p-8 sm:p-10 text-center" style={{ borderColor: BORDER }}>
+          <CheckCircle2 className="h-14 w-14 mx-auto mb-4" style={{ color: ACCENT }} />
+          <h2 className="font-oliveira text-2xl text-gray-900 dark:text-white mb-2">
             Check Your Email!
           </h2>
-          <p className="text-gray-600">We've sent a reset code to {email}</p>
-          <p className="text-sm text-gray-500 mt-2">Redirecting...</p>
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40">
+            We&apos;ve sent a reset code to {email}
+          </p>
+          <p className="font-mono text-[11px] text-gray-400 dark:text-white/30 mt-2">
+            Redirecting...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
-        {/* Logo & Header */}
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
+      <div className="w-full max-w-md border p-8 sm:p-10" style={{ borderColor: BORDER }}>
         <div className="text-center mb-8">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f0b31e] shadow-lg shadow-yellow-200 mx-auto mb-5">
-            <Mail className="h-8 w-8 text-white" />
+          <div
+            className="flex h-14 w-14 items-center justify-center mx-auto mb-5"
+            style={{ backgroundColor: ACCENT }}
+          >
+            <Mail className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-[#050a30] tracking-tight">
+          <h1 className="font-oliveira text-3xl text-gray-900 dark:text-white">
             Forgot Password?
           </h1>
-          <p className="text-gray-600 mt-2 text-sm">
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">
             Enter your email and we&apos;ll send you a code to reset your password
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium text-center">
+          <div className="mb-6 border border-red-500/30 text-red-500 px-4 py-3 font-mono text-xs text-center">
             {error}
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="pl-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
             </div>
           </div>
 
-          {/* Submit Button */}
-          <Button
+          <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 mt-4 bg-[#f0b31e] hover:bg-[#e6a700] text-white rounded-xl text-base font-semibold shadow-md shadow-yellow-200 transition-all"
+            className="w-full h-12 mt-2 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: ACCENT }}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Sending Code...
               </>
             ) : (
               "Send Reset Code"
             )}
-          </Button>
+          </button>
         </form>
 
-        {/* Back to Login */}
         <div className="mt-6 text-center">
           <Link
             href="/login"
-            className="text-sm text-gray-600 hover:text-[#f0b31e] font-medium"
+            className="font-mono text-xs text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70"
           >
             ← Back to Login
           </Link>
         </div>
       </div>
-
-      {/* Footer */}
-      <p className="mt-8 text-sm text-gray-500 font-medium">
-        &copy; {new Date().getFullYear()} Electronics Store
-      </p>
     </div>
   );
 }

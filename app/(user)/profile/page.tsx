@@ -3,9 +3,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/contexts";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin, Plus } from "lucide-react";
 import Link from "next/link";
 import AddressModal from "@/components/AddressModal";
+
+const ACCENT = "#ff5a1f";
+const BORDER = "#232323";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -36,14 +39,14 @@ export default function ProfilePage() {
   const fetchProfile = useCallback(async (showGlobalLoader: boolean = true) => {
     try {
       if (showGlobalLoader) setFetchingProfile(true);
-      
+
       const res = await fetch("/api/users/profile");
       const json = await res.json();
 
       if (json.success) {
         setProfileData(json.data);
         setAddresses(json.data.addresses || []);
-        
+
         const nameParts = (json.data.user.name || "").split(" ");
         setFormData({
           firstName: nameParts[0] || "",
@@ -55,7 +58,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error("Profile fetch error:", err);
     } finally {
-      if (showGlobalLoader) setFetchingProfile(false); 
+      if (showGlobalLoader) setFetchingProfile(false);
     }
   }, []);
 
@@ -81,8 +84,8 @@ export default function ProfilePage() {
 
       if (res.ok && data.success) {
         setSuccess("Profile updated successfully!");
-        
-        await fetchProfile(false); 
+
+        await fetchProfile(false);
 
         setIsEditing(false);
         setTimeout(() => setSuccess(""), 3000);
@@ -99,38 +102,47 @@ export default function ProfilePage() {
   if (isLoading || fetchingProfile || (!isAuthenticated && !isLoading)) {
     return (
       <div className="flex justify-center items-center py-40">
-        <Loader2 className="w-12 h-12 border-4 border-[#f0b31e] border-t-transparent rounded-full animate-spin text-[#f0b31e]" />
+        <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   return (
-    <main className="bg-[#f5f5f5] font-space-grotesk min-h-screen py-8 px-4 relative">
-      <AddressModal 
+    <main className="min-h-screen py-16 px-6 md:px-16 transition-colors">
+      <AddressModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => fetchProfile(false)}
       />
 
-      <div className="max-w-[1400px] mx-auto">
-        <h1 className="text-3xl font-black text-black mb-8 tracking-tight">
-          YOUR ACCOUNT
+      <div className="max-w-5xl mx-auto">
+        {/* Breadcrumb */}
+        <Link
+          href=""
+          className="inline-block font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
+        >
+          Home
+        </Link>
+
+        <h1 className="font-dm-sans text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-8">
+          Your Account
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-white rounded-lg pt-4 px-8 pb-8">
-            <h2 className="text-right text-[20px] text-[#F0B31E] font-medium tracking-wider mb-8">
-              PERSONAL INFORMATION
+          {/* Personal information */}
+          <div className="lg:col-span-2 border border-gray-300 dark:border-white/10 p-8">
+            <h2 className="font-mono text-[11px] uppercase tracking-widest mb-8" style={{ color: ACCENT }}>
+              Personal Information
             </h2>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
+              <div className="mb-6 p-4 border border-red-500/40 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-xs">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-6 p-4 bg-green-50 text-green-600 rounded-lg text-sm font-medium">
+              <div className="mb-6 p-4 border border-green-500/40 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 font-mono text-xs">
                 {success}
               </div>
             )}
@@ -138,8 +150,8 @@ export default function ProfilePage() {
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
-                    FIRST NAME
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+                    First Name
                   </label>
                   <input
                     type="text"
@@ -148,14 +160,15 @@ export default function ProfilePage() {
                       setFormData({ ...formData, firstName: e.target.value })
                     }
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0B31E] text-black font-medium disabled:bg-gray-50 disabled:text-gray-700"
+                    className="w-full px-4 py-3 bg-white dark:bg-black border font-dm-sans text-sm text-gray-900 dark:text-white focus:outline-none disabled:bg-gray-50 dark:disabled:bg-white/5 disabled:text-gray-600 dark:disabled:text-white/50 transition-colors"
+                    style={{ borderColor: BORDER }}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
-                    LAST NAME
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+                    Last Name
                   </label>
                   <input
                     type="text"
@@ -164,28 +177,30 @@ export default function ProfilePage() {
                       setFormData({ ...formData, lastName: e.target.value })
                     }
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0B31E] text-black font-medium disabled:bg-gray-50 disabled:text-gray-700"
+                    className="w-full px-4 py-3 bg-white dark:bg-black border font-dm-sans text-sm text-gray-900 dark:text-white focus:outline-none disabled:bg-gray-50 dark:disabled:bg-white/5 disabled:text-gray-600 dark:disabled:text-white/50 transition-colors"
+                    style={{ borderColor: BORDER }}
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
-                    EMAIL ADDRESS
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+                    Email Address
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     disabled
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-black rounded-lg text-black font-medium cursor-not-allowed"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border font-dm-sans text-sm text-gray-600 dark:text-white/50 cursor-not-allowed"
+                    style={{ borderColor: BORDER }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-black mb-2 tracking-wide">
-                    PHONE NUMBER
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+                    Phone Number
                   </label>
                   <input
                     type="tel"
@@ -194,7 +209,8 @@ export default function ProfilePage() {
                       setFormData({ ...formData, phone: e.target.value })
                     }
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0B31E] text-black font-medium disabled:bg-gray-50 disabled:text-gray-700"
+                    className="w-full px-4 py-3 bg-white dark:bg-black border font-dm-sans text-sm text-gray-900 dark:text-white focus:outline-none disabled:bg-gray-50 dark:disabled:bg-white/5 disabled:text-gray-600 dark:disabled:text-white/50 transition-colors"
+                    style={{ borderColor: BORDER }}
                   />
                 </div>
               </div>
@@ -214,97 +230,116 @@ export default function ProfilePage() {
                           phone: profileData?.user?.phone || user?.phone || "",
                         });
                       }}
-                      className="px-8 py-2.5 bg-gray-200 hover:bg-gray-300 text-black rounded-lg font-bold text-sm tracking-wide transition-colors"
+                      className="px-8 py-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-white/70 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                      style={{ borderColor: BORDER }}
                     >
-                      CANCEL
+                      Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-8 py-2.5 bg-[#f5e6d3] hover:bg-[#ead5ba] text-black rounded-lg font-bold text-sm tracking-wide transition-colors disabled:opacity-50"
+                      className="px-8 py-3 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      style={{ backgroundColor: ACCENT }}
                     >
-                      {saving ? "SAVING..." : "SAVE"}
+                      {saving ? "Saving..." : "Save"}
                     </button>
                   </div>
                 ) : (
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="w-[120px] h-[42px] cursor-pointer hover:bg-[#FFDFB9] rounded-[8px] opacity-100 border border-[#FADAB9] bg-[#FFEFD6] shadow-[0_0_0_1px_#FFDFB9,0_0_0_3px_#FFF,0_0_0_5px_#FFDFB9]"
+                    className="px-8 py-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                    style={{ borderColor: ACCENT, color: ACCENT }}
                   >
-                    EDIT
+                    Edit
                   </button>
                 )}
               </div>
             </form>
           </div>
 
-          <div>
-            <div className="bg-white rounded-[20px] pt-4 px-8 pb-8">
-              <h2 className="text-right text-[#F0B31E] font-medium text-[20px] tracking-wider mb-8">
-                ORDER SUMMARY
+          {/* Right column: summary + addresses */}
+          <div className="flex flex-col gap-6">
+            <div className="border border-gray-300 dark:border-white/10 p-8">
+              <h2 className="font-mono text-[11px] uppercase tracking-widest mb-8" style={{ color: ACCENT }}>
+                Order Summary
               </h2>
 
-              <div className="grid grid-cols-2 font-sans gap-6 mb-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-xs font-bold text-black mb-2 tracking-wide">
-                    TOTAL SPENT
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+                    Total Spent
                   </p>
-                  <p className="text-3xl font-black text-black">
-                    ₹ {Number(profileData?.stats?.totalSpent || 0).toLocaleString()}
+                  <p className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white">
+                    ₹{Number(profileData?.stats?.totalSpent || 0).toLocaleString("en-IN")}
                   </p>
                 </div>
 
-                <div className="border-l-4 border-black pl-16">
-                  <p className="text-xs font-bold text-black mb-2 tracking-wide">
-                    TOTAL ORDERS
+                <div className="border-l pl-6" style={{ borderColor: BORDER }}>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
+                    Total Orders
                   </p>
-                  <p className="text-3xl font-black text-black">
+                  <p className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white">
                     {profileData?.stats?.totalOrders || 0}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-[20px] mt-4 pt-4 px-8 pb-8">
-              <h3 className="text-right text-[#F0B31E] font-medium text-[20px] tracking-wider mb-6">
-                ADDRESS
+            <div className="border border-gray-300 dark:border-white/10 p-8">
+              <h3 className="font-mono text-[11px] uppercase tracking-widest mb-6" style={{ color: ACCENT }}>
+                Address
               </h3>
-              <div className="space-y-4 font-inter mb-4">
+              <div className="space-y-4 mb-6">
                 {addresses.slice(0, 3).map((addr, index) => (
                   <div key={addr.id}>
-                    <p className="text-sm text-black font-medium">
-                      {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
-                    </p>
-                    {index < Math.min(addresses.length - 1, 2) && <hr className="border-gray-200 my-4" />}
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-gray-400 dark:text-white/30" />
+                      <p className="font-mono text-xs text-gray-700 dark:text-white/70 leading-relaxed">
+                        {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
+                      </p>
+                    </div>
+                    {index < Math.min(addresses.length - 1, 2) && (
+                      <hr className="border-gray-100 dark:border-white/5 my-4" />
+                    )}
                   </div>
                 ))}
-                
+
                 {addresses.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">No addresses saved yet.</p>
+                  <p className="font-mono text-xs text-gray-500 dark:text-white/40">
+                    No addresses saved yet.
+                  </p>
                 )}
               </div>
-              
-              <button 
-                onClick={() => setIsModalOpen(true)} 
-                className="w-full text-[#F0B31E] font-medium text-[16px] tracking-wide hover:text-[#b8873d] transition-colors"
+
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 border font-mono text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                style={{ borderColor: ACCENT, color: ACCENT }}
               >
-                ADD NEW +
+                <Plus className="w-3.5 h-3.5" /> Add New
               </button>
             </div>
           </div>
         </div>
 
+        {/* My Orders link-out */}
         <div>
-          <h2 className="text-3xl font-black text-black mb-6 tracking-tight">
+          <h2 className="font-dm-sans text-xl font-extrabold text-gray-900 dark:text-white mb-6">
             My Orders
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link href="/orders">
-              <h3 className="bg-white rounded-lg p-12 hover:bg-gray-50 transition-colors text-2xl font-black text-black tracking-tight border border-transparent hover:border-gray-200">
-                MY ORDERS
+            <Link
+              href="/orders"
+              className="border border-gray-300 dark:border-white/10 p-10 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+            >
+              <h3 className="font-dm-sans text-lg font-extrabold text-gray-900 dark:text-white">
+                My Orders
               </h3>
+              <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">
+                View, track, and manage all your orders
+              </p>
             </Link>
           </div>
         </div>

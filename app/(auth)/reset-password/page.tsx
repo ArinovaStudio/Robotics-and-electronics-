@@ -4,8 +4,9 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
+const ACCENT = "#ff5a1f";
+const BORDER = "#232323";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -27,7 +28,6 @@ function ResetPasswordForm() {
     setIsLoading(true);
     setError("");
 
-    // Validation
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -66,13 +66,10 @@ function ResetPasswordForm() {
 
   if (!email) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10 text-center">
-          <p className="text-red-600 mb-4">Email address is required</p>
-          <Link
-            href="/forgot-password"
-            className="text-[#f0b31e] font-semibold hover:underline"
-          >
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
+        <div className="w-full max-w-md border p-8 sm:p-10 text-center" style={{ borderColor: BORDER }}>
+          <p className="font-mono text-sm text-red-500 mb-4">Email address is required</p>
+          <Link href="/forgot-password" className="font-mono text-sm font-semibold hover:underline" style={{ color: ACCENT }}>
             Go to Forgot Password
           </Link>
         </div>
@@ -82,169 +79,157 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10 text-center">
-          <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-[#050a30] mb-2">
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
+        <div className="w-full max-w-md border p-8 sm:p-10 text-center" style={{ borderColor: BORDER }}>
+          <CheckCircle2 className="h-14 w-14 mx-auto mb-4" style={{ color: ACCENT }} />
+          <h2 className="font-oliveira text-2xl text-gray-900 dark:text-white mb-2">
             Password Reset!
           </h2>
-          <p className="text-gray-600">
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40">
             Your password has been successfully reset
           </p>
-          <p className="text-sm text-gray-500 mt-2">Redirecting to login...</p>
+          <p className="font-mono text-[11px] text-gray-400 dark:text-white/30 mt-2">
+            Redirecting to login...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
-        {/* Logo & Header */}
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
+      <div className="w-full max-w-md border p-8 sm:p-10" style={{ borderColor: BORDER }}>
         <div className="text-center mb-8">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f0b31e] shadow-lg shadow-yellow-200 mx-auto mb-5">
-            <Lock className="h-8 w-8 text-white" />
+          <div
+            className="flex h-14 w-14 items-center justify-center mx-auto mb-5"
+            style={{ backgroundColor: ACCENT }}
+          >
+            <Lock className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-[#050a30] tracking-tight">
+          <h1 className="font-oliveira text-3xl text-gray-900 dark:text-white">
             Reset Password
           </h1>
-          <p className="text-gray-600 mt-2 text-sm">
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">
             Enter the code sent to {email}
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium text-center">
+          <div className="mb-6 border border-red-500/30 text-red-500 px-4 py-3 font-mono text-xs text-center">
             {error}
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* OTP Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Reset Code
             </label>
-            <Input
+            <input
               type="text"
               required
               value={otp}
-              onChange={(e) =>
-                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-              }
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="h-12 text-center text-xl tracking-widest rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+              className="w-full h-12 text-center text-xl tracking-widest border bg-transparent text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+              style={{ borderColor: BORDER }}
             />
           </div>
 
-          {/* New Password Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               New Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 pr-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60 transition-colors"
               >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          {/* Confirm Password Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Confirm New Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type={showConfirmPassword ? "text" : "password"}
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 pr-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60 transition-colors"
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <Button
+          <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 mt-6 bg-[#f0b31e] hover:bg-[#e6a700] text-white rounded-xl text-base font-semibold shadow-md shadow-yellow-200 transition-all"
+            className="w-full h-12 mt-2 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: ACCENT }}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Resetting Password...
               </>
             ) : (
               "Reset Password"
             )}
-          </Button>
+          </button>
         </form>
 
-        {/* Back to Login */}
         <div className="mt-6 text-center">
           <Link
             href="/login"
-            className="text-sm text-gray-600 hover:text-[#f0b31e] font-medium"
+            className="font-mono text-xs text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70"
           >
             ← Back to Login
           </Link>
         </div>
       </div>
-
-      {/* Footer */}
-      <p className="mt-8 text-sm text-gray-500 font-medium">
-        &copy; {new Date().getFullYear()} Electronics Store
-      </p>
     </div>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex justify-center items-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#f0b31e]" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex justify-center items-center">
+          <Loader2 className="h-8 w-8 animate-spin" style={{ color: ACCENT }} />
+        </div>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   );

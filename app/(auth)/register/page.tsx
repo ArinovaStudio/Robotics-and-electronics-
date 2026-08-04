@@ -4,17 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  User,
-  Loader2,
-  ShoppingBag,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Mail, Lock, Eye, EyeOff, User, Loader2 } from "lucide-react";
+
+const ACCENT = "#ff5a1f";
+const BORDER = "#232323";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -34,7 +27,6 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError("");
 
-    // Validation
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -47,7 +39,6 @@ export default function RegisterPage() {
       return;
     }
 
-    // Check password strength
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /\d/.test(password);
@@ -68,11 +59,8 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        // Show validation errors if present
         if (data.errors && Array.isArray(data.errors)) {
-          const errorMessages = data.errors
-            .map((err: any) => err.message)
-            .join(", ");
+          const errorMessages = data.errors.map((err: any) => err.message).join(", ");
           throw new Error(errorMessages);
         }
         throw new Error(data.message || "Registration failed");
@@ -81,10 +69,7 @@ export default function RegisterPage() {
       const otpResponse = await fetch("/api/auth/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
-          type: "EMAIL_VERIFICATION" 
-        }),
+        body: JSON.stringify({ email, type: "EMAIL_VERIFICATION" }),
       });
 
       const otpData = await otpResponse.json();
@@ -105,7 +90,7 @@ export default function RegisterPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: "" });
     } catch (err: any) {
       setError(err.message || "Google sign in failed");
       setIsLoading(false);
@@ -113,171 +98,159 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#f8fafd] to-[#e8f4f8] flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-10">
-        {/* Logo & Header */}
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
+      <div className="w-full max-w-md border p-8 sm:p-10" style={{ borderColor: BORDER }}>
         <div className="text-center mb-8">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f0b31e] shadow-lg shadow-yellow-200 mx-auto mb-5">
-            <ShoppingBag className="h-8 w-8 text-white" />
+          <div
+            className="flex h-14 w-14 items-center justify-center mx-auto mb-5"
+            style={{ backgroundColor: ACCENT }}
+          >
+            <User className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-[#050a30] tracking-tight">
+          <h1 className="font-oliveira text-3xl text-gray-900 dark:text-white">
             Create Your Account
           </h1>
-          <p className="text-gray-600 mt-2 text-sm">
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">
             Join us and start shopping for electronics
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium text-center">
+          <div className="mb-6 border border-red-500/30 text-red-500 px-4 py-3 font-mono text-xs text-center">
             {error}
           </div>
         )}
 
-        {/* Register Form */}
         <form onSubmit={handleRegister} className="space-y-4">
-          {/* Name Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Full Name
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
-                className="pl-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
             </div>
           </div>
 
-          {/* Email Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="pl-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
             </div>
           </div>
 
-          {/* Password Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 pr-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60 transition-colors"
               >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="text-xs text-gray-500 ml-1 mt-1">
+            <p className="font-mono text-[11px] text-gray-400 dark:text-white/30 mt-1">
               Min 8 characters with uppercase, lowercase, and number
             </p>
           </div>
 
-          {/* Confirm Password Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 ml-1">
+            <label className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-white/40">
               Confirm Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-4 w-4 text-gray-400 dark:text-white/30" />
               </div>
-              <Input
+              <input
                 type={showConfirmPassword ? "text" : "password"}
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full pl-10 pr-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                style={{ borderColor: BORDER }}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60 transition-colors"
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <Button
+          <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 mt-6 bg-[#f0b31e] hover:bg-[#e6a700] text-white rounded-xl text-base font-semibold shadow-md shadow-yellow-200 transition-all"
+            className="w-full h-12 mt-4 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: ACCENT }}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Creating Account...
               </>
             ) : (
               "Create Account"
             )}
-          </Button>
+          </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500 font-medium">
-              Or continue with
-            </span>
-          </div>
+        <div className="my-6 flex items-center">
+          <div className="flex-1 border-t" style={{ borderColor: BORDER }} />
+          <span className="px-4 font-mono text-[11px] uppercase tracking-widest text-gray-400 dark:text-white/30">
+            Or continue with
+          </span>
+          <div className="flex-1 border-t" style={{ borderColor: BORDER }} />
         </div>
 
-        {/* Google Sign In Button */}
         <button
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="w-full h-12 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-base font-semibold transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-12 flex items-center justify-center gap-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ borderColor: BORDER }}
         >
-          <svg className="h-5 w-5" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -298,24 +271,15 @@ export default function RegisterPage() {
           Sign up with Google
         </button>
 
-        {/* Login Link */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40">
             Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-[#f0b31e] font-semibold hover:underline"
-            >
+            <Link href="/login" className="font-semibold hover:underline" style={{ color: ACCENT }}>
               Sign In
             </Link>
           </p>
         </div>
       </div>
-
-      {/* Footer */}
-      <p className="mt-8 text-sm text-gray-500 font-medium">
-        &copy; {new Date().getFullYear()} Electronics Store
-      </p>
     </div>
   );
 }

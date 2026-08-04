@@ -1,135 +1,169 @@
-"use client";
-import { useState, useEffect } from "react";
-import { Space_Grotesk } from "next/font/google";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import Link from "next/link";
-import Image from "next/image";
-import axios from "axios";
+import { Package, LucideProps } from "lucide-react";
+import {
+    Cpu,
+    Radar,
+    Bot,
+    GraduationCap,
+    BatteryCharging,
+    Wrench,
+    Plane,
+    Component,
+    Keyboard,
+    Monitor,
+    Headphones,
+} from "lucide-react";
+import CategoryImage from "@/components/Categoryimage";
 
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["700"] });
+const ACCENT = "#ff5a1f";
+const BORDER = "#232323";
 
 type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  image?: string | null;
-  isActive: boolean;
-  sortOrder: number;
-  _count?: { products: number };
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    image: string | null;
 };
 
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
+    "small-dev-boards": Cpu,
+    sensors: Radar,
+    "robotics-motors--wheels": Bot,
+    "beginner--basic-electronics-kits": GraduationCap,
+    "power-supply": BatteryCharging,
+    "diy-projects-kits": Wrench,
+    drones: Plane,
+    modules: Component,
+    "mice-keyboards": Keyboard,
+    "monitors-displays": Monitor,
+    "headsets-audio-gear": Headphones,
+};
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+function getIconForCategory(slug: string): React.ComponentType<LucideProps> {
+    return ICON_MAP[slug] || Package;
+}
 
-  const fetchCategories = async () => {
+async function getAllCategories(): Promise<Category[]> {
     try {
-      setLoading(true);
-      const response = await axios.get("/api/categories");
-
-      if (response.data?.success) {
-        setCategories(response.data.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
+        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/categories`,
+            { cache: "no-store" }
+        );
+        const json = await res.json();
+        return json?.data || [];
+    } catch (err) {
+        console.error("Failed to fetch categories:", err);
+        return [];
     }
-  };
+}
 
-  return (
-    <main className="bg-white min-h-screen">
-      <div className="w-full max-w-300 mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1
-            className="text-3xl md:text-4xl font-bold text-[#050a30] mb-2"
-            style={{ fontFamily: spaceGrotesk.style.fontFamily }}
-          >
-            ALL CATEGORIES
-          </h1>
-          <p className="text-gray-600 text-base">
-            Browse our complete collection of product categories
-          </p>
-        </div>
+export default async function CategoriesPage() {
+    const categories = await getAllCategories();
 
-        {/* Loading State */}
-        {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div className="w-full aspect-square bg-gray-200 rounded-2xl animate-pulse mb-4" />
-                <div className="w-3/4 h-6 bg-gray-200 rounded animate-pulse" />
-                <div className="w-1/2 h-4 bg-gray-200 rounded animate-pulse mt-2" />
-              </div>
-            ))}
-          </div>
-        )}
+    return (
+        <main className="bg-[#0a0a0a] min-h-screen">
+            <Navbar />
 
-        {/* Empty State */}
-        {!loading && categories.length === 0 && (
-          <div className="flex flex-col items-center justify-center min-h-96 bg-gray-50 rounded-2xl">
-            <span className="text-6xl mb-4">📦</span>
-            <h3 className="text-2xl font-bold text-[#050a30] mb-2">
-              No Categories Available
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Check back later for new categories!
-            </p>
-          </div>
-        )}
+            <section className="relative border-b" style={{ borderColor: BORDER }}>
+                <div className="grid md:grid-cols-[240px_1fr] md:grid-rows-[auto_1fr]">
+                    <div
+                        className="hidden md:flex md:row-span-2 border-r items-start px-6 py-16"
+                        style={{ borderColor: BORDER }}
+                    >
+                        <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-white/60 border border-white/15 px-3 py-1.5">
+                            <span style={{ color: ACCENT }} className="text-[10px]">▪</span>
+                            All Categories
+                        </span>
+                    </div>
 
-        {/* Categories Grid */}
-        {!loading && categories.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.slug}`}
-                className="group flex flex-col items-center"
-              >
-                <div className="w-full aspect-square bg-[#f8fafd] rounded-2xl flex items-center justify-center overflow-hidden mb-4 border-4 border-transparent group-hover:border-[#f0b31e] transition-all relative">
-                  {category.image ? (
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-5xl text-gray-400">📦</span>
-                  )}
+                    <div className="md:hidden px-6 pt-10">
+                        <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-white/60 border border-white/15 px-3 py-1.5">
+                            <span style={{ color: ACCENT }} className="text-[10px]">▪</span>
+                            All Categories
+                        </span>
+                    </div>
+
+                    <div className="border-b px-6 md:px-16 py-10 md:py-16" style={{ borderColor: BORDER }}>
+                        <h1 className="font-oliveira text-[38px] leading-[1.05] text-white md:text-[56px]">
+                            Browse Every{" "}
+                            <span className="font-dm-sans font-bold text-white/90">CATEGORY</span>
+                        </h1>
+                    </div>
+
+                    <div className="px-6 md:px-16 py-16 md:py-20">
+                        {categories.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-x-8 gap-y-16 md:grid-cols-3">
+                                {categories.map((category) => {
+                                    const Icon = getIconForCategory(category.slug);
+
+                                    return (
+                                        <article key={category.id} className="group min-w-0">
+                                            <div
+                                                className="relative aspect-[1.45] overflow-hidden border bg-[#2A2A2A]"
+                                                style={{ borderColor: BORDER }}
+                                            >
+                                                <span className="absolute top-1.5 left-1.5 h-2 w-2 border-t border-l border-white/40 z-10" />
+                                                <span className="absolute top-1.5 right-1.5 h-2 w-2 border-t border-r border-white/40 z-10" />
+                                                <span className="absolute bottom-1.5 left-1.5 h-2 w-2 border-b border-l border-white/40 z-10" />
+                                                <span className="absolute bottom-1.5 right-1.5 h-2 w-2 border-b border-r border-white/40 z-10" />
+
+                                                <CategoryImage
+                                                    src={category.image}
+                                                    alt={category.name}
+                                                    fallback={
+                                                        <div className="flex h-full w-full items-center justify-center">
+                                                            <Icon
+                                                                size={72}
+                                                                strokeWidth={1.5}
+                                                                className="text-white/60 transition-transform duration-500 group-hover:scale-110"
+                                                            />
+                                                        </div>
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="mt-6">
+                                                <div className="flex items-start justify-between gap-6 min-w-0">
+                                                    <h3
+                                                        className="shrink-0 font-dm-sans text-sm font-bold uppercase tracking-[0.15em]"
+                                                        style={{ color: ACCENT }}
+                                                    >
+                                                        {category.name}
+                                                    </h3>
+
+                                                    {category.description && (
+                                                        <p className="min-w-0 max-w-[180px] flex-1 text-right font-mono text-sm leading-6 text-white">
+                                                            {category.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <Link
+                                                    href={`/products?category=${category.slug}`}   // was: `/products?category=${category.slug}`
+                                                    className="mt-6 inline-flex items-center gap-3 bg-white px-5 py-3 font-dm-sans text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:opacity-90"
+                                                    style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
+                                                >
+                                                    <span className="h-2 w-2" style={{ backgroundColor: ACCENT }} />
+                                                    Explore
+                                                </Link>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center border border-dashed border-white/15 py-20">
+                                <p className="font-dm-sans text-white/40">No categories available right now.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
+            </section>
 
-                <h3
-                  className="text-sm md:text-base font-bold text-[#050a30] text-center mb-1 group-hover:text-[#f0b31e] transition-colors"
-                  style={{ fontFamily: spaceGrotesk.style.fontFamily }}
-                >
-                  {category.name.toUpperCase()}
-                </h3>
-
-                {category._count && (
-                  <p className="text-xs text-gray-500">
-                    {category._count.products}{" "}
-                    {category._count.products === 1 ? "Product" : "Products"}
-                  </p>
-                )}
-
-                {category.description && (
-                  <p className="text-xs text-gray-600 text-center mt-2 line-clamp-2 px-2">
-                    {category.description}
-                  </p>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
-  );
+            <Footer />
+        </main>
+    );
 }
