@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 
@@ -64,11 +65,18 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
   return (
     <div className="relative mt-12 group">
       <Swiper
+        modules={[Autoplay]}
         onSwiper={(swiper) => {
           swiperRef.current = swiper;
         }}
         slidesPerView={1}
         spaceBetween={0}
+        loop={products.length > 1}
+        autoplay={
+          products.length > 1
+            ? { delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true }
+            : false
+        }
         className="w-full"
       >
         {products.map((product) => {
@@ -113,7 +121,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                   )}
 
                   <div className="mt-6">
-                    <SectionLabel>Pricing &amp; EMI</SectionLabel>
+                    <SectionLabel>Pricing </SectionLabel>
                     <div className="grid grid-cols-2 gap-4 mt-3">
                       <div className="border border-gray-300 dark:border-white/10 rounded-lg p-4">
                         <span className="font-dm-sans text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40">
@@ -131,23 +139,17 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                         </div>
                       </div>
 
-                      <div className="border border-gray-300 dark:border-white/10 rounded-lg p-4">
-                        <span className="font-dm-sans text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40">
-                          EMI Available
-                        </span>
-                        <div className="mt-1">
-                          <span className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
-                            ₹{Math.round(displayPrice / 6)}
-                            <span className="text-sm text-gray-500 dark:text-white/40 font-normal">/month</span>
-                          </span>
-                        </div>
-                      </div>
+                      
+                        
+                          
+                        
+                    
                     </div>
                   </div>
 
                   {product.productHighlights && product.productHighlights.length > 0 && (
                     <div className="mt-8">
-                      <SectionLabel>Supported CPU</SectionLabel>
+                      <SectionLabel>About</SectionLabel>
                       <ul className="mt-2 space-y-1">
                         {product.productHighlights.slice(0, 4).map((h, i) => (
                           <li key={i} className="font-dm-sans text-sm text-gray-600 dark:text-white/60">

@@ -74,7 +74,7 @@ export default function OrdersListPage() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
           <Link
-            href=""
+            href="/"
             className="font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             Home

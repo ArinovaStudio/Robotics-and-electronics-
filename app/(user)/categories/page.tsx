@@ -18,7 +18,6 @@ import {
 import CategoryImage from "@/components/Categoryimage";
 
 const ACCENT = "#ff5a1f";
-const BORDER = "#232323";
 
 type Category = {
     id: string;
@@ -64,32 +63,31 @@ export default async function CategoriesPage() {
     const categories = await getAllCategories();
 
     return (
-        <main className="bg-[#0a0a0a] min-h-screen">
+        <main className="bg-white dark:bg-[#0a0a0a] min-h-screen">
             <Navbar />
 
-            <section className="relative border-b" style={{ borderColor: BORDER }}>
+            <section className="relative border-b border-gray-300 dark:border-[#232323]">
                 <div className="grid md:grid-cols-[240px_1fr] md:grid-rows-[auto_1fr]">
-                    <div
-                        className="hidden md:flex md:row-span-2 border-r items-start px-6 py-16"
-                        style={{ borderColor: BORDER }}
-                    >
-                        <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-white/60 border border-white/15 px-3 py-1.5">
+                    <div className="hidden md:flex md:row-span-2 border-r border-gray-300 dark:border-[#232323] items-start px-6 py-16">
+                        <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-gray-600 dark:text-white/60 border border-gray-300 dark:border-white/15 px-3 py-1.5">
                             <span style={{ color: ACCENT }} className="text-[10px]">▪</span>
                             All Categories
                         </span>
                     </div>
 
                     <div className="md:hidden px-6 pt-10">
-                        <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-white/60 border border-white/15 px-3 py-1.5">
+                        <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-gray-600 dark:text-white/60 border border-gray-300 dark:border-white/15 px-3 py-1.5">
                             <span style={{ color: ACCENT }} className="text-[10px]">▪</span>
                             All Categories
                         </span>
                     </div>
 
-                    <div className="border-b px-6 md:px-16 py-10 md:py-16" style={{ borderColor: BORDER }}>
-                        <h1 className="font-oliveira text-[38px] leading-[1.05] text-white md:text-[56px]">
+                    <div className="border-b border-gray-300 dark:border-[#232323] px-6 md:px-16 py-10 md:py-16">
+                        <h1 className="font-oliveira text-[38px] leading-[1.05] text-gray-900 dark:text-white md:text-[56px]">
                             Browse Every{" "}
-                            <span className="font-dm-sans font-bold text-white/90">CATEGORY</span>
+                            <span className="font-dm-sans font-bold text-gray-700 dark:text-white/90">
+                                CATEGORY
+                            </span>
                         </h1>
                     </div>
 
@@ -101,14 +99,11 @@ export default async function CategoriesPage() {
 
                                     return (
                                         <article key={category.id} className="group min-w-0">
-                                            <div
-                                                className="relative aspect-[1.45] overflow-hidden border bg-[#2A2A2A]"
-                                                style={{ borderColor: BORDER }}
-                                            >
-                                                <span className="absolute top-1.5 left-1.5 h-2 w-2 border-t border-l border-white/40 z-10" />
-                                                <span className="absolute top-1.5 right-1.5 h-2 w-2 border-t border-r border-white/40 z-10" />
-                                                <span className="absolute bottom-1.5 left-1.5 h-2 w-2 border-b border-l border-white/40 z-10" />
-                                                <span className="absolute bottom-1.5 right-1.5 h-2 w-2 border-b border-r border-white/40 z-10" />
+                                            <div className="relative aspect-[1.45] overflow-hidden border border-gray-300 dark:border-[#232323] bg-gray-100 dark:bg-[#2A2A2A]">
+                                                <span className="absolute top-1.5 left-1.5 h-2 w-2 border-t border-l border-black/30 dark:border-white/40 z-10" />
+                                                <span className="absolute top-1.5 right-1.5 h-2 w-2 border-t border-r border-black/30 dark:border-white/40 z-10" />
+                                                <span className="absolute bottom-1.5 left-1.5 h-2 w-2 border-b border-l border-black/30 dark:border-white/40 z-10" />
+                                                <span className="absolute bottom-1.5 right-1.5 h-2 w-2 border-b border-r border-black/30 dark:border-white/40 z-10" />
 
                                                 <CategoryImage
                                                     src={category.image}
@@ -118,7 +113,7 @@ export default async function CategoriesPage() {
                                                             <Icon
                                                                 size={72}
                                                                 strokeWidth={1.5}
-                                                                className="text-white/60 transition-transform duration-500 group-hover:scale-110"
+                                                                className="text-gray-500 dark:text-white/60 transition-transform duration-500 group-hover:scale-110"
                                                             />
                                                         </div>
                                                     }
@@ -135,15 +130,15 @@ export default async function CategoriesPage() {
                                                     </h3>
 
                                                     {category.description && (
-                                                        <p className="min-w-0 max-w-[180px] flex-1 text-right font-mono text-sm leading-6 text-white">
+                                                        <p className="min-w-0 max-w-[180px] flex-1 text-right font-mono text-sm leading-6 text-gray-900 dark:text-white">
                                                             {category.description}
                                                         </p>
                                                     )}
                                                 </div>
 
                                                 <Link
-                                                    href={`/products?category=${category.slug}`}   // was: `/products?category=${category.slug}`
-                                                    className="mt-6 inline-flex items-center gap-3 bg-white px-5 py-3 font-dm-sans text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:opacity-90"
+                                                    href={`/products?category=${category.slug}`}
+                                                    className="mt-6 inline-flex items-center gap-3 bg-white dark:bg-[#0a0a0a] px-5 py-3 font-dm-sans text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:opacity-90"
                                                     style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
                                                 >
                                                     <span className="h-2 w-2" style={{ backgroundColor: ACCENT }} />
@@ -155,8 +150,10 @@ export default async function CategoriesPage() {
                                 })}
                             </div>
                         ) : (
-                            <div className="flex items-center justify-center border border-dashed border-white/15 py-20">
-                                <p className="font-dm-sans text-white/40">No categories available right now.</p>
+                            <div className="flex items-center justify-center border border-dashed border-gray-300 dark:border-white/15 py-20">
+                                <p className="font-dm-sans text-gray-400 dark:text-white/40">
+                                    No categories available right now.
+                                </p>
                             </div>
                         )}
                     </div>

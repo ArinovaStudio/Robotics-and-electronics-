@@ -135,9 +135,9 @@ export default async function CategoryGrid() {
                         )} */}
 
                         <Link
-                          href={`/products?category=${category.slug}`}   // was: `/products?category=${category.slug}`
-                          className="mt-auto inline-flex w-fit items-center gap-2 bg-white py-0.5 font-dm-sans text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
-                          style={{ color: ACCENT }}
+                          href={`/products?category=${category.slug}`}
+                          className="mt-auto inline-flex w-fit items-center gap-2 bg-white dark:bg-[#0a0a0a] px-4 py-2 pt-4 font-dm-sans text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
+                          style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
                         >
                           <span className="h-1.5 w-1.5" style={{ backgroundColor: ACCENT }} />
                           Explore

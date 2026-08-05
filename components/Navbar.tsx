@@ -108,7 +108,7 @@ export default function Navbar() {
   return (
     <nav className="w-full flex items-center h-14 md:h-16 border-b bg-white dark:bg-[#0a0a0a] border-gray-300 dark:border-[#232323]">
       {/* Logo — pinned to the far left edge */}
-      <Link href="" aria-label="Home" className="px-4 md:px-6">
+      <Link href="/" aria-label="Home" className="px-4 md:px-6">
         <span
           className="font-oliveira text-xl md:text-2xl tracking-wide cursor-pointer"
           style={{ color: ACCENT }}
