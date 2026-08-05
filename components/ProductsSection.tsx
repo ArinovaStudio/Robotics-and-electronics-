@@ -55,6 +55,7 @@ export default function ProductsSection() {
   const [facets, setFacets] = useState<Facets>({ categories: [], brands: [] });
   const [loading, setLoading] = useState(true);
 
+  const categoryName = searchParams.get("categoryName") || null;
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     searchParams.get("categoryId")?.split(",").filter(Boolean) || []
   );
@@ -113,16 +114,16 @@ export default function ProductsSection() {
       .catch((err) => console.error("Failed to fetch products:", err))
       .finally(() => setLoading(false));
 
-    startTransition(() => {
-      // Adapts based on where this component is rendered: embedded on the
-      // homepage () it keeps the #products anchor; on its own
-      // standalone route it just updates that route's query string.
-      const isEmbeddedOnHome = pathname === "";
-      const target = isEmbeddedOnHome
-        ? `?${params.toString()}#products`
-        : `${pathname}?${params.toString()}`;
-      router.replace(target, { scroll: false });
-    });
+    // startTransition(() => {
+    //   // Adapts based on where this component is rendered: embedded on the
+    //   // homepage () it keeps the #products anchor; on its own
+    //   // standalone route it just updates that route's query string.
+    //   const isEmbeddedOnHome = pathname === "";
+    //   const target = isEmbeddedOnHome
+    //     ? `?${params.toString()}#products`
+    //     : `${pathname}?${params.toString()}`;
+    //   router.replace(target, { scroll: false });
+    // });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategories, minPrice, maxPrice, currentPage]);
 
@@ -146,14 +147,7 @@ export default function ProductsSection() {
       {/* Header row — title + View All, full-width border beneath */}
       <div className="flex items-center justify-between border-b border-gray-300 dark:border-white/10 px-6 md:px-16 py-6 md:py-8">
         <h2 className="font-dm-sans text-xl md:text-2xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">
-          Top Selling{" "}
-          <span
-            className="px-1"
-            style={{ backgroundColor: "rgba(255, 90, 31, 0.15)" }}
-          >
-            Robotics
-          </span>{" "}
-          Parts
+          {categoryName ?? "Top Selling Products"}
         </h2>
         <Link
           href="/products"

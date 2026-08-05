@@ -1,7 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { Package, LucideProps } from "lucide-react";
 import {
     Cpu,
     Radar,
@@ -14,6 +13,7 @@ import {
     Keyboard,
     Monitor,
     Headphones,
+    Package, LucideProps
 } from "lucide-react";
 import CategoryImage from "@/components/Categoryimage";
 
@@ -52,6 +52,8 @@ async function getAllCategories(): Promise<Category[]> {
             { cache: "no-store" }
         );
         const json = await res.json();
+        // console.log(json.data);
+        
         return json?.data || [];
     } catch (err) {
         console.error("Failed to fetch categories:", err);
@@ -121,7 +123,7 @@ export default async function CategoriesPage() {
                                             </div>
 
                                             <div className="mt-6">
-                                                <div className="flex items-start justify-between gap-6 min-w-0">
+                                                <div className="flex items-start flex-col justify-start min-w-0">
                                                     <h3
                                                         className="shrink-0 font-dm-sans text-sm font-bold uppercase tracking-[0.15em]"
                                                         style={{ color: ACCENT }}
@@ -130,14 +132,14 @@ export default async function CategoriesPage() {
                                                     </h3>
 
                                                     {category.description && (
-                                                        <p className="min-w-0 max-w-[180px] flex-1 text-right font-mono text-sm leading-6 text-gray-900 dark:text-white">
+                                                        <p className="flex-1 font-mono text-sm leading-6 text-gray-900 dark:text-white">
                                                             {category.description}
                                                         </p>
                                                     )}
                                                 </div>
 
                                                 <Link
-                                                    href={`/products?category=${category.slug}`}
+                                                    href={`/products?categoryId=${category.id}&categoryName=${category.name}`}
                                                     className="mt-6 inline-flex items-center gap-3 bg-white dark:bg-[#0a0a0a] px-5 py-3 font-dm-sans text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:opacity-90"
                                                     style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
                                                 >

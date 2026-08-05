@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const products = await prisma.product.findMany({ take: 3 });
-  console.log(JSON.stringify(products, null, 2));
+  // console.log(JSON.stringify(products, null, 2));
 }
 
 main()

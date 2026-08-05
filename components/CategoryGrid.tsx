@@ -122,22 +122,15 @@ export default async function CategoryGrid() {
 
                       <div className="mt-4 flex flex-1 flex-col">
                         <h3
-                          className="line-clamp-1 font-dm-sans text-xs font-bold uppercase tracking-[0.1em]"
-                          style={{ color: 'black' }}
+                          className="line-clamp-1 font-dm-sans text-xs font-bold uppercase tracking-[0.1em] text-black dark:text-white"
                         >
                           {category.name}
                         </h3>
 
-                        {/* {category.description && (
-                          <p className="mt-1 line-clamp-2 min-h-[2.5rem] font-mono text-xs leading-5 text-gray-900 dark:text-white">
-                            {category.description}
-                          </p>
-                        )} */}
-
                         <Link
                           href={`/products?category=${category.slug}`}
-                          className="mt-auto inline-flex w-fit items-center gap-2 bg-white dark:bg-[#0a0a0a] px-4 py-2 pt-4 font-dm-sans text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
-                          style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
+                          className="mt-auto inline-flex w-fit items-center gap-2 bg-white dark:bg-[#0a0a0a] py-2 font-dm-sans text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
+                          style={{ color: ACCENT }}
                         >
                           <span className="h-1.5 w-1.5" style={{ backgroundColor: ACCENT }} />
                           Explore

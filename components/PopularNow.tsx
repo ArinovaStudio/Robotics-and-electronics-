@@ -59,7 +59,7 @@ export default async function PopularNow() {
               POPULARITY
             </span>
             <br />
-            at Hello Currently
+            at Tsquarey Currently
           </h2>
         </div>
 

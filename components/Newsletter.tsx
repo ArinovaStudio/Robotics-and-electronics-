@@ -5,33 +5,7 @@ import React, { useState } from "react";
 const ACCENT = "#ff5a1f";
 
 export default function Newsletter() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setStatus("success");
-        setEmail("");
-      } else {
-        setStatus("error");
-      }
-    } catch (err) {
-      console.error("Newsletter subscribe failed:", err);
-      setStatus("error");
-    }
-  };
 
   return (
     <section className="bg-white dark:bg-[#0a0a0a] grid md:grid-cols-[240px_1fr] border-t border-gray-300 dark:border-[#232323]">
@@ -46,7 +20,7 @@ export default function Newsletter() {
               className="font-dm-sans text-xs uppercase tracking-widest"
               style={{ color: ACCENT }}
             >
-              [ Get Latest Sale Update ]
+              [ Get Exclusive Sale ]
             </span>
             <h2 className="font-oliveira text-2xl md:text-3xl text-gray-900 dark:text-white mt-2">
               Get Exclusive{" "}
@@ -55,13 +29,13 @@ export default function Newsletter() {
               </span>{" "}
               and{" "}
               <span className="font-dm-sans font-bold" style={{ color: ACCENT }}>
-                UPDATE
+                DISCOUNTS
               </span>
             </h2>
           </div>
 
           {/* Email input stays functional but visually hidden; only the button is visible per design */}
-          <form
+          {/* <form
             onSubmit={handleSubmit}
             className="flex items-center gap-3 w-full md:w-auto flex-shrink-0 justify-end"
           >
@@ -83,7 +57,7 @@ export default function Newsletter() {
               <span className="text-white text-[10px]">▪</span>
               {status === "loading" ? "..." : "Subscribe Us"}
             </button>
-          </form>
+          </form> */}
         </div>
 
         {status === "success" && (

@@ -24,10 +24,12 @@ export default function Hero() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/banners", { cache: "no-store" })
+    fetch("/api/admin/banners", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
+          console.log(json.data);
+          
           setBanners(json.data || []);
         }
       })

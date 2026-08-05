@@ -36,15 +36,36 @@ const cards = [
 ];
 
 export default function TechEngiSection() {
-  const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  function handleNotify(e: React.FormEvent) {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    // TODO: wire this up to a real waitlist/notify API once one exists
-    setSubmitted(true);
-  }
+
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus("success");
+        setEmail("");
+        setSubmitted(true);
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      console.error("Newsletter subscribe failed:", err);
+      setStatus("error");
+    }
+  };
+
 
   return (
     <section className="border-b border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] px-6 md:px-16 py-16">
@@ -55,7 +76,7 @@ export default function TechEngiSection() {
             className="inline-block font-mono text-[11px] font-bold uppercase tracking-[0.25em] border px-3 py-1.5 mb-6"
             style={{ borderColor: ACCENT, color: ACCENT }}
           >
-            Coming Soon
+            We are Live
           </span>
 
           <h2 className="font-dm-sans text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight mb-5">
@@ -89,7 +110,7 @@ export default function TechEngiSection() {
               ✓ You&apos;re on the list — we&apos;ll email you when it launches.
             </p>
           ) : (
-            <form onSubmit={handleNotify} className="flex flex-col sm:flex-row gap-3 max-w-lg">
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg">
               <input
                 type="email"
                 required
@@ -105,7 +126,7 @@ export default function TechEngiSection() {
                 style={{ backgroundColor: ACCENT }}
               >
                 <Bell size={14} />
-                Notify Me
+                {submitted ? "Subscribed!" : "Notify Me"}
               </button>
             </form>
           )}

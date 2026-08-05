@@ -254,7 +254,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: any) {
                                     </div>
                                     <div className="space-x-1.5 flex">
                                         <label className="text-sm font-medium text-slate-700">Featured <span className="text-red-500">*</span></label>
-                                        <Switch checked={isFeatured} onCheckedChange={setIsFeatured} onChange={(e)=>{console.log(e.target.value)}}/>
+                                        <Switch checked={isFeatured} onCheckedChange={setIsFeatured} />
                                     </div>
                                 </div>
 
