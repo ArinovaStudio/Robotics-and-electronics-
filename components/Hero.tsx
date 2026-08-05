@@ -28,7 +28,7 @@ export default function Hero() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
-          console.log(json.data);
+          // console.log(json.data);
           
           setBanners(json.data || []);
         }
