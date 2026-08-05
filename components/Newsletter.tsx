@@ -59,17 +59,6 @@ export default function Newsletter() {
             </button>
           </form> */}
         </div>
-
-        {status === "success" && (
-          <p className="font-dm-sans text-xs text-green-600 dark:text-green-400 mt-4">
-            Subscribed! You&apos;ll hear from us soon.
-          </p>
-        )}
-        {status === "error" && (
-          <p className="font-dm-sans text-xs text-red-600 dark:text-red-400 mt-4">
-            Something went wrong. Please try again.
-          </p>
-        )}
       </div>
     </section>
   );

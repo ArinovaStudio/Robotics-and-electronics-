@@ -13,8 +13,7 @@ type Product = {
 async function getRecentProducts(): Promise<Product[]> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products?page=1&limit=10`,
-      { cache: "no-store" }
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/products?page=1&limit=10`,
     );
     const data = await res.json();
     return data?.data?.products || [];

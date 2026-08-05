@@ -76,7 +76,7 @@ export default function BetaAddressPage() {
 
   const fetchCart = useCallback(async () => {
     try {
-      const res = await fetch("/api/cart", { cache: "no-store" });
+      const res = await fetch("/api/cart");
       if (res.status === 401) {
         router.push("/login?callbackUrl=/cart/address");
         return;

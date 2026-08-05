@@ -45,7 +45,7 @@ export default function CartPage() {
 
   async function fetchCart() {
     try {
-      const res = await fetch("/api/cart", { cache: "no-store" });
+      const res = await fetch("/api/cart");
 
       if (res.status === 401) {
         router.push("/login?callbackUrl=/cart");

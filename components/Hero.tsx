@@ -24,7 +24,7 @@ export default function Hero() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/banners", { cache: "no-store" })
+    fetch("/api/admin/banners")
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {

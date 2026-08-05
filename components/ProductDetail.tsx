@@ -76,9 +76,11 @@ export default function ProductDetail({
   product,
   similarProducts,
 }: {
-  product: any;
+  product?: any;
   similarProducts: SimilarProduct[];
 }) {
+  console.log(product);
+  
   const images = [product.imageLink, ...(product.additionalImageLinks || [])].filter(
     Boolean
   ) as string[];
@@ -177,7 +179,7 @@ export default function ProductDetail({
       {/* Main split: sticky left image column + scrolling right content column.
           Sticky is scoped to this grid — it releases once the right column's
           content ends, before Similar Products starts. */}
-      <section className="grid md:grid-cols-[minmax(0,480px)_1fr] border-b border-gray-300 dark:border-white/10">
+      <section className="grid md:grid-cols-[minmax(0,640px)_1fr] border-b border-gray-300 dark:border-white/10">
         {/* LEFT: sticky image gallery */}
         <div className="border-b md:border-b-0 md:border-r border-gray-300 dark:border-white/10">
           <div className="md:sticky md:top-0 md:h-screen flex flex-col justify-center p-6 md:p-10">

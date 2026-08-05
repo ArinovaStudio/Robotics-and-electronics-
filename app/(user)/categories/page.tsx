@@ -1,3 +1,4 @@
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -48,8 +49,7 @@ function getIconForCategory(slug: string): React.ComponentType<LucideProps> {
 async function getAllCategories(): Promise<Category[]> {
     try {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/categories`,
-            { cache: "no-store" }
+                  `${process.env.NEXT_PUBLIC_APP_URL}/api/categories`
         );
         const json = await res.json();
         // console.log(json.data);

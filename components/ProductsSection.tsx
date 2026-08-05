@@ -102,7 +102,7 @@ export default function ProductsSection() {
 
     setLoading(true);
 
-    fetch(`/api/products?${params.toString()}`, { cache: "no-store" })
+    fetch(`/api/products?${params.toString()}`)
       .then((res) => res.json())
       .then((json: ApiResponse) => {
         if (json.success) {
@@ -389,7 +389,7 @@ export default function ProductsSection() {
                 return (
                   <Link
                     key={product.id}
-                    href={`/products/${product.link}`}
+                    href={`/products/${product.id}`}
                     className={`group flex flex-col p-6 border-b border-gray-300 dark:border-white/10 ${!isLastCol ? "border-r" : ""
                       }`}
                   >

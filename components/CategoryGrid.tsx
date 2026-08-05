@@ -44,8 +44,7 @@ function getIconForCategory(slug: string): React.ComponentType<LucideProps> {
 async function getHomeCategories(): Promise<Category[]> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/categories?isHome=true`,
-      { cache: "no-store" }
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/categories?isHome=true`
     );
 
     const json = await res.json();

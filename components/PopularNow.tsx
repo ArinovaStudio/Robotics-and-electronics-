@@ -15,8 +15,7 @@ type Product = {
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/featured-products`,
-      { cache: "no-store" }
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/featured-products`
     );
     const data = await res.json();
     return data?.products || [];
