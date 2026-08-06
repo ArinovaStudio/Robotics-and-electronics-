@@ -345,22 +345,22 @@ export default function ProductsSection() {
       className="border-b border-gray-300 dark:border-white/10 bg-white dark:bg-transparent"
     >
       {/* Header row — title + View All, full-width border beneath */}
-<<<<<<< HEAD
-      <div className="flex items-center justify-between border-b border-gray-300 dark:border-white/10 px-6 md:px-16 py-6 md:py-8">
-        <h2 className="font-dm-sans text-xl md:text-2xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">
-          {categoryName ?? "Top Selling Products"}
-=======
       <div className="flex items-center justify-between gap-3 border-b border-gray-300 dark:border-white/10 px-4 sm:px-6 md:px-16 py-5 md:py-8">
         <h2 className="font-dm-sans text-base sm:text-xl md:text-2xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">
-          Top Selling{" "}
-          <span
-            className="px-1"
-            style={{ backgroundColor: "rgba(250, 204, 21, 0.18)" }}
-          >
-            Robotics
-          </span>{" "}
-          Parts
->>>>>>> 4bff5b2 (Fixed the responseivness)
+          {categoryName ? (
+            categoryName
+          ) : (
+            <>
+              Top Selling{" "}
+              <span
+                className="px-1"
+                style={{ backgroundColor: "rgba(250, 204, 21, 0.18)" }}
+              >
+                Robotics
+              </span>{" "}
+              Parts
+            </>
+          )}
         </h2>
         <div className="flex items-center gap-4 shrink-0">
           {/* Mobile-only filter toggle, since sidebar is hidden below md */}
@@ -416,14 +416,10 @@ export default function ProductsSection() {
                 return (
                   <Link
                     key={product.id}
-<<<<<<< HEAD
-                    href={`/products/${product.id}`}
-                    className={`group flex flex-col p-6 border-b border-gray-300 dark:border-white/10 ${!isLastCol ? "border-r" : ""
-=======
                     href={`/products/${product.link}`}
-                    className={`group flex flex-col p-4 md:p-6 border-b border-gray-300 dark:border-white/10 ${!isLastCol ? "sm:border-r" : ""
->>>>>>> 4bff5b2 (Fixed the responseivness)
-                      }`}
+                    className={`group flex flex-col p-4 md:p-6 border-b border-gray-300 dark:border-white/10 ${
+                      !isLastCol ? "sm:border-r" : ""
+                    }`}
                   >
                     <div className="relative aspect-[1.3]">
                       <span className="absolute top-0 left-0 h-3 w-3 border-t border-l border-gray-400 dark:border-white/40" />

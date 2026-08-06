@@ -1,7 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Suspense } from "react";
-import ProductDetail from "@/components/ProductDetail";
 import SimilarProducts from "./SimilarProducts"; // adjust to your actual path
 import Link from "next/link";
 
@@ -30,7 +29,8 @@ type Product = {
 };
 
 async function getProduct(link: string): Promise<Product | null> {
-  const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/products/${link}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const url = `${baseUrl}/api/products/${link}`;
 
   const res = await fetch(url, { cache: "no-store" });
 
@@ -43,7 +43,6 @@ async function getProduct(link: string): Promise<Product | null> {
   const json = await res.json();
   return json?.data?.product || null;
 }
-
 
 export default async function ProductDetailPage({
   params,

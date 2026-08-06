@@ -43,9 +43,10 @@ function getIconForCategory(slug: string): React.ComponentType<LucideProps> {
 
 async function getHomeCategories(): Promise<Category[]> {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/categories?isHome=true`
-    );
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/categories?isHome=true`, {
+      cache: "no-store",
+    });
 
     const json = await res.json();
     return json?.data || [];
@@ -125,25 +126,14 @@ export default async function CategoryGrid() {
                       </div>
 
                       <div className="mt-3 md:mt-4 flex flex-1 flex-col">
-                        <h3
-<<<<<<< HEAD
-                          className="line-clamp-1 font-dm-sans text-xs font-bold uppercase tracking-[0.1em] text-black dark:text-white"
-=======
-                          className="line-clamp-1 font-dm-sans text-[11px] md:text-xs font-bold uppercase tracking-[0.1em] text-gray-900 dark:text-white"
->>>>>>> 4bff5b2 (Fixed the responseivness)
-                        >
+                        <h3 className="line-clamp-1 font-dm-sans text-[11px] md:text-xs font-bold uppercase tracking-[0.1em] text-gray-900 dark:text-white">
                           {category.name}
                         </h3>
 
                         <Link
                           href={`/products?category=${category.slug}`}
-<<<<<<< HEAD
-                          className="mt-auto inline-flex w-fit items-center gap-2 bg-white dark:bg-[#0a0a0a] py-2 font-dm-sans text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
-                          style={{ color: ACCENT }}
-=======
                           className="mt-auto inline-flex w-fit items-center gap-1.5 md:gap-2 bg-white dark:bg-[#0a0a0a] px-3 md:px-4 py-1.5 md:py-2 pt-3 md:pt-4 font-dm-sans text-[9px] md:text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
                           style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
->>>>>>> 4bff5b2 (Fixed the responseivness)
                         >
                           <span className="h-1.5 w-1.5 shrink-0" style={{ backgroundColor: ACCENT }} />
                           Explore

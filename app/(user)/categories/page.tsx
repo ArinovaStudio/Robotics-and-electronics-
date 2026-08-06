@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -48,12 +47,12 @@ function getIconForCategory(slug: string): React.ComponentType<LucideProps> {
 
 async function getAllCategories(): Promise<Category[]> {
     try {
-        const res = await fetch(
-                  `${process.env.NEXT_PUBLIC_APP_URL}/api/categories`
-        );
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const res = await fetch(`${baseUrl}/api/categories`, {
+            cache: "no-store",
+        });
         const json = await res.json();
-        // console.log(json.data);
-        
+
         return json?.data || [];
     } catch (err) {
         console.error("Failed to fetch categories:", err);
@@ -127,13 +126,8 @@ export default async function CategoriesPage() {
                                                 />
                                             </div>
 
-<<<<<<< HEAD
-                                            <div className="mt-6">
-                                                <div className="flex items-start flex-col justify-start min-w-0">
-=======
                                             <div className="mt-4 sm:mt-6">
                                                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-6 min-w-0">
->>>>>>> 4bff5b2 (Fixed the responseivness)
                                                     <h3
                                                         className="shrink-0 font-dm-sans text-sm font-bold uppercase tracking-[0.15em]"
                                                         style={{ color: ACCENT }}
@@ -142,24 +136,15 @@ export default async function CategoriesPage() {
                                                     </h3>
 
                                                     {category.description && (
-<<<<<<< HEAD
-                                                        <p className="flex-1 font-mono text-sm leading-6 text-gray-900 dark:text-white">
-=======
                                                         <p className="min-w-0 sm:max-w-[180px] flex-1 text-left sm:text-right font-mono text-sm leading-6 text-gray-900 dark:text-white">
->>>>>>> 4bff5b2 (Fixed the responseivness)
                                                             {category.description}
                                                         </p>
                                                     )}
                                                 </div>
 
                                                 <Link
-<<<<<<< HEAD
                                                     href={`/products?categoryId=${category.id}&categoryName=${category.name}`}
-                                                    className="mt-6 inline-flex items-center gap-3 bg-white dark:bg-[#0a0a0a] px-5 py-3 font-dm-sans text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:opacity-90"
-=======
-                                                    href={`/products?category=${category.slug}`}
                                                     className="mt-4 sm:mt-6 inline-flex items-center gap-3 bg-white dark:bg-[#0a0a0a] px-5 py-3 font-dm-sans text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:opacity-90"
->>>>>>> 4bff5b2 (Fixed the responseivness)
                                                     style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
                                                 >
                                                     <span className="h-2 w-2" style={{ backgroundColor: ACCENT }} />

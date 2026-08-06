@@ -90,11 +90,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
             <SwiperSlide key={product.id}>
               <div className="grid md:grid-cols-2 gap-6 md:gap-10 items-start">
                 {/* Product image */}
-<<<<<<< HEAD
-                <div className="relative w-full h-72 md:h-[420px] bg-gray-100 dark:bg-white/5 overflow-hidden">
-=======
                 <div className="relative w-full h-56 sm:h-72 md:h-[420px] bg-gray-100 dark:bg-white/5 rounded-lg overflow-hidden">
->>>>>>> 4bff5b2 (Fixed the responseivness)
                   <ProductImage src={product.imageLink} alt={product.title} />
                 </div>
 
@@ -124,17 +120,10 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                     </div>
                   )}
 
-<<<<<<< HEAD
-                  <div className="mt-6">
-                    <SectionLabel>Pricing</SectionLabel>
-                    <div className="grid grid-cols-2 gap-4 mt-3">
-                      <div className="border border-gray-300 dark:border-white/10 p-4">
-=======
                   <div className="mt-5 md:mt-6">
                     <SectionLabel>Pricing</SectionLabel>
                     <div className="grid grid-cols-2 gap-3 md:gap-4 mt-3">
                       <div className="border border-gray-300 dark:border-white/10 rounded-lg p-3 md:p-4">
->>>>>>> 4bff5b2 (Fixed the responseivness)
                         <span className="font-dm-sans text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40">
                           Special Price
                         </span>

@@ -24,34 +24,12 @@ export default function Hero() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-<<<<<<< HEAD
-    fetch("/api/admin/banners")
+    fetch("/api/banners", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
-          // console.log(json.data);
-          
-=======
-    // TEMP: hardcoded test banner so you can preview the real Hero layout
-    // on localhost without waiting on backend data. Remove this block and
-    // uncomment the fetch below once your backend has banners seeded.
-   /* setBanners([
-      {
-        id: "test-1",
-        title: "Test Banner Title Goes Here",
-        image: "https://placehold.co/800x600/1a1a1a/facc15?text=Banner+Image",
-        link: "/products",
-      },
-    ]);
-    setLoading(false);*/
-
-    fetch("/api/banners", { cache: "no-store" })
-     .then((res) => res.json())
-      .then((json) => {
-       if (json.success) {
->>>>>>> 4bff5b2 (Fixed the responseivness)
           setBanners(json.data || []);
-       }
+        }
       })
       .catch((err) => console.error("Failed to fetch banners:", err))
       .finally(() => setLoading(false));
