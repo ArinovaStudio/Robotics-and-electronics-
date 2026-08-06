@@ -2,6 +2,8 @@
 
 import { Truck, ShieldCheck, Store, Headset } from "lucide-react";
 
+const ACCENT = "#facc15"; // yellow-400
+
 const items = [
   { icon: Truck, title: "Fast Delivery", subtitle: "Pan-India shipping" },
   { icon: ShieldCheck, title: "Genuine Parts", subtitle: "Quality guaranteed" },
@@ -19,18 +21,19 @@ export default function PromoStrip() {
         return (
           <div
             key={item.title}
-            className={`flex items-center justify-center gap-3 px-4 py-5 border-gray-300 dark:border-white/10 ${
+            className={`flex items-center justify-center gap-2 md:gap-3 px-2 md:px-4 py-3 md:py-5 border-gray-300 dark:border-white/10 ${
               !isLastRowMobile ? "border-r" : ""
             } ${!isLastCol ? "md:border-r" : "md:border-r-0"} ${
               i < 2 ? "border-b md:border-b-0" : ""
             }`}
           >
-            <Icon size={20} className="text-gray-900 dark:text-white shrink-0" />
-            <div>
-              <p className="font-dm-sans text-xs font-bold text-gray-900 dark:text-white">
+            <Icon size={18} className="md:hidden shrink-0" style={{ color: ACCENT }} />
+            <Icon size={20} className="hidden md:block shrink-0" style={{ color: ACCENT }} />
+            <div className="min-w-0">
+              <p className="font-dm-sans text-[11px] md:text-xs font-bold text-gray-900 dark:text-white truncate">
                 {item.title}
               </p>
-              <p className="font-mono text-[11px] text-gray-500 dark:text-white/40">
+              <p className="font-mono text-[9px] md:text-[11px] text-gray-500 dark:text-white/40 truncate">
                 {item.subtitle}
               </p>
             </div>

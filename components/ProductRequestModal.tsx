@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Upload } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 
 type Props = {
   open: boolean;
@@ -74,47 +74,47 @@ export default function ProductRequestModal({ open, onClose }: Props) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 dark:bg-black/70" onClick={resetAndClose} />
 
       {/* Modal — theme-aware via dark: variants, matching the rest of the site */}
       <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/10">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-white/10">
-          <h3 className="font-dm-sans text-lg font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-white/10">
+          <h3 className="font-dm-sans text-base sm:text-lg font-bold text-gray-900 dark:text-white">
             Request New Product
           </h3>
           <button
             onClick={resetAndClose}
             aria-label="Close"
-            className="text-gray-400 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="shrink-0 text-gray-400 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
         {status === "success" ? (
-          <div className="px-6 py-10 text-center">
+          <div className="px-4 sm:px-6 py-10 text-center">
             <p className="font-dm-sans text-gray-900 dark:text-white">
               Thanks — your request has been submitted!
             </p>
             <button
               onClick={resetAndClose}
-              className="mt-6 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-6 py-3"
+              className="mt-6 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-6 py-3 w-full sm:w-auto"
               style={{ backgroundColor: ACCENT }}
             >
               Close
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
+          <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 space-y-5">
             <p className="font-dm-sans text-sm text-gray-500 dark:text-white/50">
               Can&apos;t find what you&apos;re looking for? Let us know and we&apos;ll try to add it!
             </p>
 
             <div>
               <label className="font-dm-sans text-xs uppercase tracking-widest text-gray-600 dark:text-white/60">
-                Product Name <span style={{ color: ACCENT }}>*</span>
+                Product Name <span style={{ color: "#92700a" }}>*</span>
               </label>
               <input
                 type="text"
@@ -182,9 +182,9 @@ export default function ProductRequestModal({ open, onClose }: Props) {
               <label className="font-dm-sans text-xs uppercase tracking-widest text-gray-600 dark:text-white/60">
                 Product Image (Optional)
               </label>
-              <label className="mt-2 flex flex-col items-center justify-center gap-2 h-32 border border-dashed border-gray-300 dark:border-white/15 cursor-pointer hover:border-gray-500 dark:hover:border-white/40 transition-colors">
+              <label className="mt-2 flex flex-col items-center justify-center gap-2 h-28 sm:h-32 border border-dashed border-gray-300 dark:border-white/15 cursor-pointer hover:border-gray-500 dark:hover:border-white/40 transition-colors px-4 text-center">
                 <Upload size={20} className="text-gray-400 dark:text-white/40" />
-                <span className="font-dm-sans text-xs text-gray-400 dark:text-white/40">
+                <span className="font-dm-sans text-xs text-gray-400 dark:text-white/40 break-all">
                   {image ? image.name : "Click to upload image"}
                 </span>
                 <input
@@ -211,7 +211,7 @@ export default function ProductRequestModal({ open, onClose }: Props) {
               </p>
             )}
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={resetAndClose}
@@ -222,7 +222,7 @@ export default function ProductRequestModal({ open, onClose }: Props) {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="flex-1 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-6 py-3 transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="flex-1 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-6 py-3 transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{ backgroundColor: ACCENT }}
               >
                 {status === "loading" ? "Submitting..." : "Submit Request"}

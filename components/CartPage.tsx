@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 
 type CartItem = {
   id: string;
@@ -133,7 +133,7 @@ export default function CartPage() {
 
   if (error && !cart) {
     return (
-      <div className="px-6 md:px-16 py-16 text-center">
+      <div className="px-4 sm:px-6 md:px-16 py-16 text-center">
         <p className="font-mono text-sm text-red-500">{error}</p>
       </div>
     );
@@ -141,9 +141,9 @@ export default function CartPage() {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="px-6 md:px-16 py-24 text-center">
-        <ShoppingCart size={48} className="mx-auto text-gray-300 dark:text-white/20 mb-6" />
-        <h1 className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white mb-3">
+      <div className="px-4 sm:px-6 md:px-16 py-16 md:py-24 text-center">
+        <ShoppingCart size={44} className="mx-auto text-gray-300 dark:text-white/20 mb-5 md:mb-6" />
+        <h1 className="font-dm-sans text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white mb-3">
           Your cart is empty
         </h1>
         <p className="font-mono text-sm text-gray-500 dark:text-white/40 mb-8">
@@ -151,7 +151,7 @@ export default function CartPage() {
         </p>
         <Link
           href="/products"
-          className="inline-flex items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-8 py-4 transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-6 sm:px-8 py-3.5 sm:py-4 transition-opacity hover:opacity-90"
           style={{ backgroundColor: ACCENT }}
         >
           Continue Shopping
@@ -161,24 +161,24 @@ export default function CartPage() {
   }
 
   return (
-    <div className="px-6 md:px-16 py-10">
-      <nav className="font-mono text-xs text-gray-500 dark:text-white/40 mb-6">
+    <div className="px-4 sm:px-6 md:px-16 py-8 md:py-10">
+      <nav className="font-mono text-xs text-gray-500 dark:text-white/40 mb-5 md:mb-6">
         <Link href="" className="hover:underline">Home</Link>
         {" / "}
         <span className="text-gray-700 dark:text-white/70">Cart</span>
       </nav>
 
-      <h1 className="font-dm-sans text-3xl font-extrabold text-gray-900 dark:text-white mb-10">
+      <h1 className="font-dm-sans text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 md:mb-10">
         Your Cart
       </h1>
 
       {cart.hasInventoryChanges && (
-        <p className="font-mono text-xs text-yellow-600 dark:text-yellow-400 mb-6 border border-yellow-500/30 px-4 py-3">
+        <p className="font-mono text-xs text-yellow-700 dark:text-yellow-400 mb-6 border border-yellow-500/30 px-4 py-3">
           Some items in your cart were adjusted or removed due to stock changes.
         </p>
       )}
 
-      <div className="grid md:grid-cols-[1fr_380px] gap-10">
+      <div className="grid md:grid-cols-[1fr_380px] gap-6 md:gap-10">
         {/* Items */}
         <div className="border border-gray-300 dark:border-white/10 divide-y divide-gray-200 dark:divide-white/10">
           {cart.items.map((item) => {
@@ -186,11 +186,11 @@ export default function CartPage() {
             return (
               <div
                 key={item.id}
-                className={`flex items-center gap-4 p-5 transition-opacity ${
+                className={`flex flex-wrap sm:flex-nowrap items-center gap-4 p-4 sm:p-5 transition-opacity ${
                   isUpdating ? "opacity-50" : ""
                 }`}
               >
-                <div className="relative w-20 h-20 border border-gray-200 dark:border-white/10 flex-shrink-0 bg-gray-50 dark:bg-[#141414]">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 border border-gray-200 dark:border-white/10 flex-shrink-0 bg-gray-50 dark:bg-[#141414]">
                   {item.product.imageLink ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -201,7 +201,7 @@ export default function CartPage() {
                   ) : null}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-[140px]">
                   <Link
                     href={`/products/${item.product.link}`}
                     className="font-dm-sans text-sm font-semibold text-gray-900 dark:text-white hover:underline line-clamp-2"
@@ -213,7 +213,7 @@ export default function CartPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 border border-gray-300 dark:border-white/15 px-3 py-2">
+                <div className="flex items-center gap-3 border border-gray-300 dark:border-white/15 px-2.5 sm:px-3 py-2 order-3 sm:order-none">
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
@@ -237,7 +237,7 @@ export default function CartPage() {
                   </button>
                 </div>
 
-                <p className="font-dm-sans text-sm font-extrabold w-20 text-right" style={{ color: ACCENT }}>
+                <p className="font-dm-sans text-sm font-extrabold w-16 sm:w-20 text-right text-[#ca8a04] dark:text-[#facc15] order-4 sm:order-none">
                   ₹{item.lineTotal.toFixed(2)}
                 </p>
 
@@ -246,7 +246,7 @@ export default function CartPage() {
                   onClick={() => removeItem(item.product.id)}
                   disabled={isUpdating}
                   aria-label="Remove item"
-                  className="text-gray-400 dark:text-white/30 hover:text-red-500 disabled:opacity-40"
+                  className="text-gray-400 dark:text-white/30 hover:text-red-500 disabled:opacity-40 order-5 sm:order-none ml-auto sm:ml-0"
                 >
                   <Trash2 size={18} />
                 </button>
@@ -256,8 +256,8 @@ export default function CartPage() {
         </div>
 
         {/* Summary */}
-        <div className="border border-gray-300 dark:border-white/10 p-6 h-fit">
-          <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] mb-5" style={{ color: ACCENT }}>
+        <div className="border border-gray-300 dark:border-white/10 p-5 md:p-6 h-fit md:sticky md:top-6">
+          <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] mb-5 text-[#ca8a04] dark:text-[#facc15]">
             Order Summary
           </h2>
 
@@ -274,7 +274,7 @@ export default function CartPage() {
             )}
             <div className="flex justify-between font-dm-sans text-lg font-extrabold text-gray-900 dark:text-white pt-3 border-t border-gray-100 dark:border-white/5">
               <span>Total</span>
-              <span style={{ color: ACCENT }}>₹{cart.summary.total}</span>
+              <span className="text-[#ca8a04] dark:text-[#facc15]">₹{cart.summary.total}</span>
             </div>
           </div>
 
@@ -283,7 +283,7 @@ export default function CartPage() {
           <button
             type="button"
             onClick={() => router.push("/cart/address")}
-            className="w-full mt-6 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-8 py-4 transition-opacity hover:opacity-90"
+            className="w-full mt-6 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-8 py-3.5 sm:py-4 transition-opacity hover:opacity-90"
             style={{ backgroundColor: ACCENT }}
           >
             Go to Checkout

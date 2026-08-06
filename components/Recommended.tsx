@@ -1,6 +1,6 @@
 import RecommendedGrid from "./RecommendedGrid";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 
 type Product = {
   id: string;
@@ -37,7 +37,7 @@ export default async function Recommended() {
           </span>
         </div>
 
-        <div className="md:hidden px-6 pt-10">
+        <div className="md:hidden px-4 sm:px-6 pt-8">
           <span className="inline-flex items-center gap-2 font-dm-sans text-xs uppercase tracking-widest text-gray-600 dark:text-white/60 border border-gray-300 dark:border-white/15 px-3 py-1.5">
             <span style={{ color: ACCENT }} className="text-[10px]">▪</span>
             For You
@@ -45,9 +45,9 @@ export default async function Recommended() {
         </div>
 
         {/* Top-right: title + Browse All */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 px-6 md:px-16 py-10 md:py-16 border-b border-gray-300 dark:border-[#232323]">
-          <h2 className="font-oliveira text-3xl md:text-4xl text-gray-900 dark:text-white leading-tight">
-            <span className="font-dm-sans font-bold" style={{ color: ACCENT }}>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 md:gap-6 px-4 sm:px-6 md:px-16 py-6 md:py-16 border-b border-gray-300 dark:border-[#232323]">
+          <h2 className="font-oliveira text-2xl sm:text-3xl md:text-4xl text-gray-900 dark:text-white leading-tight break-words">
+            <span className="font-dm-sans font-bold text-[#ca8a04] dark:text-[#facc15]">
               RECOMMENDED
             </span>{" "}
             By
@@ -57,16 +57,16 @@ export default async function Recommended() {
 
           <a
             href="/products"
-            className="inline-flex items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-6 py-3 transition-opacity hover:opacity-90 flex-shrink-0"
+            className="inline-flex items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-5 md:px-6 py-2.5 md:py-3 transition-opacity hover:opacity-90 flex-shrink-0 w-fit"
             style={{ backgroundColor: ACCENT }}
           >
-            <span className="text-white text-[10px]">▪</span>
+            <span className="text-gray-900 text-[10px]">▪</span>
             Browse All
           </a>
         </div>
 
         {/* Staggered grid with scroll/cycle controls */}
-        <div className="px-6 md:px-16 pt-16 md:pt-20 pb-16 md:pb-24 h-auto">
+        <div className="px-4 sm:px-6 md:px-16 pt-10 md:pt-20 pb-12 md:pb-24 h-auto">
           {products.length > 0 ? (
             <RecommendedGrid products={products} />
           ) : (

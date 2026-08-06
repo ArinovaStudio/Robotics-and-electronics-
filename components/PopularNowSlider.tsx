@@ -8,7 +8,7 @@ import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 
 type Product = {
   id: string;
@@ -63,7 +63,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
   const swiperRef = useRef<SwiperType | null>(null);
 
   return (
-    <div className="relative mt-12 group">
+    <div className="relative mt-8 md:mt-12 group">
       <Swiper
         modules={[Autoplay]}
         onSwiper={(swiper) => {
@@ -88,20 +88,24 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
 
           return (
             <SwiperSlide key={product.id}>
-              <div className="grid md:grid-cols-2 gap-10 items-start">
+              <div className="grid md:grid-cols-2 gap-6 md:gap-10 items-start">
                 {/* Product image */}
+<<<<<<< HEAD
                 <div className="relative w-full h-72 md:h-[420px] bg-gray-100 dark:bg-white/5 overflow-hidden">
+=======
+                <div className="relative w-full h-56 sm:h-72 md:h-[420px] bg-gray-100 dark:bg-white/5 rounded-lg overflow-hidden">
+>>>>>>> 4bff5b2 (Fixed the responseivness)
                   <ProductImage src={product.imageLink} alt={product.title} />
                 </div>
 
                 {/* Product details */}
-                <div>
-                  <h3 className="font-dm-sans text-xl md:text-2xl text-gray-900 dark:text-white font-medium leading-snug">
+                <div className="min-w-0">
+                  <h3 className="font-dm-sans text-lg sm:text-xl md:text-2xl text-gray-900 dark:text-white font-medium leading-snug break-words">
                     {product.title}
                   </h3>
 
                   {product.rating != null && (
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
                       <div className="flex items-center gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
@@ -120,15 +124,22 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                     </div>
                   )}
 
+<<<<<<< HEAD
                   <div className="mt-6">
                     <SectionLabel>Pricing</SectionLabel>
                     <div className="grid grid-cols-2 gap-4 mt-3">
                       <div className="border border-gray-300 dark:border-white/10 p-4">
+=======
+                  <div className="mt-5 md:mt-6">
+                    <SectionLabel>Pricing</SectionLabel>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4 mt-3">
+                      <div className="border border-gray-300 dark:border-white/10 rounded-lg p-3 md:p-4">
+>>>>>>> 4bff5b2 (Fixed the responseivness)
                         <span className="font-dm-sans text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40">
                           Special Price
                         </span>
-                        <div className="mt-1 flex items-baseline gap-2">
-                          <span className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                        <div className="mt-1 flex items-baseline gap-2 flex-wrap">
+                          <span className="font-dm-sans text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                             ₹{displayPrice}
                           </span>
                           {salePrice && (
@@ -142,7 +153,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                   </div>
 
                   {product.productHighlights && product.productHighlights.length > 0 && (
-                    <div className="mt-8">
+                    <div className="mt-6 md:mt-8">
                       <SectionLabel>About</SectionLabel>
                       <ul className="mt-2 space-y-1">
                         {product.productHighlights.slice(0, 4).map((h, i) => (
@@ -154,7 +165,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between mt-8">
+                  <div className="flex items-center justify-between gap-4 mt-6 md:mt-8 flex-wrap">
                     <a
                       href={`/products/${product.id}`}
                       className="inline-flex items-center gap-1 font-dm-sans text-xs uppercase tracking-widest text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -164,7 +175,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
 
                     {extraImages.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <span className="font-dm-sans text-gray-400 dark:text-white/30 text-sm">↙↗</span>
+                        <span className="font-dm-sans text-gray-400 dark:text-white/30 text-sm hidden sm:inline">↙↗</span>
                         {extraCount > 0 && (
                           <span
                             style={{ color: ACCENT }}
@@ -176,7 +187,7 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
                         {extraImages.map((img, i) => (
                           <div
                             key={i}
-                            className="relative w-14 h-14 rounded-md overflow-hidden border border-gray-300 dark:border-white/15 bg-gray-100 dark:bg-black/40"
+                            className="relative w-11 h-11 md:w-14 md:h-14 rounded-md overflow-hidden border border-gray-300 dark:border-white/15 bg-gray-100 dark:bg-black/40"
                           >
                             <Image src={img} alt="" fill className="object-cover" unoptimized />
                           </div>
@@ -197,18 +208,20 @@ export default function PopularNowSlider({ products }: { products: Product[] }) 
           <button
             type="button"
             onClick={() => swiperRef.current?.slidePrev()}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-6 z-20 w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+            className="absolute left-1 md:left-2 top-24 sm:top-1/2 sm:-translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white dark:bg-black border border-gray-300 dark:border-white/20 shadow-md text-gray-700 dark:text-white/80 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors cursor-pointer"
             aria-label="Previous product"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={16} className="md:hidden" />
+            <ChevronLeft size={18} className="hidden md:block" />
           </button>
           <button
             type="button"
             onClick={() => swiperRef.current?.slideNext()}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-6 z-20 w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+            className="absolute right-1 md:right-2 top-24 sm:top-1/2 sm:-translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white dark:bg-black border border-gray-300 dark:border-white/20 shadow-md text-gray-700 dark:text-white/80 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors cursor-pointer"
             aria-label="Next product"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={16} className="md:hidden" />
+            <ChevronRight size={18} className="hidden md:block" />
           </button>
         </>
       )}

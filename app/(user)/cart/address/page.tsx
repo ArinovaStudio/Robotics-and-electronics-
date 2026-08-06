@@ -11,7 +11,7 @@ import AddressModal from "@/components/AddressModal";
 import { usePayU } from "@/hooks/usePayU";
 import { useRazorpay } from "@/hooks/useRazorPay";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 
 type Address = {
   id: string;
@@ -234,7 +234,7 @@ export default function BetaAddressPage() {
 
   if (cartLoading || addressLoading) {
     return (
-      <div className="flex items-center justify-center py-32">
+      <div className="flex items-center justify-center py-24 md:py-32">
         <Loader2 className="w-8 h-8 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
@@ -245,7 +245,7 @@ export default function BetaAddressPage() {
   const finalTotal = totals.total - (appliedCoupon?.discountAmount || 0);
 
   return (
-    <div className="px-6 md:px-16 py-10">
+    <div className="px-4 sm:px-6 md:px-16 py-6 md:py-10">
       {activeGateway === "RAZORPAY" && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
 
       <AddressModal
@@ -255,7 +255,7 @@ export default function BetaAddressPage() {
         initialData={editData}
       />
 
-      <nav className="font-mono text-xs text-gray-500 dark:text-white/40 mb-6">
+      <nav className="font-mono text-xs text-gray-500 dark:text-white/40 mb-4 md:mb-6 overflow-x-auto whitespace-nowrap">
         <Link href="" className="hover:underline">Home</Link>
         {" / "}
         <Link href="/cart" className="hover:underline">Cart</Link>
@@ -263,14 +263,14 @@ export default function BetaAddressPage() {
         <span className="text-gray-700 dark:text-white/70">Address</span>
       </nav>
 
-      <h1 className="font-dm-sans text-3xl font-extrabold text-gray-900 dark:text-white mb-10">
+      <h1 className="font-dm-sans text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 md:mb-10">
         Checkout
       </h1>
 
-      <div className="grid md:grid-cols-[1fr_380px] gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-6 md:gap-10">
         {/* LEFT: address list */}
         <div>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <h2 className="font-dm-sans text-lg font-bold text-gray-900 dark:text-white">
               Select Delivery Address
             </h2>
@@ -280,7 +280,7 @@ export default function BetaAddressPage() {
                 setEditData(null);
                 setIsModalOpen(true);
               }}
-              className="flex items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest px-5 py-3 border transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+              className="flex items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest px-4 sm:px-5 py-3 border transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
               style={{ borderColor: ACCENT, color: ACCENT }}
             >
               <Plus size={14} />
@@ -289,7 +289,7 @@ export default function BetaAddressPage() {
           </div>
 
           {addresses.length === 0 ? (
-            <div className="border border-gray-300 dark:border-white/10 p-10 text-center">
+            <div className="border border-gray-300 dark:border-white/10 p-8 md:p-10 text-center">
               <p className="font-mono text-sm text-gray-500 dark:text-white/40">
                 You don&apos;t have any saved addresses yet.
               </p>
@@ -335,17 +335,17 @@ export default function BetaAddressPage() {
         </div>
 
         {/* RIGHT: order summary + payment */}
-        <div className="border border-gray-300 dark:border-white/10 p-6 h-fit sticky top-6">
+        <div className="border border-gray-300 dark:border-white/10 p-5 sm:p-6 h-fit md:sticky md:top-6">
           <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] mb-5" style={{ color: ACCENT }}>
             Order Summary
           </h2>
 
           {cart?.items && cart.items.length > 0 && (
-            <div className="flex gap-2 mb-6 pb-6 border-b border-gray-100 dark:border-white/5">
+            <div className="flex gap-2 mb-6 pb-6 border-b border-gray-100 dark:border-white/5 overflow-x-auto">
               {cart.items.slice(0, 4).map((item) => (
                 <div
                   key={item.id}
-                  className="relative w-14 h-14 border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#141414] flex-shrink-0"
+                  className="relative w-12 h-12 sm:w-14 sm:h-14 border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#141414] flex-shrink-0"
                 >
                   {item.product?.imageLink ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -358,7 +358,7 @@ export default function BetaAddressPage() {
                 </div>
               ))}
               {cart.items.length > 4 && (
-                <div className="w-14 h-14 border border-gray-200 dark:border-white/10 flex items-center justify-center font-mono text-xs text-gray-500 dark:text-white/40">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 border border-gray-200 dark:border-white/10 flex items-center justify-center font-mono text-xs text-gray-500 dark:text-white/40 flex-shrink-0">
                   +{cart.items.length - 4}
                 </div>
               )}
@@ -368,33 +368,33 @@ export default function BetaAddressPage() {
           {/* Coupon */}
           <div className="mb-6">
             {appliedCoupon ? (
-              <div className="flex items-center justify-between border border-green-500/30 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Tag size={14} className="text-green-600 dark:text-green-400" />
-                  <span className="font-mono text-xs font-semibold text-green-600 dark:text-green-400">
+              <div className="flex items-center justify-between border border-green-500/30 px-4 py-3 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Tag size={14} className="text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <span className="font-mono text-xs font-semibold text-green-600 dark:text-green-400 truncate">
                     {appliedCoupon.code} applied
                   </span>
                 </div>
-                <button type="button" onClick={handleRemoveCoupon} aria-label="Remove coupon">
+                <button type="button" onClick={handleRemoveCoupon} aria-label="Remove coupon" className="flex-shrink-0">
                   <X size={14} className="text-gray-400 dark:text-white/30 hover:text-red-500" />
                 </button>
               </div>
             ) : (
               <div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                     placeholder="Coupon code"
-                    className="flex-1 h-11 px-3 border bg-transparent text-sm font-mono text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                    className="flex-1 min-w-0 h-11 px-3 border bg-transparent text-sm font-mono text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
                     style={{ borderColor: "#232323" }}
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={isValidatingCoupon || !couponInput.trim()}
-                    className="font-dm-sans text-xs font-semibold uppercase tracking-widest px-5 border disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="font-dm-sans text-xs font-semibold uppercase tracking-widest px-5 h-11 sm:h-auto border disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-center"
                     style={{ borderColor: ACCENT, color: ACCENT }}
                   >
                     {isValidatingCoupon ? <Loader2 size={14} className="animate-spin" /> : "Apply"}
@@ -451,7 +451,7 @@ export default function BetaAddressPage() {
                   name="paymentMethod"
                   checked={paymentMethod === "ONLINE"}
                   onChange={() => setPaymentMethod("ONLINE")}
-                  className="w-4 h-4 cursor-pointer"
+                  className="w-4 h-4 cursor-pointer flex-shrink-0"
                   style={{ accentColor: ACCENT }}
                 />
                 <span className="font-mono text-xs font-semibold text-gray-800 dark:text-white/80">
@@ -467,7 +467,7 @@ export default function BetaAddressPage() {
                   name="paymentMethod"
                   checked={paymentMethod === "COD"}
                   onChange={() => setPaymentMethod("COD")}
-                  className="w-4 h-4 cursor-pointer"
+                  className="w-4 h-4 cursor-pointer flex-shrink-0"
                   style={{ accentColor: ACCENT }}
                 />
                 <span className="font-mono text-xs font-semibold text-gray-800 dark:text-white/80">
@@ -481,7 +481,7 @@ export default function BetaAddressPage() {
             type="button"
             onClick={handlePayment}
             disabled={!selectedId || processingPayment}
-            className="w-full flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-8 py-4 transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-8 py-4 transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ backgroundColor: ACCENT }}
           >
             {processingPayment ? (
@@ -518,10 +518,10 @@ function AddressCard({
   return (
     <div
       onClick={() => onSelect(addr.id)}
-      className="relative group border p-5 cursor-pointer transition-colors"
+      className="relative group border p-4 sm:p-5 cursor-pointer transition-colors"
       style={{ borderColor: isSelected ? ACCENT : "#232323" }}
     >
-      <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
         <button
           onClick={(e) => onEdit(e, addr)}
           className="p-2 text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/10 transition-colors"
@@ -543,11 +543,11 @@ function AddressCard({
           type="radio"
           checked={isSelected}
           onChange={() => onSelect(addr.id)}
-          className="mt-1 w-4 h-4 cursor-pointer"
+          className="mt-1 w-4 h-4 cursor-pointer flex-shrink-0"
           style={{ accentColor: ACCENT }}
         />
-        <div className="flex-1 pr-16">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex-1 min-w-0 pr-14 sm:pr-16">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white">
               {addr.name}
             </span>
@@ -555,7 +555,7 @@ function AddressCard({
               {addr.type}
             </span>
           </div>
-          <p className="font-mono text-xs text-gray-600 dark:text-white/60 mb-1">
+          <p className="font-mono text-xs text-gray-600 dark:text-white/60 mb-1 break-words">
             {addr.addressLine1}
             {addr.addressLine2 && `, ${addr.addressLine2}`}
           </p>

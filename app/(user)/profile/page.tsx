@@ -7,7 +7,7 @@ import { Loader2, MapPin, Plus } from "lucide-react";
 import Link from "next/link";
 import AddressModal from "@/components/AddressModal";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 const BORDER = "#232323";
 
 export default function ProfilePage() {
@@ -101,14 +101,14 @@ export default function ProfilePage() {
 
   if (isLoading || fetchingProfile || (!isAuthenticated && !isLoading)) {
     return (
-      <div className="flex justify-center items-center py-40">
+      <div className="flex justify-center items-center py-24 sm:py-40">
         <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen py-16 px-6 md:px-16 transition-colors">
+    <main className="min-h-screen py-8 sm:py-16 px-4 sm:px-6 md:px-16 transition-colors">
       <AddressModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -124,14 +124,14 @@ export default function ProfilePage() {
           Home
         </Link>
 
-        <h1 className="font-dm-sans text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-8">
+        <h1 className="font-dm-sans text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-6 sm:mb-8">
           Your Account
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Personal information */}
-          <div className="lg:col-span-2 border border-gray-300 dark:border-white/10 p-8">
-            <h2 className="font-mono text-[11px] uppercase tracking-widest mb-8" style={{ color: ACCENT }}>
+          <div className="lg:col-span-2 border border-gray-300 dark:border-white/10 p-5 sm:p-8">
+            <h2 className="font-mono text-[11px] uppercase tracking-widest mb-6 sm:mb-8" style={{ color: "#92700a" }}>
               Personal Information
             </h2>
 
@@ -148,7 +148,7 @@ export default function ProfilePage() {
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
                 <div>
                   <label className="block font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
                     First Name
@@ -184,7 +184,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
                 <div>
                   <label className="block font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
                     Email Address
@@ -217,7 +217,7 @@ export default function ProfilePage() {
 
               <div className="flex justify-end">
                 {isEditing ? (
-                  <div className="flex gap-3">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => {
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                           phone: profileData?.user?.phone || user?.phone || "",
                         });
                       }}
-                      className="px-8 py-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-white/70 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                      className="px-8 py-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-white/70 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 w-full sm:w-auto"
                       style={{ borderColor: BORDER }}
                     >
                       Cancel
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-8 py-3 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      className="px-8 py-3 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 transition-opacity hover:opacity-90 disabled:opacity-50 w-full sm:w-auto"
                       style={{ backgroundColor: ACCENT }}
                     >
                       {saving ? "Saving..." : "Save"}
@@ -248,8 +248,8 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="px-8 py-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
-                    style={{ borderColor: ACCENT, color: ACCENT }}
+                    className="px-8 py-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest transition-colors hover:bg-gray-50 dark:hover:bg-white/5 w-full sm:w-auto"
+                    style={{ borderColor: ACCENT, color: "#92700a" }}
                   >
                     Edit
                   </button>
@@ -260,34 +260,34 @@ export default function ProfilePage() {
 
           {/* Right column: summary + addresses */}
           <div className="flex flex-col gap-6">
-            <div className="border border-gray-300 dark:border-white/10 p-8">
-              <h2 className="font-mono text-[11px] uppercase tracking-widest mb-8" style={{ color: ACCENT }}>
+            <div className="border border-gray-300 dark:border-white/10 p-5 sm:p-8">
+              <h2 className="font-mono text-[11px] uppercase tracking-widest mb-6 sm:mb-8" style={{ color: "#92700a" }}>
                 Order Summary
               </h2>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
                     Total Spent
                   </p>
-                  <p className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white">
+                  <p className="font-dm-sans text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white break-words">
                     ₹{Number(profileData?.stats?.totalSpent || 0).toLocaleString("en-IN")}
                   </p>
                 </div>
 
-                <div className="border-l pl-6" style={{ borderColor: BORDER }}>
+                <div className="border-l pl-4 sm:pl-6" style={{ borderColor: BORDER }}>
                   <p className="font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-2">
                     Total Orders
                   </p>
-                  <p className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white">
+                  <p className="font-dm-sans text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
                     {profileData?.stats?.totalOrders || 0}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="border border-gray-300 dark:border-white/10 p-8">
-              <h3 className="font-mono text-[11px] uppercase tracking-widest mb-6" style={{ color: ACCENT }}>
+            <div className="border border-gray-300 dark:border-white/10 p-5 sm:p-8">
+              <h3 className="font-mono text-[11px] uppercase tracking-widest mb-6" style={{ color: "#92700a" }}>
                 Address
               </h3>
               <div className="space-y-4 mb-6">
@@ -295,7 +295,7 @@ export default function ProfilePage() {
                   <div key={addr.id}>
                     <div className="flex items-start gap-2">
                       <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-gray-400 dark:text-white/30" />
-                      <p className="font-mono text-xs text-gray-700 dark:text-white/70 leading-relaxed">
+                      <p className="font-mono text-xs text-gray-700 dark:text-white/70 leading-relaxed break-words">
                         {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
                       </p>
                     </div>
@@ -315,7 +315,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="w-full flex items-center justify-center gap-2 py-3 border font-mono text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
-                style={{ borderColor: ACCENT, color: ACCENT }}
+                style={{ borderColor: ACCENT, color: "#92700a" }}
               >
                 <Plus className="w-3.5 h-3.5" /> Add New
               </button>
@@ -325,16 +325,16 @@ export default function ProfilePage() {
 
         {/* My Orders link-out */}
         <div>
-          <h2 className="font-dm-sans text-xl font-extrabold text-gray-900 dark:text-white mb-6">
+          <h2 className="font-dm-sans text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mb-4 sm:mb-6">
             My Orders
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
               href="/orders"
-              className="border border-gray-300 dark:border-white/10 p-10 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+              className="border border-gray-300 dark:border-white/10 p-6 sm:p-10 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
             >
-              <h3 className="font-dm-sans text-lg font-extrabold text-gray-900 dark:text-white">
+              <h3 className="font-dm-sans text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">
                 My Orders
               </h3>
               <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">

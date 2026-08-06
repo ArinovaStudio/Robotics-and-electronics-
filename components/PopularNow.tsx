@@ -1,6 +1,6 @@
 import PopularNowSlider from "./PopularNowSlider";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 
 type Product = {
   id: string;
@@ -44,15 +44,15 @@ export default async function PopularNow() {
         </div>
 
         {/* Mobile-only badge, since gutter is hidden below md */}
-        <div className="md:hidden px-6 pt-10">
+        <div className="md:hidden px-4 sm:px-6 pt-8">
           <span className="font-dm-sans text-xs uppercase tracking-widest text-gray-500 dark:text-white/40 border border-gray-300 dark:border-white/15 px-3 py-1 rounded-full">
             Popular Now
           </span>
         </div>
 
         {/* Title row */}
-        <div className="px-6 md:px-16 py-10 md:py-16 border-b border-gray-300 dark:border-[#232323]">
-          <h2 className="font-oliveira text-3xl md:text-4xl text-gray-900 dark:text-white leading-tight">
+        <div className="px-4 sm:px-6 md:px-16 py-6 md:py-16 border-b border-gray-300 dark:border-[#232323]">
+          <h2 className="font-oliveira text-2xl sm:text-3xl md:text-4xl text-gray-900 dark:text-white leading-tight break-words">
             Gaining{" "}
             <span style={{ color: ACCENT }} className="font-dm-sans font-bold">
               POPULARITY
@@ -63,7 +63,7 @@ export default async function PopularNow() {
         </div>
 
         {/* Product card row — aligned with title's left edge via same grid column */}
-        <div className="px-6 md:px-16 py-16 md:py-20 max-w-[1200px]">
+        <div className="px-4 sm:px-6 md:px-16 py-10 md:py-20 max-w-[1200px] min-w-0">
           {products.length > 0 ? (
             <PopularNowSlider products={products} />
           ) : (

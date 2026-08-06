@@ -15,7 +15,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 const BORDER = "#232323";
 
 const STATUS_STEPS = ["Placed", "Confirmed", "Shipped", "Delivered"];
@@ -27,7 +27,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
   const activeIndex = currentIndex === -1 ? 0 : currentIndex;
 
   return (
-    <div className="flex items-center w-full">
+    <div className="flex items-start w-full min-w-[320px] overflow-x-auto">
       {STATUS_STEPS.map((step, i) => {
         const done = i <= activeIndex;
         const isLast = i === STATUS_STEPS.length - 1;
@@ -35,12 +35,12 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
           <div key={step} className={`flex items-center ${isLast ? "" : "flex-1"}`}>
             <div className="flex flex-col items-center gap-2">
               {done ? (
-                <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: ACCENT }} />
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" style={{ color: ACCENT }} />
               ) : (
-                <Circle className="w-5 h-5 shrink-0 text-gray-300 dark:text-white/20" />
+                <Circle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-gray-300 dark:text-white/20" />
               )}
               <span
-                className={`font-mono text-[10px] uppercase tracking-widest whitespace-nowrap ${
+                className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-widest whitespace-nowrap ${
                   done ? "text-gray-900 dark:text-white font-bold" : "text-gray-400 dark:text-white/30"
                 }`}
               >
@@ -49,7 +49,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
             </div>
             {!isLast && (
               <div
-                className="flex-1 h-[2px] mx-2 mb-5"
+                className="flex-1 h-[2px] mx-1.5 sm:mx-2 mb-5"
                 style={{
                   backgroundColor: i < activeIndex ? ACCENT : undefined,
                 }}
@@ -102,7 +102,7 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-32">
+      <div className="flex items-center justify-center py-24 sm:py-32">
         <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
@@ -110,11 +110,11 @@ export default function OrderDetailPage() {
 
   if (error || !order) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 px-4">
-        <p className="font-mono text-sm text-red-500 mb-6">{error || "Order not found."}</p>
+      <div className="flex flex-col items-center justify-center py-24 sm:py-32 px-4">
+        <p className="font-mono text-sm text-red-500 mb-6 text-center">{error || "Order not found."}</p>
         <Link
           href="/orders"
-          className="font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-8 py-4 transition-opacity hover:opacity-90"
+          className="font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-8 py-4 transition-opacity hover:opacity-90 w-full sm:w-auto text-center"
           style={{ backgroundColor: ACCENT }}
         >
           Back to Orders
@@ -131,7 +131,7 @@ export default function OrderDetailPage() {
   const total = order.total ?? subtotal + shipping;
 
   return (
-    <div className="flex flex-col items-center px-6 md:px-16 py-16">
+    <div className="flex flex-col items-center px-4 sm:px-6 md:px-16 py-8 sm:py-16">
       <div className="max-w-3xl w-full">
 
         <Link
@@ -141,11 +141,11 @@ export default function OrderDetailPage() {
           <ChevronLeft className="w-3.5 h-3.5" /> Back to Orders
         </Link>
 
-        <div className="border border-gray-300 dark:border-white/10 p-8">
+        <div className="border border-gray-300 dark:border-white/10 p-4 sm:p-8">
 
-          <div className="flex items-start justify-between border-b border-gray-100 dark:border-white/5 pb-8 mb-8">
-            <div>
-              <h1 className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-gray-100 dark:border-white/5 pb-6 sm:pb-8 mb-6 sm:mb-8">
+            <div className="min-w-0">
+              <h1 className="font-dm-sans text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white mb-2 break-words">
                 Order #{order.orderId || order._id?.slice(-8).toUpperCase()}
               </h1>
               <p className="font-mono text-xs text-gray-500 dark:text-white/40">
@@ -158,14 +158,14 @@ export default function OrderDetailPage() {
               </p>
             </div>
             <span
-              className="font-mono text-[10px] font-bold uppercase tracking-widest text-white px-3 py-1.5 shrink-0"
+              className="font-mono text-[10px] font-bold uppercase tracking-widest text-gray-900 px-3 py-1.5 shrink-0 self-start"
               style={{ backgroundColor: ACCENT }}
             >
               {order.status || "Placed"}
             </span>
           </div>
 
-          <div className="mb-10 px-2">
+          <div className="mb-8 sm:mb-10 -mx-1 px-1 sm:mx-0 sm:px-2 overflow-x-auto">
             <StatusTimeline currentStatus={order.status} />
           </div>
 
@@ -177,16 +177,16 @@ export default function OrderDetailPage() {
               {items.map((item: any, idx: number) => (
                 <div
                   key={item._id || idx}
-                  className={`flex items-center justify-between gap-4 p-4 ${
+                  className={`flex items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 ${
                     idx !== items.length - 1 ? "border-b border-gray-100 dark:border-white/5" : ""
                   }`}
                 >
-                  <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     {item.image && (
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-14 h-14 object-cover border border-gray-200 dark:border-white/10 shrink-0"
+                        className="w-12 h-12 sm:w-14 sm:h-14 object-cover border border-gray-200 dark:border-white/10 shrink-0"
                       />
                     )}
                     <div className="min-w-0">
@@ -198,7 +198,7 @@ export default function OrderDetailPage() {
                       </p>
                     </div>
                   </div>
-                  <p className="font-mono text-sm font-bold text-gray-900 dark:text-white shrink-0">
+                  <p className="font-mono text-xs sm:text-sm font-bold text-gray-900 dark:text-white shrink-0">
                     ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-IN")}
                   </p>
                 </div>
@@ -206,7 +206,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="border p-5 mb-8" style={{ borderColor: BORDER }}>
+          <div className="border p-4 sm:p-5 mb-8" style={{ borderColor: BORDER }}>
             <div className="flex items-center justify-between font-mono text-xs text-gray-600 dark:text-white/60 mb-2">
               <span>Subtotal</span>
               <span>₹{subtotal.toLocaleString("en-IN")}</span>
@@ -217,26 +217,26 @@ export default function OrderDetailPage() {
             </div>
             <div className="flex items-center justify-between font-dm-sans text-sm font-extrabold text-gray-900 dark:text-white pt-4 border-t border-gray-100 dark:border-white/5">
               <span>Total</span>
-              <span style={{ color: ACCENT }}>₹{total.toLocaleString("en-IN")}</span>
+              <span style={{ color: "#92700a" }} className="dark:!text-[#eab308]">₹{total.toLocaleString("en-IN")}</span>
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4 mb-8">
-            <div className="border p-5" style={{ borderColor: BORDER }}>
+            <div className="border p-4 sm:p-5" style={{ borderColor: BORDER }}>
               <h3 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-3">
                 <MapPin className="w-3.5 h-3.5" /> Delivery Address
               </h3>
               <p className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white mb-1">
                 {address?.name} | {address?.phone}
               </p>
-              <p className="font-mono text-xs text-gray-600 dark:text-white/60 leading-relaxed">
+              <p className="font-mono text-xs text-gray-600 dark:text-white/60 leading-relaxed break-words">
                 {address?.addressLine1}
                 {address?.addressLine2 ? `, ${address.addressLine2}` : ""}
                 {`, ${address?.city}, ${address?.state} - ${address?.pincode}`}
               </p>
             </div>
 
-            <div className="border p-5" style={{ borderColor: BORDER }}>
+            <div className="border p-4 sm:p-5" style={{ borderColor: BORDER }}>
               <h3 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-3">
                 <CreditCard className="w-3.5 h-3.5" /> Payment
               </h3>
@@ -251,7 +251,7 @@ export default function OrderDetailPage() {
 
           <div className="flex flex-col sm:flex-row gap-4">
             {order.invoiceUrl && (
-                <a
+              <a
                 href={order.invoiceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -263,7 +263,7 @@ export default function OrderDetailPage() {
             )}
             {isCOD && order.payment?.status !== "Paid" && (
               <button
-                className="flex-1 text-center font-dm-sans text-xs font-semibold uppercase tracking-widest text-white py-4 transition-opacity hover:opacity-90"
+                className="flex-1 text-center font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 py-4 transition-opacity hover:opacity-90"
                 style={{ backgroundColor: ACCENT }}
               >
                 Pay Now

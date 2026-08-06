@@ -10,7 +10,7 @@ import {
   Inbox,
 } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 const BORDER = "#232323";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -61,14 +61,14 @@ export default function OrdersListPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-32">
+      <div className="flex items-center justify-center py-24 sm:py-32">
         <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center px-6 md:px-16 py-16">
+    <div className="flex flex-col items-center px-4 sm:px-6 md:px-16 py-8 sm:py-16">
       <div className="max-w-3xl w-full">
 
         {/* Breadcrumb */}
@@ -82,8 +82,8 @@ export default function OrdersListPage() {
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="font-dm-sans text-2xl font-extrabold text-gray-900 dark:text-white">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
+          <h1 className="font-dm-sans text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
             My Orders
           </h1>
           <span className="font-mono text-xs text-gray-500 dark:text-white/40">
@@ -112,7 +112,7 @@ export default function OrdersListPage() {
 
         {/* Empty state */}
         {!error && orders.length === 0 && (
-          <div className="flex flex-col items-center justify-center border border-gray-300 dark:border-white/10 py-20 px-6 text-center">
+          <div className="flex flex-col items-center justify-center border border-gray-300 dark:border-white/10 py-16 sm:py-20 px-4 sm:px-6 text-center">
             <Inbox className="w-12 h-12 text-gray-300 dark:text-white/20 mb-4" strokeWidth={1.5} />
             <p className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white mb-2">
               No orders yet
@@ -122,7 +122,7 @@ export default function OrdersListPage() {
             </p>
             <Link
               href="/products"
-              className="font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-8 py-3 transition-opacity hover:opacity-90"
+              className="font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-8 py-3 transition-opacity hover:opacity-90"
               style={{ backgroundColor: ACCENT }}
             >
               Browse Products
@@ -132,8 +132,8 @@ export default function OrdersListPage() {
 
         {/* No search results */}
         {!error && orders.length > 0 && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center border border-gray-300 dark:border-white/10 py-16 px-6 text-center">
-            <p className="font-mono text-xs text-gray-500 dark:text-white/40">
+          <div className="flex flex-col items-center justify-center border border-gray-300 dark:border-white/10 py-16 px-4 sm:px-6 text-center">
+            <p className="font-mono text-xs text-gray-500 dark:text-white/40 break-words">
               No orders match "{query}"
             </p>
           </div>
@@ -155,11 +155,11 @@ export default function OrdersListPage() {
                 <Link
                   key={order.id || idx}
                   href={`/orders/${order.id}`}
-                  className={`flex items-center gap-4 p-5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${idx !== filtered.length - 1 ? "border-b border-gray-100 dark:border-white/5" : ""
+                  className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${idx !== filtered.length - 1 ? "border-b border-gray-100 dark:border-white/5" : ""
                     }`}
                 >
                   {/* Thumbnail */}
-                  <div className="w-14 h-14 shrink-0 border border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-white/5">
+                  <div className="w-11 h-11 sm:w-14 sm:h-14 shrink-0 border border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-white/5">
                     {previewImage ? (
                       <img src={previewImage} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -179,9 +179,9 @@ export default function OrdersListPage() {
                         )}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 font-mono text-[11px] text-gray-500 dark:text-white/40">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[10px] sm:text-[11px] text-gray-500 dark:text-white/40">
                       <span>#{order.orderNumber}</span>
-                      <span>·</span>
+                      <span className="hidden sm:inline">·</span>
                       <span>
                         {new Date(order.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
@@ -189,7 +189,7 @@ export default function OrdersListPage() {
                           year: "numeric",
                         })}
                       </span>
-                      <span>·</span>
+                      <span className="hidden sm:inline">·</span>
                       <span className={`uppercase tracking-widest font-bold ${STATUS_COLORS[statusKey] || "text-gray-500 dark:text-white/40"}`}>
                         {order.status}
                       </span>
@@ -197,8 +197,8 @@ export default function OrdersListPage() {
                   </div>
 
                   {/* Price + chevron */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <p className="font-mono text-sm font-bold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                    <p className="font-mono text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                       ₹{total.toLocaleString("en-IN")}
                     </p>
                     <ChevronRight className="w-4 h-4 text-gray-400 dark:text-white/30" />

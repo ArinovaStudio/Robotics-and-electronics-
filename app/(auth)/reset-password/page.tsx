@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+// Yellow accent — stays yellow in both light and dark mode.
+const ACCENT = "#facc15"; // yellow-400, good contrast in both themes
+const ACCENT_TEXT = "#1a1a1a"; // dark text on yellow bg for readability in both themes
 const BORDER = "#232323";
 
 function ResetPasswordForm() {
@@ -66,10 +68,17 @@ function ResetPasswordForm() {
 
   if (!email) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
-        <div className="w-full max-w-md border p-8 sm:p-10 text-center" style={{ borderColor: BORDER }}>
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-4 sm:px-6 py-12 sm:py-16">
+        <div
+          className="w-full max-w-md border p-6 sm:p-8 md:p-10 text-center"
+          style={{ borderColor: BORDER }}
+        >
           <p className="font-mono text-sm text-red-500 mb-4">Email address is required</p>
-          <Link href="/forgot-password" className="font-mono text-sm font-semibold hover:underline" style={{ color: ACCENT }}>
+          <Link
+            href="/forgot-password"
+            className="font-mono text-sm font-semibold hover:underline"
+            style={{ color: ACCENT_TEXT === "#1a1a1a" ? "#b45309" : ACCENT }}
+          >
             Go to Forgot Password
           </Link>
         </div>
@@ -79,10 +88,16 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
-        <div className="w-full max-w-md border p-8 sm:p-10 text-center" style={{ borderColor: BORDER }}>
-          <CheckCircle2 className="h-14 w-14 mx-auto mb-4" style={{ color: ACCENT }} />
-          <h2 className="font-oliveira text-2xl text-gray-900 dark:text-white mb-2">
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-4 sm:px-6 py-12 sm:py-16">
+        <div
+          className="w-full max-w-md border p-6 sm:p-8 md:p-10 text-center"
+          style={{ borderColor: BORDER }}
+        >
+          <CheckCircle2
+            className="h-12 w-12 sm:h-14 sm:w-14 mx-auto mb-4"
+            style={{ color: ACCENT }}
+          />
+          <h2 className="font-oliveira text-xl sm:text-2xl text-gray-900 dark:text-white mb-2">
             Password Reset!
           </h2>
           <p className="font-mono text-xs text-gray-500 dark:text-white/40">
@@ -97,19 +112,22 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
-      <div className="w-full max-w-md border p-8 sm:p-10" style={{ borderColor: BORDER }}>
-        <div className="text-center mb-8">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-4 sm:px-6 py-10 sm:py-16">
+      <div
+        className="w-full max-w-md border p-6 sm:p-8 md:p-10"
+        style={{ borderColor: BORDER }}
+      >
+        <div className="text-center mb-6 sm:mb-8">
           <div
-            className="flex h-14 w-14 items-center justify-center mx-auto mb-5"
+            className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center mx-auto mb-4 sm:mb-5"
             style={{ backgroundColor: ACCENT }}
           >
-            <Lock className="h-6 w-6 text-white" />
+            <Lock className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: ACCENT_TEXT }} />
           </div>
-          <h1 className="font-oliveira text-3xl text-gray-900 dark:text-white">
+          <h1 className="font-oliveira text-2xl sm:text-3xl text-gray-900 dark:text-white">
             Reset Password
           </h1>
-          <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">
+          <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2 break-words px-2">
             Enter the code sent to {email}
           </p>
         </div>
@@ -132,8 +150,10 @@ function ResetPasswordForm() {
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="w-full h-12 text-center text-xl tracking-widest border bg-transparent text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+              className="w-full h-11 sm:h-12 text-center text-lg sm:text-xl tracking-widest border bg-transparent text-gray-900 dark:text-white outline-none transition-colors"
               style={{ borderColor: BORDER }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = ACCENT)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
             />
           </div>
 
@@ -151,8 +171,10 @@ function ResetPasswordForm() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                className="w-full pl-10 pr-10 h-11 sm:h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none transition-colors"
                 style={{ borderColor: BORDER }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = ACCENT)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
               />
               <button
                 type="button"
@@ -178,8 +200,10 @@ function ResetPasswordForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none focus:border-current transition-colors"
+                className="w-full pl-10 pr-10 h-11 sm:h-12 border bg-transparent text-sm text-gray-900 dark:text-white outline-none transition-colors"
                 style={{ borderColor: BORDER }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = ACCENT)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
               />
               <button
                 type="button"
@@ -194,8 +218,8 @@ function ResetPasswordForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 mt-2 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: ACCENT }}
+            className="w-full h-11 sm:h-12 mt-2 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: ACCENT, color: ACCENT_TEXT }}
           >
             {isLoading ? (
               <>
@@ -226,7 +250,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex justify-center items-center">
-          <Loader2 className="h-8 w-8 animate-spin" style={{ color: ACCENT }} />
+          <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#facc15" }} />
         </div>
       }
     >

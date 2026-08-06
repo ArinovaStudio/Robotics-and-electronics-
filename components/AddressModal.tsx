@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import indianCitiesData from "@/lib/indianCities.json";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 const BORDER = "#232323";
 
 const typedCitiesData: Record<string, string[]> = indianCitiesData;
@@ -93,18 +93,18 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-3 sm:p-4">
       <div
-        className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10 p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl relative"
+        className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10 p-5 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl relative"
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-400 dark:text-white/40 hover:text-gray-800 dark:hover:text-white transition-colors"
+          className="absolute right-3 top-3 sm:right-4 sm:top-4 text-gray-400 dark:text-white/40 hover:text-gray-800 dark:hover:text-white transition-colors"
         >
           <X size={22} />
         </button>
 
-        <h2 className="font-dm-sans text-xl font-extrabold mb-6 text-gray-900 dark:text-white">
+        <h2 className="font-dm-sans text-lg sm:text-xl font-extrabold mb-6 pr-8 text-gray-900 dark:text-white">
           {initialData ? "Update Address" : "Add New Address"}
         </h2>
 
@@ -172,8 +172,8 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
             />
           </div>
 
-          <div className="flex gap-4">
-            <div className="w-1/2">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="w-full sm:w-1/2">
               <label className="block font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-1.5">
                 City <span style={{ color: ACCENT }}>*</span>
               </label>
@@ -192,7 +192,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
               </select>
             </div>
 
-            <div className="w-1/2">
+            <div className="w-full sm:w-1/2">
               <label className="block font-mono text-[11px] uppercase tracking-widest text-gray-500 dark:text-white/40 mb-1.5">
                 State <span style={{ color: ACCENT }}>*</span>
               </label>
@@ -226,16 +226,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 flex justify-center items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white py-3 transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: ACCENT }}
-            >
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {saving ? "Saving..." : "Save Address"}
-            </button>
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
@@ -243,6 +234,15 @@ export default function AddressModal({ isOpen, onClose, onSuccess, initialData }
               style={{ borderColor: BORDER }}
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 flex justify-center items-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 py-3 transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: ACCENT }}
+            >
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+              {saving ? "Saving..." : "Save Address"}
             </button>
           </div>
         </form>

@@ -13,7 +13,7 @@ import {
 
 import CategoryImage from "./Categoryimage";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 
 type Category = {
   id: string;
@@ -67,7 +67,7 @@ export default async function CategoryGrid() {
           instead of only wrapping the header row */}
       <div className="grid md:grid-cols-[240px_1fr] md:grid-rows-[auto_1fr]">
         {/* Sidebar */}
-        <aside className="border-b md:border-b-0 md:border-r border-gray-300 dark:border-white/10 px-6 py-10 md:py-16 md:row-span-2">
+        <aside className="border-b md:border-b-0 md:border-r border-gray-300 dark:border-white/10 px-4 sm:px-6 py-6 md:py-16 md:row-span-2">
           <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-[#1c1c1c] px-4 py-2.5">
             <span className="h-1.5 w-1.5 bg-gray-500 dark:bg-white/60" />
             <span className="font-dm-sans text-[11px] uppercase tracking-[0.25em] text-gray-600 dark:text-white/60">
@@ -77,8 +77,8 @@ export default async function CategoryGrid() {
         </aside>
 
         {/* Header content */}
-        <div className="border-b border-gray-300 dark:border-white/10 px-6 md:px-16 py-10 md:py-16">
-          <h2 className="font-oliveira text-[38px] leading-[1.05] text-gray-900 dark:text-white md:text-[56px]">
+        <div className="border-b border-gray-300 dark:border-white/10 px-4 sm:px-6 md:px-16 py-8 md:py-16">
+          <h2 className="font-oliveira text-[28px] sm:text-[34px] md:text-[56px] leading-[1.1] md:leading-[1.05] text-gray-900 dark:text-white break-words">
             Find the Perfect{" "}
             <span className="font-dm-sans font-bold text-gray-700 dark:text-white/90">
               PRODUCT
@@ -89,10 +89,10 @@ export default async function CategoryGrid() {
 
         {/* Cards + banner — now inside the same grid column as the header,
             so its left edge aligns with the heading, not the page edge */}
-        <div className="px-6 md:px-16 py-16 md:py-20">
+        <div className="px-4 sm:px-6 md:px-16 py-10 md:py-20">
           {categories.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-12 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-x-8 xl:grid-cols-6">
                 {categories.map((category) => {
                   const Icon = getIconForCategory(category.slug);
 
@@ -110,28 +110,42 @@ export default async function CategoryGrid() {
                           fallback={
                             <div className="flex h-full w-full items-center justify-center">
                               <Icon
+                                size={36}
+                                strokeWidth={1.5}
+                                className="md:hidden text-gray-500 dark:text-white/60 transition-transform duration-500 group-hover:scale-110"
+                              />
+                              <Icon
                                 size={48}
                                 strokeWidth={1.5}
-                                className="text-gray-500 dark:text-white/60 transition-transform duration-500 group-hover:scale-110"
+                                className="hidden md:block text-gray-500 dark:text-white/60 transition-transform duration-500 group-hover:scale-110"
                               />
                             </div>
                           }
                         />
                       </div>
 
-                      <div className="mt-4 flex flex-1 flex-col">
+                      <div className="mt-3 md:mt-4 flex flex-1 flex-col">
                         <h3
+<<<<<<< HEAD
                           className="line-clamp-1 font-dm-sans text-xs font-bold uppercase tracking-[0.1em] text-black dark:text-white"
+=======
+                          className="line-clamp-1 font-dm-sans text-[11px] md:text-xs font-bold uppercase tracking-[0.1em] text-gray-900 dark:text-white"
+>>>>>>> 4bff5b2 (Fixed the responseivness)
                         >
                           {category.name}
                         </h3>
 
                         <Link
                           href={`/products?category=${category.slug}`}
+<<<<<<< HEAD
                           className="mt-auto inline-flex w-fit items-center gap-2 bg-white dark:bg-[#0a0a0a] py-2 font-dm-sans text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
                           style={{ color: ACCENT }}
+=======
+                          className="mt-auto inline-flex w-fit items-center gap-1.5 md:gap-2 bg-white dark:bg-[#0a0a0a] px-3 md:px-4 py-1.5 md:py-2 pt-3 md:pt-4 font-dm-sans text-[9px] md:text-[10px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:opacity-90"
+                          style={{ color: ACCENT, border: `1px solid ${ACCENT}` }}
+>>>>>>> 4bff5b2 (Fixed the responseivness)
                         >
-                          <span className="h-1.5 w-1.5" style={{ backgroundColor: ACCENT }} />
+                          <span className="h-1.5 w-1.5 shrink-0" style={{ backgroundColor: ACCENT }} />
                           Explore
                         </Link>
                       </div>
@@ -140,7 +154,7 @@ export default async function CategoryGrid() {
                 })}
               </div>
 
-              <div className="mt-24 mx-auto flex max-w-3xl flex-col gap-4 bg-gray-100 dark:bg-[#1c1c1c] px-8 py-5 md:flex-row md:items-center md:justify-between">
+              <div className="mt-14 md:mt-24 mx-auto flex max-w-3xl flex-col gap-4 bg-gray-100 dark:bg-[#1c1c1c] px-5 md:px-8 py-5 md:flex-row md:items-center md:justify-between">
                 <p className="font-mono text-sm text-gray-900 dark:text-white">
                   We are Introducing Some Fresh Concept Soon!
                 </p>
@@ -155,8 +169,8 @@ export default async function CategoryGrid() {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center border border-dashed border-gray-300 dark:border-white/15 py-20">
-              <p className="font-dm-sans text-gray-400 dark:text-white/40">
+            <div className="flex items-center justify-center border border-dashed border-gray-300 dark:border-white/15 py-16 md:py-20">
+              <p className="font-dm-sans text-gray-400 dark:text-white/40 text-sm text-center px-4">
                 No categories available right now.
               </p>
             </div>

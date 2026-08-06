@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import ProductRequestModal from "./ProductRequestModal";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 const MAX_PRICE = 50000;
 
 type Product = {
@@ -71,6 +71,7 @@ export default function ProductsSection() {
     Number(searchParams.get("page")) || 1
   );
   const [totalPages, setTotalPages] = useState(1);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const VISIBLE_COUNT = 6;
   const readMoreRef = useRef<HTMLButtonElement>(null);
 
@@ -139,232 +140,258 @@ export default function ProductsSection() {
     );
   }, []);
 
+  const filtersContent = (
+    <div>
+      {/* Categories */}
+      <div className="border-b border-gray-300 dark:border-white/10 px-6 py-5">
+        <p
+          className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] mb-4"
+          style={{ color: ACCENT }}
+        >
+          Categories
+        </p>
+        <div className="flex flex-col gap-4">
+          {(categoriesExpanded
+            ? facets.categories
+            : facets.categories.slice(0, VISIBLE_COUNT)
+          ).map((cat) => (
+            <label
+              key={cat.id}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
+              <span className="relative h-4 w-4 shrink-0">
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(cat.id)}
+                  onChange={() => toggleCategory(cat.id)}
+                  className="peer h-4 w-4 cursor-pointer appearance-none border border-gray-400 dark:border-white/30"
+                  style={{
+                    backgroundColor: selectedCategories.includes(cat.id)
+                      ? ACCENT
+                      : "transparent",
+                    borderColor: selectedCategories.includes(cat.id)
+                      ? ACCENT
+                      : undefined,
+                  }}
+                />
+                {selectedCategories.includes(cat.id) && (
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="pointer-events-none absolute inset-0 h-4 w-4 p-[2px]"
+                  >
+                    <path
+                      d="M3 8l3 3 7-7"
+                      stroke="#111827"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="square"
+                    />
+                  </svg>
+                )}
+              </span>
+              <span className="font-mono text-xs text-gray-700 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                {cat.name}
+              </span>
+              <span className="ml-auto font-mono text-[11px] text-gray-400 dark:text-white/30">
+                {cat.count}
+              </span>
+            </label>
+          ))}
+        </div>
+
+        {facets.categories.length > VISIBLE_COUNT && (
+          <button
+            ref={readMoreRef}
+            type="button"
+            onClick={toggleCategoriesExpanded}
+            className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-widest"
+            style={{ color: ACCENT }}
+          >
+            {categoriesExpanded
+              ? "− Read Less"
+              : `+ Read More (${facets.categories.length - VISIBLE_COUNT})`}
+          </button>
+        )}
+      </div>
+
+      {/* Price range */}
+      <div className="px-6 py-5">
+        <p
+          className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] mb-5"
+          style={{ color: ACCENT }}
+        >
+          Price Range
+        </p>
+
+        {/* Direct entry inputs */}
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex-1">
+            <label className="block font-mono text-[9px] uppercase tracking-widest text-gray-400 dark:text-white/30 mb-1">
+              Min
+            </label>
+            <div className="flex items-center border border-gray-300 dark:border-white/15 px-2 py-1.5">
+              <span className="font-mono text-xs text-gray-400 dark:text-white/30 mr-1">
+                ₹
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={maxPrice - 50}
+                step={50}
+                value={minPrice}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (Number.isNaN(val)) return;
+                  setMinPrice(Math.max(0, Math.min(val, maxPrice - 50)));
+                }}
+                className="w-full bg-transparent font-mono text-xs text-gray-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+          </div>
+
+          <span className="mt-4 font-mono text-xs text-gray-400 dark:text-white/30">
+            —
+          </span>
+
+          <div className="flex-1">
+            <label className="block font-mono text-[9px] uppercase tracking-widest text-gray-400 dark:text-white/30 mb-1">
+              Max
+            </label>
+            <div className="flex items-center border border-gray-300 dark:border-white/15 px-2 py-1.5">
+              <span className="font-mono text-xs text-gray-400 dark:text-white/30 mr-1">
+                ₹
+              </span>
+              <input
+                type="number"
+                min={minPrice + 50}
+                max={MAX_PRICE}
+                step={50}
+                value={maxPrice}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (Number.isNaN(val)) return;
+                  setMaxPrice(Math.min(MAX_PRICE, Math.max(val, minPrice + 50)));
+                }}
+                className="w-full bg-transparent font-mono text-xs text-gray-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="relative h-[2px] bg-gray-300 dark:bg-white/15 mb-5">
+          <div
+            className="absolute h-[2px]"
+            style={{
+              backgroundColor: ACCENT,
+              left: `${(minPrice / MAX_PRICE) * 100}%`,
+              right: `${100 - (maxPrice / MAX_PRICE) * 100}%`,
+            }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={MAX_PRICE}
+            step={50}
+            value={minPrice}
+            onChange={(e) =>
+              setMinPrice(Math.min(Number(e.target.value), maxPrice - 50))
+            }
+            className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-gray-900 dark:[&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:cursor-pointer"
+          />
+          <input
+            type="range"
+            min={0}
+            max={MAX_PRICE}
+            step={50}
+            value={maxPrice}
+            onChange={(e) =>
+              setMaxPrice(Math.max(Number(e.target.value), minPrice + 50))
+            }
+            className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-gray-900 dark:[&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:cursor-pointer"
+          />
+        </div>
+
+        <p className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+          ₹{minPrice.toLocaleString("en-IN")} — ₹
+          {maxPrice >= MAX_PRICE
+            ? `${MAX_PRICE.toLocaleString("en-IN")}+`
+            : maxPrice.toLocaleString("en-IN")}
+        </p>
+      </div>
+
+      {/* Product Request card */}
+      <div className="border-t border-gray-300 dark:border-white/10 px-6 py-6">
+        <p className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white">
+          Product Request
+        </p>
+        <p className="mt-2 font-mono text-xs text-gray-500 dark:text-white/50 leading-relaxed">
+          Have an idea for a new product? Let us know!
+        </p>
+        <button
+          type="button"
+          onClick={() => setRequestModalOpen(true)}
+          className="mt-4 w-full font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-6 py-3 transition-opacity hover:opacity-90"
+          style={{ backgroundColor: ACCENT }}
+        >
+          Submit Request
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <section
       id="products"
       className="border-b border-gray-300 dark:border-white/10 bg-white dark:bg-transparent"
     >
       {/* Header row — title + View All, full-width border beneath */}
+<<<<<<< HEAD
       <div className="flex items-center justify-between border-b border-gray-300 dark:border-white/10 px-6 md:px-16 py-6 md:py-8">
         <h2 className="font-dm-sans text-xl md:text-2xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">
           {categoryName ?? "Top Selling Products"}
+=======
+      <div className="flex items-center justify-between gap-3 border-b border-gray-300 dark:border-white/10 px-4 sm:px-6 md:px-16 py-5 md:py-8">
+        <h2 className="font-dm-sans text-base sm:text-xl md:text-2xl font-extrabold uppercase tracking-tight text-gray-900 dark:text-white">
+          Top Selling{" "}
+          <span
+            className="px-1"
+            style={{ backgroundColor: "rgba(250, 204, 21, 0.18)" }}
+          >
+            Robotics
+          </span>{" "}
+          Parts
+>>>>>>> 4bff5b2 (Fixed the responseivness)
         </h2>
-        <Link
-          href="/products"
-          className="flex items-center gap-2 font-dm-sans text-xs font-bold uppercase tracking-widest whitespace-nowrap"
-          style={{ color: ACCENT }}
-        >
-          View All <ArrowRight size={14} />
-        </Link>
+        <div className="flex items-center gap-4 shrink-0">
+          {/* Mobile-only filter toggle, since sidebar is hidden below md */}
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(true)}
+            className="md:hidden flex items-center gap-1.5 font-dm-sans text-xs font-bold uppercase tracking-widest text-gray-700 dark:text-white/70 border border-gray-300 dark:border-white/15 px-3 py-2"
+          >
+            <SlidersHorizontal size={13} />
+            Filters
+          </button>
+          <Link
+            href="/products"
+            className="flex items-center gap-2 font-dm-sans text-xs font-bold uppercase tracking-widest whitespace-nowrap text-[#ca8a04] dark:text-[#facc15]"
+          >
+            <span className="hidden sm:inline">View All</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
 
       {/* Two-column split — filters aligned to same 240px gutter as CategoryGrid sidebar */}
       <div className="grid md:grid-cols-[240px_1fr]">
-        {/* Filters — collapsible, brutalist: sharp corners, horizontal rules only */}
-        <aside className="border-b md:border-b-0 md:border-r border-gray-300 dark:border-white/10 md:sticky md:top-0 md:self-start md:max-h-screen md:overflow-y-auto">
+        {/* Filters — desktop sidebar, collapsible, brutalist: sharp corners, horizontal rules only */}
+        <aside className="hidden md:block border-r border-gray-300 dark:border-white/10 md:sticky md:top-0 md:self-start md:max-h-screen md:overflow-y-auto">
           <div className="px-6 py-5 border-b border-gray-300 dark:border-white/10">
             <span className="font-dm-sans text-[11px] font-bold uppercase tracking-[0.25em] text-gray-700 dark:text-white/70">
               Filters
             </span>
           </div>
-
-          <div>
-            {/* Categories */}
-            <div className="border-b border-gray-300 dark:border-white/10 px-6 py-5">
-              <p
-                className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] mb-4"
-                style={{ color: ACCENT }}
-              >
-                Categories
-              </p>
-              <div className="flex flex-col gap-4">
-                {(categoriesExpanded
-                  ? facets.categories
-                  : facets.categories.slice(0, VISIBLE_COUNT)
-                ).map((cat) => (
-                  <label
-                    key={cat.id}
-                    className="flex items-center gap-3 cursor-pointer group"
-                  >
-                    <span className="relative h-4 w-4 shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={selectedCategories.includes(cat.id)}
-                        onChange={() => toggleCategory(cat.id)}
-                        className="peer h-4 w-4 cursor-pointer appearance-none border border-gray-400 dark:border-white/30"
-                        style={{
-                          backgroundColor: selectedCategories.includes(cat.id)
-                            ? ACCENT
-                            : "transparent",
-                          borderColor: selectedCategories.includes(cat.id)
-                            ? ACCENT
-                            : undefined,
-                        }}
-                      />
-                      {selectedCategories.includes(cat.id) && (
-                        <svg
-                          viewBox="0 0 16 16"
-                          className="pointer-events-none absolute inset-0 h-4 w-4 p-[2px]"
-                        >
-                          <path
-                            d="M3 8l3 3 7-7"
-                            stroke="white"
-                            strokeWidth="2"
-                            fill="none"
-                            strokeLinecap="square"
-                          />
-                        </svg>
-                      )}
-                    </span>
-                    <span className="font-mono text-xs text-gray-700 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                      {cat.name}
-                    </span>
-                    <span className="ml-auto font-mono text-[11px] text-gray-400 dark:text-white/30">
-                      {cat.count}
-                    </span>
-                  </label>
-                ))}
-              </div>
-
-              {facets.categories.length > VISIBLE_COUNT && (
-                <button
-                  ref={readMoreRef}
-                  type="button"
-                  onClick={toggleCategoriesExpanded}
-                  className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-widest"
-                  style={{ color: ACCENT }}
-                >
-                  {categoriesExpanded
-                    ? "− Read Less"
-                    : `+ Read More (${facets.categories.length - VISIBLE_COUNT})`}
-                </button>
-              )}
-            </div>
-
-            {/* Price range */}
-            {/* Price range */}
-              <div className="px-6 py-5">
-                <p
-                  className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] mb-5"
-                  style={{ color: ACCENT }}
-                >
-                  Price Range
-                </p>
-
-                {/* Direct entry inputs */}
-                <div className="flex items-center gap-2 mb-5">
-                  <div className="flex-1">
-                    <label className="block font-mono text-[9px] uppercase tracking-widest text-gray-400 dark:text-white/30 mb-1">
-                      Min
-                    </label>
-                    <div className="flex items-center border border-gray-300 dark:border-white/15 px-2 py-1.5">
-                      <span className="font-mono text-xs text-gray-400 dark:text-white/30 mr-1">
-                        ₹
-                      </span>
-                      <input
-                        type="number"
-                        min={0}
-                        max={maxPrice - 50}
-                        step={50}
-                        value={minPrice}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (Number.isNaN(val)) return;
-                          setMinPrice(Math.max(0, Math.min(val, maxPrice - 50)));
-                        }}
-                        className="w-full bg-transparent font-mono text-xs text-gray-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                    </div>
-                  </div>
-
-                  <span className="mt-4 font-mono text-xs text-gray-400 dark:text-white/30">
-                    —
-                  </span>
-
-                  <div className="flex-1">
-                    <label className="block font-mono text-[9px] uppercase tracking-widest text-gray-400 dark:text-white/30 mb-1">
-                      Max
-                    </label>
-                    <div className="flex items-center border border-gray-300 dark:border-white/15 px-2 py-1.5">
-                      <span className="font-mono text-xs text-gray-400 dark:text-white/30 mr-1">
-                        ₹
-                      </span>
-                      <input
-                        type="number"
-                        min={minPrice + 50}
-                        max={MAX_PRICE}
-                        step={50}
-                        value={maxPrice}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (Number.isNaN(val)) return;
-                          setMaxPrice(Math.min(MAX_PRICE, Math.max(val, minPrice + 50)));
-                        }}
-                        className="w-full bg-transparent font-mono text-xs text-gray-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative h-[2px] bg-gray-300 dark:bg-white/15 mb-5">
-                  <div
-                    className="absolute h-[2px]"
-                    style={{
-                      backgroundColor: ACCENT,
-                      left: `${(minPrice / MAX_PRICE) * 100}%`,
-                      right: `${100 - (maxPrice / MAX_PRICE) * 100}%`,
-                    }}
-                  />
-                  <input
-                    type="range"
-                    min={0}
-                    max={MAX_PRICE}
-                    step={50}
-                    value={minPrice}
-                    onChange={(e) =>
-                      setMinPrice(Math.min(Number(e.target.value), maxPrice - 50))
-                    }
-                    className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-gray-900 dark:[&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:cursor-pointer"
-                  />
-                  <input
-                    type="range"
-                    min={0}
-                    max={MAX_PRICE}
-                    step={50}
-                    value={maxPrice}
-                    onChange={(e) =>
-                      setMaxPrice(Math.max(Number(e.target.value), minPrice + 50))
-                    }
-                    className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-gray-900 dark:[&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:cursor-pointer"
-                  />
-                </div>
-
-                <p className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
-                  ₹{minPrice.toLocaleString("en-IN")} — ₹
-                  {maxPrice >= MAX_PRICE
-                    ? `${MAX_PRICE.toLocaleString("en-IN")}+`
-                    : maxPrice.toLocaleString("en-IN")}
-                </p>
-              </div>
-
-            {/* Product Request card */}
-            <div className="border-t border-gray-300 dark:border-white/10 px-6 py-6">
-              <p className="font-dm-sans text-sm font-bold text-gray-900 dark:text-white">
-                Product Request
-              </p>
-              <p className="mt-2 font-mono text-xs text-gray-500 dark:text-white/50 leading-relaxed">
-                Have an idea for a new product? Let us know!
-              </p>
-              <button
-                type="button"
-                onClick={() => setRequestModalOpen(true)}
-                className="mt-4 w-full font-dm-sans text-xs font-semibold uppercase tracking-widest text-white px-6 py-3 transition-opacity hover:opacity-90"
-                style={{ backgroundColor: ACCENT }}
-              >
-                Submit Request
-              </button>
-            </div>
-          </div>
+          {filtersContent}
         </aside>
 
         {/* Product grid — wireframe cells: borders between every row/column */}
@@ -374,7 +401,7 @@ export default function ProductsSection() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="border-b border-r border-gray-300 dark:border-white/10 p-6"
+                  className="border-b border-r border-gray-300 dark:border-white/10 p-4 md:p-6"
                 >
                   <div className="aspect-[1.3] bg-gray-100 dark:bg-white/5 animate-pulse" />
                 </div>
@@ -389,8 +416,13 @@ export default function ProductsSection() {
                 return (
                   <Link
                     key={product.id}
+<<<<<<< HEAD
                     href={`/products/${product.id}`}
                     className={`group flex flex-col p-6 border-b border-gray-300 dark:border-white/10 ${!isLastCol ? "border-r" : ""
+=======
+                    href={`/products/${product.link}`}
+                    className={`group flex flex-col p-4 md:p-6 border-b border-gray-300 dark:border-white/10 ${!isLastCol ? "sm:border-r" : ""
+>>>>>>> 4bff5b2 (Fixed the responseivness)
                       }`}
                   >
                     <div className="relative aspect-[1.3]">
@@ -414,7 +446,7 @@ export default function ProductsSection() {
                       )}
                     </div>
 
-                    <div className="mt-5 flex flex-1 flex-col">
+                    <div className="mt-4 md:mt-5 flex flex-1 flex-col min-w-0">
                       <h3 className="line-clamp-2 font-dm-sans text-sm font-bold text-gray-900 dark:text-white">
                         {product.title}
                       </h3>
@@ -423,10 +455,7 @@ export default function ProductsSection() {
                           {product.description}
                         </p>
                       )}
-                      <p
-                        className="mt-3 font-dm-sans text-lg font-extrabold"
-                        style={{ color: ACCENT }}
-                      >
+                      <p className="mt-3 font-dm-sans text-base md:text-lg font-extrabold text-[#ca8a04] dark:text-[#facc15]">
                         ₹{Number(displayPrice).toLocaleString("en-IN")}
                       </p>
                     </div>
@@ -435,8 +464,8 @@ export default function ProductsSection() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center border-t border-gray-300 dark:border-white/10 py-20">
-              <p className="font-mono text-xs text-gray-400 dark:text-white/40">
+            <div className="flex items-center justify-center border-t border-gray-300 dark:border-white/10 py-16 md:py-20">
+              <p className="font-mono text-xs text-gray-400 dark:text-white/40 text-center px-4">
                 No products match these filters.
               </p>
             </div>
@@ -444,15 +473,15 @@ export default function ProductsSection() {
 
           {/* Pagination — only show once loaded and there's more than one page */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 border-t border-gray-300 dark:border-white/10 py-8 font-mono text-xs">
+            <div className="flex flex-wrap items-center justify-center gap-2 border-t border-gray-300 dark:border-white/10 py-6 md:py-8 px-4 font-mono text-xs">
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-4 py-2 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 px-3 md:px-4 py-2 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={14} />
-                Previous
+                <span className="hidden sm:inline">Previous</span>
               </button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -483,8 +512,8 @@ export default function ProductsSection() {
                       onClick={() => setCurrentPage(item)}
                       className={
                         item === currentPage
-                          ? "w-9 h-9 flex items-center justify-center border text-white"
-                          : "w-9 h-9 flex items-center justify-center border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors"
+                          ? "w-8 h-8 md:w-9 md:h-9 flex items-center justify-center border text-gray-900"
+                          : "w-8 h-8 md:w-9 md:h-9 flex items-center justify-center border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors"
                       }
                       style={
                         item === currentPage
@@ -501,15 +530,51 @@ export default function ProductsSection() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-4 py-2 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 px-3 md:px-4 py-2 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Next
+                <span className="hidden sm:inline">Next</span>
                 <ChevronRight size={14} />
               </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Mobile filters — slide-in panel */}
+      {mobileFiltersOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileFiltersOpen(false)}
+          />
+          <div className="relative ml-auto w-[85%] max-w-sm h-full bg-white dark:bg-[#0a0a0a] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300 dark:border-white/10">
+              <span className="font-dm-sans text-[11px] font-bold uppercase tracking-[0.25em] text-gray-700 dark:text-white/70">
+                Filters
+              </span>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                aria-label="Close filters"
+                className="text-gray-500 dark:text-white/50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {filtersContent}
+            <div className="px-6 py-5">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="w-full font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 px-6 py-3"
+                style={{ backgroundColor: ACCENT }}
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ProductRequestModal
         open={requestModalOpen}

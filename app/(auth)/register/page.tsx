@@ -6,7 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Mail, Lock, Eye, EyeOff, User, Loader2 } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#eab308";
 const BORDER = "#232323";
 
 export default function RegisterPage() {
@@ -98,16 +98,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-6 py-16">
-      <div className="w-full max-w-md border p-8 sm:p-10" style={{ borderColor: BORDER }}>
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-4 sm:px-6 py-10 sm:py-16">
+      <div className="w-full max-w-md border p-6 sm:p-10" style={{ borderColor: BORDER }}>
         <div className="text-center mb-8">
           <div
-            className="flex h-14 w-14 items-center justify-center mx-auto mb-5"
+            className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center mx-auto mb-5"
             style={{ backgroundColor: ACCENT }}
           >
-            <User className="h-6 w-6 text-white" />
+            <User className="h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
           </div>
-          <h1 className="font-oliveira text-3xl text-gray-900 dark:text-white">
+          <h1 className="font-oliveira text-2xl sm:text-3xl text-gray-900 dark:text-white">
             Create Your Account
           </h1>
           <p className="font-mono text-xs text-gray-500 dark:text-white/40 mt-2">
@@ -116,7 +116,7 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="mb-6 border border-red-500/30 text-red-500 px-4 py-3 font-mono text-xs text-center">
+          <div className="mb-6 border border-red-500/30 text-red-500 px-4 py-3 font-mono text-xs text-center break-words">
             {error}
           </div>
         )}
@@ -222,7 +222,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 mt-4 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 mt-4 flex items-center justify-center gap-2 font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-900 transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: ACCENT }}
           >
             {isLoading ? (
@@ -238,7 +238,7 @@ export default function RegisterPage() {
 
         <div className="my-6 flex items-center">
           <div className="flex-1 border-t" style={{ borderColor: BORDER }} />
-          <span className="px-4 font-mono text-[11px] uppercase tracking-widest text-gray-400 dark:text-white/30">
+          <span className="px-4 font-mono text-[11px] uppercase tracking-widest text-gray-400 dark:text-white/30 text-center">
             Or continue with
           </span>
           <div className="flex-1 border-t" style={{ borderColor: BORDER }} />
@@ -250,7 +250,7 @@ export default function RegisterPage() {
           className="w-full h-12 flex items-center justify-center gap-3 border font-dm-sans text-xs font-semibold uppercase tracking-widest text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ borderColor: BORDER }}
         >
-          <svg className="h-4 w-4" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -268,13 +268,13 @@ export default function RegisterPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Sign up with Google
+          <span className="truncate">Sign up with Google</span>
         </button>
 
         <div className="mt-6 text-center">
           <p className="font-mono text-xs text-gray-500 dark:text-white/40">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold hover:underline" style={{ color: ACCENT }}>
+            <Link href="/login" className="font-semibold hover:underline" style={{ color: "#92700a" }}>
               Sign In
             </Link>
           </p>

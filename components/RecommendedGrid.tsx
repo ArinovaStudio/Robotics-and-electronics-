@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
-const ACCENT = "#ff5a1f";
+const ACCENT = "#facc15"; // yellow-400
 
 type Product = {
     id: string;
@@ -53,25 +53,22 @@ function ProductBlock({
                 <ProductImage src={product.imageLink} alt={product.title} />
             </div>
 
-            <div className="mt-5 flex items-start justify-between gap-4">
+            <div className="mt-4 md:mt-5 flex items-start justify-between gap-3 md:gap-4">
                 <div className="min-w-0">
                     <p className="font-dm-sans text-sm text-gray-900 dark:text-white leading-snug line-clamp-2">
                         {product.title}
                     </p>
                     <div className="mt-2">
-                        <span
-                            className="font-dm-sans text-[10px] uppercase tracking-widest"
-                            style={{ color: ACCENT }}
-                        >
+                        <span className="font-dm-sans text-[10px] uppercase tracking-widest text-[#ca8a04] dark:text-[#facc15]">
                             Price
                         </span>
-                        <div className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
+                        <div className="font-dm-sans text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
                             ₹{displayPrice}
                         </div>
                     </div>
                 </div>
 
-                <span className="font-dm-sans text-2xl text-gray-400 dark:text-white/30 group-hover:text-gray-900 dark:group-hover:text-white transition-colors flex-shrink-0">
+                <span className="font-dm-sans text-xl md:text-2xl text-gray-400 dark:text-white/30 group-hover:text-gray-900 dark:group-hover:text-white transition-colors flex-shrink-0">
                     ↗
                 </span>
             </div>
@@ -94,15 +91,15 @@ export default function RecommendedGrid({ products }: { products: Product[] }) {
     const right = products[pairIndex * 2 + 1];
 
     return (
-        <div className="relative group pb-16 md:pb-24">
-            <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start auto-rows-auto">
+        <div className="relative group pb-12 md:pb-24">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-start auto-rows-auto">
                 {/* Left — tall vertical product */}
                 <div className="h-auto">
                     {left && (
                         <ProductBlock
                             key={left.id}
                             product={left}
-                            imageHeightClass="h-[380px] md:h-[440px]"
+                            imageHeightClass="h-[280px] sm:h-[380px] md:h-[440px]"
                         />
                     )}
                 </div>
@@ -113,7 +110,7 @@ export default function RecommendedGrid({ products }: { products: Product[] }) {
                         <ProductBlock
                             key={right.id}
                             product={right}
-                            imageHeightClass="h-[320px] md:h-[380px]"
+                            imageHeightClass="h-[240px] sm:h-[320px] md:h-[380px]"
                         />
                     )}
                 </div>
@@ -125,22 +122,24 @@ export default function RecommendedGrid({ products }: { products: Product[] }) {
                     <button
                         type="button"
                         onClick={() => goTo("prev")}
-                        className="absolute -top-3 right-0 md:-right-6 z-20 w-9 h-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className="absolute -top-2 md:-top-3 right-0 md:-right-6 z-20 w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
                         aria-label="Previous products"
                     >
-                        <ChevronUp size={16} />
+                        <ChevronUp size={15} className="md:hidden" />
+                        <ChevronUp size={16} className="hidden md:block" />
                     </button>
                     <button
                         type="button"
                         onClick={() => goTo("next")}
-                        className="absolute -bottom-3 right-0 md:-right-6 z-20 w-9 h-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className="absolute -bottom-2 md:-bottom-3 right-0 md:-right-6 z-20 w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 border border-gray-300 dark:border-white/15 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:border-gray-500 dark:hover:border-white/40 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
                         aria-label="Next products"
                     >
-                        <ChevronDown size={16} />
+                        <ChevronDown size={15} className="md:hidden" />
+                        <ChevronDown size={16} className="hidden md:block" />
                     </button>
 
                     {/* Small pair indicator dots */}
-                    <div className="flex items-center gap-1.5 mt-8 md:absolute md:-bottom-8 md:right-0 md:mt-0">
+                    <div className="flex items-center gap-1.5 mt-6 md:mt-0 md:absolute md:-bottom-8 md:right-0">
                         {Array.from({ length: totalPairs }).map((_, i) => (
                             <button
                                 key={i}
