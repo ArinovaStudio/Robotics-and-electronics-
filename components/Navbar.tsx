@@ -21,6 +21,7 @@ export default function Navbar() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,35 +40,40 @@ export default function Navbar() {
     });
   }, []);
 
+  // Fuzzy-ranked suggestions now come straight from the API (pg_trgm on the server)
   useEffect(() => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
       setSuggestions([]);
+      setIsSearching(false);
       return;
     }
 
+    setIsSearching(true);
+    const controller = new AbortController();
+
     const timeout = setTimeout(() => {
-      fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=5`, {
+      fetch(`/api/products/suggest?search=${encodeURIComponent(trimmed)}`, {
         cache: "no-store",
+        signal: controller.signal,
       })
         .then((res) => res.json())
         .then((json) => {
           if (json.success) {
-            setSuggestions(
-              json.data.products.map((p: any) => ({
-                id: p.id,
-                title: p.title,
-                link: p.link,
-                image: p.image,
-              }))
-            );
+            setSuggestions(json.data.products);
             setShowSuggestions(true);
           }
         })
-        .catch((err) => console.error("Search suggestion fetch failed:", err));
+        .catch((err) => {
+          if (err.name !== "AbortError") console.error("Search suggestion fetch failed:", err);
+        })
+        .finally(() => setIsSearching(false));
     }, 250);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [query]);
 
   useEffect(() => {
@@ -141,8 +147,13 @@ export default function Navbar() {
             />
           </form>
 
-          {showSuggestions && suggestions.length > 0 && (
+          {showSuggestions && (suggestions.length > 0 || isSearching) && (
             <div className="absolute top-full left-0 right-0 mt-0 bg-white dark:bg-[#0a0a0a] border border-t-0 border-gray-300 dark:border-[#232323] shadow-lg z-50">
+              {isSearching && suggestions.length === 0 && (
+                <div className="px-4 py-3 text-xs text-gray-400 dark:text-white/30 font-dm-sans">
+                  Searching...
+                </div>
+              )}
               {suggestions.map((s) => (
                 <Link
                   key={s.id}
