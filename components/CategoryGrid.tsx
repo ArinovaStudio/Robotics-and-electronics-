@@ -13,7 +13,7 @@ import {
 
 import CategoryImage from "./Categoryimage";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Category = {
   id: string;

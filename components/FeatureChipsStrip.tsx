@@ -1,7 +1,7 @@
 "use client";
 import { Award, Rocket, ShieldCheck, BookOpen, FileText } from "lucide-react";
 
-const ACCENT = "#facc15"; 
+const ACCENT = "#ffa600"; 
 
 const items = [
   { icon: Award, label: "MSME Certified" },

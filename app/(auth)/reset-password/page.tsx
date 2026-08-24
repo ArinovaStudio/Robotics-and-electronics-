@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 
 // Yellow accent — stays yellow in both light and dark mode.
-const ACCENT = "#facc15"; // yellow-400, good contrast in both themes
+const ACCENT = "#ffa600"; // yellow-400, good contrast in both themes
 const ACCENT_TEXT = "#1a1a1a"; // dark text on yellow bg for readability in both themes
 const BORDER = "#232323";
 
@@ -250,7 +250,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex justify-center items-center">
-          <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#facc15" }} />
+          <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#ffa600" }} />
         </div>
       }
     >

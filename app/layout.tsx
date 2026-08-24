@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Providers } from "@/components/Providers";
 import { SITE_NAME } from "@/lib/constants";
 import { GoogleAnalytics } from '@next/third-parties/google'; 
+import MetaPixel from "@/components/MetaPixel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${unbounded.variable} ${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${openSans.className} antialiased`}
         suppressHydrationWarning
       >
+        <MetaPixel />
         <Providers>
           {children}
         </Providers>

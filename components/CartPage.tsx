@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type CartItem = {
   id: string;
@@ -237,7 +237,7 @@ export default function CartPage() {
                   </button>
                 </div>
 
-                <p className="font-dm-sans text-sm font-extrabold w-16 sm:w-20 text-right text-[#ca8a04] dark:text-[#facc15] order-4 sm:order-none">
+                <p className="font-dm-sans text-sm font-extrabold w-16 sm:w-20 text-right text-[#ca8a04] dark:text-[#ffa600] order-4 sm:order-none">
                   ₹{item.lineTotal.toFixed(2)}
                 </p>
 
@@ -257,7 +257,7 @@ export default function CartPage() {
 
         {/* Summary */}
         <div className="border border-gray-300 dark:border-white/10 p-5 md:p-6 h-fit md:sticky md:top-6">
-          <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] mb-5 text-[#ca8a04] dark:text-[#facc15]">
+          <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] mb-5 text-[#ca8a04] dark:text-[#ffa600]">
             Order Summary
           </h2>
 
@@ -274,7 +274,7 @@ export default function CartPage() {
             )}
             <div className="flex justify-between font-dm-sans text-lg font-extrabold text-gray-900 dark:text-white pt-3 border-t border-gray-100 dark:border-white/5">
               <span>Total</span>
-              <span className="text-[#ca8a04] dark:text-[#facc15]">₹{cart.summary.total}</span>
+              <span className="text-[#ca8a04] dark:text-[#ffa600]">₹{cart.summary.total}</span>
             </div>
           </div>
 

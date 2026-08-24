@@ -8,7 +8,7 @@ import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Product = {
   id: string;

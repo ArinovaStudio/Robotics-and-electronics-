@@ -9,7 +9,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Banner = {
   id: string;

@@ -1,6 +1,6 @@
 import PopularNowSlider from "./PopularNowSlider";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Product = {
   id: string;

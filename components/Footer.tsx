@@ -4,7 +4,7 @@ import { FaInstagram } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 export default function Footer() {
   return (
@@ -69,7 +69,7 @@ export default function Footer() {
               },
             ].map((col) => (
               <div key={col.title} className="min-w-0">
-                <div className="font-mono text-[11px] sm:text-xs uppercase tracking-widest mb-4 md:mb-5 text-[#ca8a04] dark:text-[#facc15]">
+                <div className="font-mono text-[11px] sm:text-xs uppercase tracking-widest mb-4 md:mb-5 text-[#ca8a04] dark:text-[#ffa600]">
                   [ {col.title} ]
                 </div>
                 <ul className="space-y-3 md:space-y-4">

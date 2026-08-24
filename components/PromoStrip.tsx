@@ -2,7 +2,7 @@
 
 import { Truck, ShieldCheck, Store, Headset } from "lucide-react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 const items = [
   { icon: Truck, title: "Fast Delivery", subtitle: "Pan-India shipping" },

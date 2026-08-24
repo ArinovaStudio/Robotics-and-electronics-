@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Lock, BadgeCheck, FileCheck2, Package, Bell } from "lucide-react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 const features = [
   { icon: Lock, label: "Escrow-protected payments" },
@@ -73,14 +73,14 @@ export default function TechEngiSection() {
         {/* LEFT */}
         <div>
           <span
-            className="inline-block font-mono text-[11px] font-bold uppercase tracking-[0.25em] border px-3 py-1.5 mb-5 md:mb-6 text-[#ca8a04] dark:text-[#facc15]"
+            className="inline-block font-mono text-[11px] font-bold uppercase tracking-[0.25em] border px-3 py-1.5 mb-5 md:mb-6 text-[#ca8a04] dark:text-[#ffa600]"
             style={{ borderColor: ACCENT }}
           >
             We are Live
           </span>
 
           <h2 className="font-dm-sans text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight mb-4 md:mb-5 break-words">
-            Tech <span className="text-[#ca8a04] dark:text-[#facc15]">Engi</span>
+            Tech <span className="text-[#ca8a04] dark:text-[#ffa600]">Engi</span>
             <br />
             Expert Connect
           </h2>
@@ -96,7 +96,7 @@ export default function TechEngiSection() {
               const Icon = f.icon;
               return (
                 <div key={f.label} className="flex items-center gap-3">
-                  <Icon size={16} className="shrink-0 text-[#ca8a04] dark:text-[#facc15]" />
+                  <Icon size={16} className="shrink-0 text-[#ca8a04] dark:text-[#ffa600]" />
                   <span className="font-mono text-xs text-gray-700 dark:text-white/70">
                     {f.label}
                   </span>

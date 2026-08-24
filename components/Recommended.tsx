@@ -1,6 +1,6 @@
 import RecommendedGrid from "./RecommendedGrid";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Product = {
   id: string;
@@ -47,7 +47,7 @@ export default async function Recommended() {
         {/* Top-right: title + Browse All */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 md:gap-6 px-4 sm:px-6 md:px-16 py-6 md:py-16 border-b border-gray-300 dark:border-[#232323]">
           <h2 className="font-oliveira text-2xl sm:text-3xl md:text-4xl text-gray-900 dark:text-white leading-tight break-words">
-            <span className="font-dm-sans font-bold text-[#ca8a04] dark:text-[#facc15]">
+            <span className="font-dm-sans font-bold text-[#ca8a04] dark:text-[#ffa600]">
               RECOMMENDED
             </span>{" "}
             By

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ArrowRight, ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import ProductRequestModal from "./ProductRequestModal";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 const MAX_PRICE = 50000;
 
 type Product = {
@@ -374,7 +374,7 @@ export default function ProductsSection() {
           </button>
           <Link
             href="/products"
-            className="flex items-center gap-2 font-dm-sans text-xs font-bold uppercase tracking-widest whitespace-nowrap text-[#ca8a04] dark:text-[#facc15]"
+            className="flex items-center gap-2 font-dm-sans text-xs font-bold uppercase tracking-widest whitespace-nowrap text-[#ca8a04] dark:text-[#ffa600]"
           >
             <span className="hidden sm:inline">View All</span>
             <ArrowRight size={14} />
@@ -451,7 +451,7 @@ export default function ProductsSection() {
                           {product.description}
                         </p>
                       )}
-                      <p className="mt-3 font-dm-sans text-base md:text-lg font-extrabold text-[#ca8a04] dark:text-[#facc15]">
+                      <p className="mt-3 font-dm-sans text-base md:text-lg font-extrabold text-[#ca8a04] dark:text-[#ffa600]">
                         ₹{Number(displayPrice).toLocaleString("en-IN")}
                       </p>
                     </div>

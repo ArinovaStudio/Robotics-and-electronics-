@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 export default function Newsletter() {
 
@@ -24,7 +24,7 @@ export default function Newsletter() {
             </span>
             <h2 className="font-oliveira text-xl sm:text-2xl md:text-3xl text-gray-900 dark:text-white mt-2 break-words">
               Get Exclusive{" "}
-              <span className="font-dm-sans font-bold text-[#ca8a04] dark:text-[#facc15]">
+              <span className="font-dm-sans font-bold text-[#ca8a04] dark:text-[#ffa600]">
                 DEALS
               </span>{" "}
               and{" "}

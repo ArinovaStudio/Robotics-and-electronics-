@@ -7,7 +7,7 @@ import { Search, ChevronDown, User, Package, LogOut, Menu, X } from "lucide-reac
 import { getSession, signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // primary accent color
 
 type Suggestion = {
   id: string;
@@ -82,7 +82,11 @@ export default function Navbar() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
+        // Don't close if clicking on a suggestion item
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-suggestion-item]')) {
+          setShowSuggestions(false);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -95,7 +99,11 @@ export default function Navbar() {
         mobileSearchRef.current &&
         !mobileSearchRef.current.contains(e.target as Node)
       ) {
-        setShowSuggestions(false);
+        // Don't close if clicking on a suggestion item
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-suggestion-item]')) {
+          setShowSuggestions(false);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutsideMobile);
@@ -148,14 +156,19 @@ export default function Navbar() {
         </div>
       )}
       {suggestions.map((s) => (
-        <Link
+        <div
           key={s.id}
-          href={`/products/${s.link}`}
+          data-suggestion-item="true"
           onClick={() => {
+            // FIXED: Clear all mobile states and navigate using router
             setShowSuggestions(false);
             setMobileSearchOpen(false);
+            setMobileMenuOpen(false);
+            setQuery("");
+            // Use router.push instead of Link for better control
+            router.push(`/products/${s.link}`);
           }}
-          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 border-b last:border-b-0 border-gray-100 dark:border-white/5 transition-colors"
+          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 border-b last:border-b-0 border-gray-100 dark:border-white/5 transition-colors cursor-pointer"
         >
           {s.image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -170,7 +183,7 @@ export default function Navbar() {
           <span className="font-dm-sans text-xs text-gray-700 dark:text-white/80 line-clamp-1">
             {s.title}
           </span>
-        </Link>
+        </div>
       ))}
     </>
   );

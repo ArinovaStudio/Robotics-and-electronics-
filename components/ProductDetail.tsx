@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, Minus, Plus } from "lucide-react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Review = {
   id: string;
@@ -62,7 +62,7 @@ function StarRow({ rating, size = "text-sm" }: { rating: number; size?: string }
       {Array.from({ length: 5 }).map((_, i) => (
         <span
           key={i}
-          className={`${size} ${i < Math.round(rating) ? "text-[#ca8a04] dark:text-[#facc15]" : "text-gray-300 dark:text-white/20"}`}
+          className={`${size} ${i < Math.round(rating) ? "text-[#ca8a04] dark:text-[#ffa600]" : "text-gray-300 dark:text-white/20"}`}
         >
           ★
         </span>
@@ -246,7 +246,7 @@ export default function ProductDetail({
             </div>
 
             <div className="mt-5 flex items-baseline gap-3 flex-wrap">
-              <p className="font-dm-sans text-2xl md:text-3xl font-extrabold text-[#ca8a04] dark:text-[#facc15]">
+              <p className="font-dm-sans text-2xl md:text-3xl font-extrabold text-[#ca8a04] dark:text-[#ffa600]">
                 ₹{Number(displayPrice).toLocaleString("en-IN")}
               </p>
               {hasDiscount && (
@@ -302,7 +302,7 @@ export default function ProductDetail({
                 type="button"
                 disabled={!inStock || cartStatus === "adding"}
                 onClick={handleAddToCart}
-                className="flex-1 sm:flex-none font-dm-sans text-xs font-semibold uppercase tracking-widest px-6 md:px-8 py-3 md:py-4 border transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-[#ca8a04] dark:text-[#facc15]"
+                className="flex-1 sm:flex-none font-dm-sans text-xs font-semibold uppercase tracking-widest px-6 md:px-8 py-3 md:py-4 border transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-[#ca8a04] dark:text-[#ffa600]"
                 style={{ borderColor: ACCENT }}
               >
                 {cartStatus === "adding" ? "Adding..." : "Add to Cart"}
@@ -397,7 +397,7 @@ export default function ProductDetail({
                   <p className="mt-3 line-clamp-2 font-dm-sans text-xs font-semibold text-gray-900 dark:text-white">
                     {sp.title}
                   </p>
-                  <p className="mt-1 font-dm-sans text-sm font-extrabold text-[#ca8a04] dark:text-[#facc15]">
+                  <p className="mt-1 font-dm-sans text-sm font-extrabold text-[#ca8a04] dark:text-[#ffa600]">
                     ₹{Number(spPrice).toLocaleString("en-IN")}
                   </p>
                 </Link>
@@ -460,7 +460,7 @@ function ProductDetailsTab({ product }: { product: Product }) {
                 key={i}
                 className="flex items-start justify-between gap-6 md:gap-8 py-4 border-b border-gray-100 dark:border-white/5 font-mono text-sm"
               >
-                <span className="text-[#ca8a04] dark:text-[#facc15] shrink-0">▪</span>
+                <span className="text-[#ca8a04] dark:text-[#ffa600] shrink-0">▪</span>
                 <span className="flex-1 text-gray-700 dark:text-white/70">{h}</span>
               </div>
             ))}
@@ -569,7 +569,7 @@ function FaqsTab({ faqs }: { faqs: Faq[] }) {
             <span className="font-dm-sans text-sm font-semibold text-gray-900 dark:text-white">
               {faq.question}
             </span>
-            <span className="font-mono text-lg shrink-0 ml-2 text-[#ca8a04] dark:text-[#facc15]">
+            <span className="font-mono text-lg shrink-0 ml-2 text-[#ca8a04] dark:text-[#ffa600]">
               {openFaq === i ? "−" : "+"}
             </span>
           </button>

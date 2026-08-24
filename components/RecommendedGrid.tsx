@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
-const ACCENT = "#facc15"; // yellow-400
+const ACCENT = "#ffa600"; // yellow-400
 
 type Product = {
     id: string;
@@ -59,7 +59,7 @@ function ProductBlock({
                         {product.title}
                     </p>
                     <div className="mt-2">
-                        <span className="font-dm-sans text-[10px] uppercase tracking-widest text-[#ca8a04] dark:text-[#facc15]">
+                        <span className="font-dm-sans text-[10px] uppercase tracking-widest text-[#ca8a04] dark:text-[#ffa600]">
                             Price
                         </span>
                         <div className="font-dm-sans text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
