@@ -23,6 +23,7 @@ export default function Navbar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -32,6 +33,8 @@ export default function Navbar() {
 
   // Mobile hamburger menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Mobile search overlay
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     getSession().then((session) => {
@@ -87,6 +90,19 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
+    function handleClickOutsideMobile(e: MouseEvent) {
+      if (
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideMobile);
+    return () => document.removeEventListener("mousedown", handleClickOutsideMobile);
+  }, []);
+
+  useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setShowProfileMenu(false);
@@ -96,10 +112,13 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close mobile menu on resize back to desktop
+  // Close mobile menu / mobile search on resize back to desktop
   useEffect(() => {
     function handleResize() {
-      if (window.innerWidth >= 768) setMobileMenuOpen(false);
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+        setMobileSearchOpen(false);
+      }
     }
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -110,9 +129,52 @@ export default function Navbar() {
     const trimmed = query.trim();
     if (trimmed) {
       setShowSuggestions(false);
+      setMobileSearchOpen(false);
       router.push(`/search?q=${encodeURIComponent(trimmed)}`);
     }
   }
+
+  function renderSuggestions() {
+  return (
+    <>
+      {isSearching && suggestions.length === 0 && (
+        <div className="px-4 py-3 text-xs text-gray-400 dark:text-white/30 font-dm-sans">
+          Searching...
+        </div>
+      )}
+      {!isSearching && suggestions.length === 0 && (
+        <div className="px-4 py-3 text-xs text-gray-400 dark:text-white/30 font-dm-sans">
+          No products found
+        </div>
+      )}
+      {suggestions.map((s) => (
+        <Link
+          key={s.id}
+          href={`/products/${s.link}`}
+          onClick={() => {
+            setShowSuggestions(false);
+            setMobileSearchOpen(false);
+          }}
+          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 border-b last:border-b-0 border-gray-100 dark:border-white/5 transition-colors"
+        >
+          {s.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={s.image}
+              alt={s.title}
+              className="h-8 w-8 object-contain shrink-0"
+            />
+          ) : (
+            <div className="h-8 w-8 shrink-0 bg-gray-100 dark:bg-white/5" />
+          )}
+          <span className="font-dm-sans text-xs text-gray-700 dark:text-white/80 line-clamp-1">
+            {s.title}
+          </span>
+        </Link>
+      ))}
+    </>
+  );
+}
 
   return (
     <nav className="w-full border-b bg-white dark:bg-[#0a0a0a] border-gray-300 dark:border-[#232323] relative">
@@ -147,35 +209,9 @@ export default function Navbar() {
             />
           </form>
 
-          {showSuggestions && (suggestions.length > 0 || isSearching) && (
+          {showSuggestions && query.trim().length >= 2 && (
             <div className="absolute top-full left-0 right-0 mt-0 bg-white dark:bg-[#0a0a0a] border border-t-0 border-gray-300 dark:border-[#232323] shadow-lg z-50">
-              {isSearching && suggestions.length === 0 && (
-                <div className="px-4 py-3 text-xs text-gray-400 dark:text-white/30 font-dm-sans">
-                  Searching...
-                </div>
-              )}
-              {suggestions.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/products/${s.link}`}
-                  onClick={() => setShowSuggestions(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 border-b last:border-b-0 border-gray-100 dark:border-white/5 transition-colors"
-                >
-                  {s.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.image}
-                      alt={s.title}
-                      className="h-8 w-8 object-contain shrink-0"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 shrink-0 bg-gray-100 dark:bg-white/5" />
-                  )}
-                  <span className="font-dm-sans text-xs text-gray-700 dark:text-white/80 line-clamp-1">
-                    {s.title}
-                  </span>
-                </Link>
-              ))}
+              {renderSuggestions()}
             </div>
           )}
         </div>
@@ -272,23 +308,60 @@ export default function Navbar() {
 
         {/* Mobile: search icon + hamburger */}
         <div className="md:hidden flex items-center ml-auto gap-1 px-2">
-          <Link
-            href="/search"
+          <button
+            type="button"
             aria-label="Search"
+            onClick={() => {
+              setMobileSearchOpen((v) => !v);
+              setMobileMenuOpen(false);
+            }}
             className="p-2 text-gray-600 dark:text-white/60"
           >
-            <Search size={18} />
-          </Link>
+            {mobileSearchOpen ? <X size={18} /> : <Search size={18} />}
+          </button>
           <button
             type="button"
             aria-label="Menu"
-            onClick={() => setMobileMenuOpen((v) => !v)}
+            onClick={() => {
+              setMobileMenuOpen((v) => !v);
+              setMobileSearchOpen(false);
+            }}
             className="p-2 text-gray-600 dark:text-white/60"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
+
+      {/* Mobile search overlay */}
+      {mobileSearchOpen && (
+        <div
+          ref={mobileSearchRef}
+          className="md:hidden relative border-t border-gray-300 dark:border-[#232323] px-4 py-3"
+        >
+          <form
+            onSubmit={handleSearch}
+            className="flex items-center gap-2 border border-gray-300 dark:border-white/15 px-3 py-2"
+          >
+            <Search size={14} className="text-gray-400 dark:text-white/40 shrink-0" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => query.trim().length >= 2 && setShowSuggestions(true)}
+              placeholder="Search products..."
+              autoFocus
+              className="bg-transparent w-full font-dm-sans text-sm text-gray-700 dark:text-white/80 placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none"
+            />
+          </form>
+
+          {showSuggestions && query.trim().length >= 2 && (
+            <div className="absolute top-full left-4 right-4 bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-[#232323] shadow-lg z-50">
+              {renderSuggestions()}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Mobile slide-down menu */}
       {mobileMenuOpen && (
